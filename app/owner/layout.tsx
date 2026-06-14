@@ -3,6 +3,8 @@ import {
   LayoutDashboard, BarChart2, Monitor, Users, UserPlus,
   History, UserCheck, Clipboard, MapPin, Clock, LogIn,
 } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { SignOutButton } from './sign-out-button'
 
 const nav = [
@@ -19,7 +21,15 @@ const nav = [
   { href: '/owner/locations', label: 'Locations', icon: MapPin },
 ]
 
-export default function OwnerLayout({ children }: { children: React.ReactNode }) {
+export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const { data: profile } = await supabase
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (!profile || profile.role !== 'owner') redirect('/')
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">

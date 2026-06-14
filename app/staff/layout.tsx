@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { LayoutDashboard, UserCheck, Clock, FileText } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { SignOutButton } from './sign-out-button'
 
 const nav = [
@@ -9,7 +11,15 @@ const nav = [
   { href: '/staff/my-timesheet', label: 'My Timesheet', icon: FileText },
 ]
 
-export default function StaffLayout({ children }: { children: React.ReactNode }) {
+export default async function StaffLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const { data: profile } = await supabase
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (!profile || profile.role !== 'staff') redirect('/')
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
@@ -36,7 +46,6 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <span className="text-sm text-gray-500">Staff Portal</span>
-          {/* TODO: user menu */}
         </header>
         <main className="flex-1 p-6">{children}</main>
       </div>
