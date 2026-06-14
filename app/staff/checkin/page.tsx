@@ -107,8 +107,8 @@ export default function StaffCheckinPage() {
     const supabase = createClient()
 
     const { data, error } = await supabase.rpc('checkout_student', {
-      checkin_id: checkoutTarget.id,
-      ...(sessionNote.trim() ? { session_note: sessionNote.trim() } : {}),
+      p_checkin_id: checkoutTarget.id,
+      p_session_note: sessionNote.trim() || null,
     })
 
     if (error) {
