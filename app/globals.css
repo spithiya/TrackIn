@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --brand: #534AB7;
-  --brand-light: #EEEDFE;
+  --brand: #0D9488;
+  --brand-light: #F0FDFA;
   --green: #3B6D11;
   --amber: #BA7517;
   --red: #A32D2D;
-  --teal: #085041;
+  --teal: #0D9488;
 }
 
 @layer base {
