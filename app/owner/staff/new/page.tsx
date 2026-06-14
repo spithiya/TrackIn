@@ -1,10 +1,21 @@
-export default function RegisterStaffPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Register Staff</h1>
-      <div className="h-64 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-gray-400 text-sm">
-        Register Staff — coming soon
-      </div>
-    </div>
-  )
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { RegisterStaffForm } from './register-staff-form'
+
+export default async function RegisterStaffPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const { data: profile } = await supabase
+    .from('profiles').select('org_id').eq('id', user.id).single()
+  if (!profile) redirect('/auth/login')
+
+  const { data: locations } = await supabase
+    .from('locations')
+    .select('id, name')
+    .eq('org_id', profile.org_id)
+    .eq('is_active', true)
+
+  return <RegisterStaffForm orgId={profile.org_id} locations={locations ?? []} />
 }
