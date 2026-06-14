@@ -13,7 +13,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
         <div className="px-6 py-5 border-b border-gray-100">
-          <span className="text-lg font-bold text-[#534AB7]">BrightMind</span>
+          <span className="text-lg font-bold text-[#0D9488]">BrightMind</span>
           <p className="text-xs text-gray-500 mt-0.5">Staff Portal</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -21,7 +21,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-[#EEEDFE] hover:text-[#534AB7] transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-[#F0FDFA] hover:text-[#0D9488] transition-colors"
             >
               <Icon size={16} />
               {label}
