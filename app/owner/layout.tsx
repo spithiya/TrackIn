@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import {
   LayoutDashboard, BarChart2, Monitor, Users, UserPlus,
-  History, UserCheck, Clipboard, MapPin, Clock,
+  History, UserCheck, Clipboard, MapPin, Clock, LogIn,
 } from 'lucide-react'
 import { SignOutButton } from './sign-out-button'
 
@@ -9,6 +9,7 @@ const nav = [
   { href: '/owner/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/owner/analytics', label: 'Analytics', icon: BarChart2 },
   { href: '/owner/live', label: 'Live Display', icon: Monitor },
+  { href: '/owner/checkin', label: 'Check In / Out', icon: LogIn },
   { href: '/owner/students', label: 'Student Records', icon: Users },
   { href: '/owner/students/new', label: 'Add Student', icon: UserPlus },
   { href: '/owner/history', label: 'Visit History', icon: History },
@@ -45,7 +46,6 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <span className="text-sm text-gray-500">Owner Portal</span>
-          {/* TODO: user menu */}
         </header>
         <main className="flex-1 p-6">{children}</main>
       </div>
