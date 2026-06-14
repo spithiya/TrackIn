@@ -17,5 +17,5 @@ export default async function AddStudentPage() {
     .eq('org_id', profile.org_id)
     .eq('is_active', true)
 
-  return <AddStudentForm orgId={profile.org_id} locations={locations ?? []} />
+  return <AddStudentForm locations={locations ?? []} />
 }

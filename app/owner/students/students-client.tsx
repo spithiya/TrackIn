@@ -92,7 +92,11 @@ export function StudentsClient({
                 </thead>
                 <tbody>
                   {filtered.map(s => (
-                    <tr key={s.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={s.id}
+                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/owner/students/${s.id}`}
+                    >
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {s.last_name}, {s.first_name}
                       </td>
