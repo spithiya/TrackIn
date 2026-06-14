@@ -214,47 +214,47 @@ left join staff_members sm on sm.id = sc.checked_in_by_staff_id
 where sc.checked_out_at is not null;
 
 -- ─── FUNCTIONS ───────────────────────────────────────────────────────────────
-create or replace function checkout_student(
-  p_checkin_id  uuid,
-  p_session_note text default null
+create function checkout_student(
+  checkin_id   uuid,
+  session_note text default null
 )
 returns json language plpgsql security definer as $$
 declare
-  v_checkin     student_checkins;
-  v_student     students;
-  v_parent      parent_contacts;
-  v_duration    int;
-  v_over_limit  boolean;
-  v_send_sms    boolean := false;
-  v_phone       text := null;
+  v_checkin_id   uuid := checkin_id;
+  v_session_note text := session_note;
+  v_checkin      student_checkins;
+  v_duration     int;
+  v_over_limit   boolean;
+  v_phone        text := null;
 begin
-  select * into v_checkin from student_checkins where id = p_checkin_id and checked_out_at is null;
+  select * into v_checkin
+  from student_checkins
+  where id = v_checkin_id and checked_out_at is null;
   if not found then raise exception 'Checkin not found or already checked out'; end if;
 
   v_duration   := extract(epoch from (now() - v_checkin.checked_in_at))::int / 60;
   v_over_limit := v_duration >= v_checkin.time_limit_minutes;
 
   update student_checkins set
-    checked_out_at  = now(),
+    checked_out_at   = now(),
     duration_minutes = v_duration,
-    session_note    = coalesce(p_session_note, session_note),
-    sms_sent        = v_over_limit
-  where id = p_checkin_id;
+    session_note     = coalesce(v_session_note, student_checkins.session_note),
+    sms_sent         = v_over_limit
+  where id = v_checkin_id;
 
-  -- Resolve any open alerts
   update session_alerts set acknowledged_at = now()
-  where checkin_id = p_checkin_id and acknowledged_at is null;
+  where session_alerts.checkin_id = v_checkin_id and acknowledged_at is null;
 
   if v_over_limit then
-    select * into v_student from students where id = v_checkin.student_id;
-    select * into v_parent  from parent_contacts
-    where student_id = v_checkin.student_id and is_primary = true limit 1;
-    v_phone := v_parent.phone;
+    select phone into v_phone
+    from parent_contacts
+    where student_id = v_checkin.student_id and is_primary = true
+    limit 1;
   end if;
 
   return json_build_object(
-    'send_sms',          v_over_limit and v_phone is not null,
-    'parent_phone',      v_phone,
+    'send_sms',           v_over_limit and v_phone is not null,
+    'parent_phone',       v_phone,
     'student_first_name', (select first_name from students where id = v_checkin.student_id)
   );
 end;
