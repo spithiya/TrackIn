@@ -11,8 +11,17 @@ export type Database = {
           name: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['organizations']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['organizations']['Insert']>
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       locations: {
         Row: {
@@ -30,8 +39,37 @@ export type Database = {
           is_active: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['locations']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['locations']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          name: string
+          address_street: string
+          address_city: string
+          address_state: string
+          address_zip: string
+          phone?: string | null
+          notes?: string | null
+          opens_at: string
+          closes_at: string
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          name?: string
+          address_street?: string
+          address_city?: string
+          address_state?: string
+          address_zip?: string
+          phone?: string | null
+          notes?: string | null
+          opens_at?: string
+          closes_at?: string
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -42,8 +80,23 @@ export type Database = {
           email: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at'>
-        Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+        Insert: {
+          id: string
+          org_id: string
+          role: 'owner' | 'staff'
+          full_name: string
+          email: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          role?: 'owner' | 'staff'
+          full_name?: string
+          email?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       staff_members: {
         Row: {
@@ -61,8 +114,37 @@ export type Database = {
           is_active: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['staff_members']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['staff_members']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          profile_id?: string | null
+          first_name: string
+          last_name: string
+          dob?: string | null
+          phone?: string | null
+          email?: string | null
+          role_title?: string | null
+          location_id: string
+          subjects: 'math' | 'reading' | 'both'
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          profile_id?: string | null
+          first_name?: string
+          last_name?: string
+          dob?: string | null
+          phone?: string | null
+          email?: string | null
+          role_title?: string | null
+          location_id?: string
+          subjects?: 'math' | 'reading' | 'both'
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       students: {
         Row: {
@@ -77,8 +159,31 @@ export type Database = {
           is_active: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['students']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['students']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          first_name: string
+          last_name: string
+          dob?: string | null
+          subjects: 'math' | 'reading' | 'both'
+          location_id: string
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          first_name?: string
+          last_name?: string
+          dob?: string | null
+          subjects?: 'math' | 'reading' | 'both'
+          location_id?: string
+          notes?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       parent_contacts: {
         Row: {
@@ -92,8 +197,29 @@ export type Database = {
           is_primary: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['parent_contacts']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['parent_contacts']['Insert']>
+        Insert: {
+          id?: string
+          student_id: string
+          org_id: string
+          full_name: string
+          relationship: 'Mother' | 'Father' | 'Guardian' | 'Other'
+          phone?: string | null
+          email?: string | null
+          is_primary?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          org_id?: string
+          full_name?: string
+          relationship?: 'Mother' | 'Father' | 'Guardian' | 'Other'
+          phone?: string | null
+          email?: string | null
+          is_primary?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       student_checkins: {
         Row: {
@@ -114,8 +240,43 @@ export type Database = {
           duration_minutes: number | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['student_checkins']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['student_checkins']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          student_id: string
+          location_id: string
+          checked_in_at?: string
+          checked_out_at?: string | null
+          subjects_snapshot: 'math' | 'reading' | 'both'
+          time_limit_minutes: number
+          checkin_method: 'kiosk' | 'staff'
+          assigned_staff_id?: string | null
+          checked_in_by_staff_id?: string | null
+          checked_out_by_staff_id?: string | null
+          sms_sent?: boolean
+          session_note?: string | null
+          duration_minutes?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          student_id?: string
+          location_id?: string
+          checked_in_at?: string
+          checked_out_at?: string | null
+          subjects_snapshot?: 'math' | 'reading' | 'both'
+          time_limit_minutes?: number
+          checkin_method?: 'kiosk' | 'staff'
+          assigned_staff_id?: string | null
+          checked_in_by_staff_id?: string | null
+          checked_out_by_staff_id?: string | null
+          sms_sent?: boolean
+          session_note?: string | null
+          duration_minutes?: number | null
+          created_at?: string
+        }
+        Relationships: []
       }
       staff_checkins: {
         Row: {
@@ -129,8 +290,29 @@ export type Database = {
           checked_out_by_owner: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['staff_checkins']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['staff_checkins']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          staff_id: string
+          location_id: string
+          checked_in_at?: string
+          checked_out_at?: string | null
+          duration_minutes?: number | null
+          checked_out_by_owner?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          staff_id?: string
+          location_id?: string
+          checked_in_at?: string
+          checked_out_at?: string | null
+          duration_minutes?: number | null
+          checked_out_by_owner?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       session_alerts: {
         Row: {
@@ -144,8 +326,29 @@ export type Database = {
           acknowledged_at: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['session_alerts']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['session_alerts']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          checkin_id: string
+          student_id: string
+          assigned_staff_id?: string | null
+          message: string
+          acknowledged_by?: string | null
+          acknowledged_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          checkin_id?: string
+          student_id?: string
+          assigned_staff_id?: string | null
+          message?: string
+          acknowledged_by?: string | null
+          acknowledged_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
       staff_notifications: {
         Row: {
@@ -158,8 +361,27 @@ export type Database = {
           dismissed: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['staff_notifications']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['staff_notifications']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          staff_id: string
+          location_id: string
+          type: 'clock_in' | 'clock_out'
+          timestamp?: string
+          dismissed?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          staff_id?: string
+          location_id?: string
+          type?: 'clock_in' | 'clock_out'
+          timestamp?: string
+          dismissed?: boolean
+          created_at?: string
+        }
+        Relationships: []
       }
       sms_log: {
         Row: {
@@ -172,8 +394,27 @@ export type Database = {
           status: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['sms_log']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['sms_log']['Insert']>
+        Insert: {
+          id?: string
+          org_id: string
+          checkin_id: string
+          to_phone: string
+          message: string
+          twilio_sid?: string | null
+          status: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          checkin_id?: string
+          to_phone?: string
+          message?: string
+          twilio_sid?: string | null
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -194,6 +435,7 @@ export type Database = {
           elapsed_minutes: number
           timer_status: 'green' | 'yellow' | 'red'
         }
+        Relationships: []
       }
       active_staff: {
         Row: {
@@ -206,6 +448,7 @@ export type Database = {
           checked_in_at: string
           elapsed_minutes: number
         }
+        Relationships: []
       }
       visit_history: {
         Row: {
@@ -224,18 +467,33 @@ export type Database = {
           session_note: string | null
           sms_sent: boolean
         }
+        Relationships: []
       }
     }
     Functions: {
       checkout_student: {
-        Args: { checkin_id: string; session_note?: string }
-        Returns: { send_sms: boolean; parent_phone: string | null; student_first_name: string }
+        Args: {
+          checkin_id: string
+          session_note?: string
+        }
+        Returns: {
+          send_sms: boolean
+          parent_phone: string | null
+          student_first_name: string
+        }
       }
       checkout_staff: {
-        Args: { checkin_id: string; by_owner?: boolean }
-        Returns: { duration_minutes: number }
+        Args: {
+          checkin_id: string
+          by_owner?: boolean
+        }
+        Returns: {
+          duration_minutes: number
+        }
       }
     }
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }
 

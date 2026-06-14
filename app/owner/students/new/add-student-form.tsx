@@ -1,18 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { addStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
 type Location = { id: string; name: string }
+type Relationship = 'Mother' | 'Father' | 'Guardian' | 'Other'
 
-export function AddStudentForm({ orgId, locations }: { orgId: string; locations: Location[] }) {
-  const router = useRouter()
+interface ParentContact {
+  full_name: string
+  relationship: Relationship
+  phone: string
+  email: string
+  is_primary: boolean
+}
+
+const RELATIONSHIPS: Relationship[] = ['Mother', 'Father', 'Guardian', 'Other']
+
+function emptyContact(isPrimary = false): ParentContact {
+  return { full_name: '', relationship: 'Guardian', phone: '', email: '', is_primary: isPrimary }
+}
+
+export function AddStudentForm({ locations }: { locations: Location[] }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,35 +38,53 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
     notes: '',
   })
 
-  function set(key: keyof typeof fields, value: string) {
+  const [contacts, setContacts] = useState<ParentContact[]>([emptyContact(true)])
+
+  function setField(key: keyof typeof fields, value: string) {
     setFields(prev => ({ ...prev, [key]: value }))
+  }
+
+  function updateContact(index: number, key: keyof ParentContact, value: string | boolean) {
+    setContacts(prev => prev.map((c, i) => i === index ? { ...c, [key]: value } : c))
+  }
+
+  function setPrimary(index: number) {
+    setContacts(prev => prev.map((c, i) => ({ ...c, is_primary: i === index })))
+  }
+
+  function addContact() {
+    setContacts(prev => [...prev, emptyContact(false)])
+  }
+
+  function removeContact(index: number) {
+    setContacts(prev => {
+      const next = prev.filter((_, i) => i !== index)
+      // if we removed the primary, make the first one primary
+      if (prev[index].is_primary && next.length > 0) {
+        next[0].is_primary = true
+      }
+      return next
+    })
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!fields.location_id) { setError('Please select a location.'); return }
+
+    const namedContacts = contacts.filter(c => c.full_name.trim())
+    if (namedContacts.length === 0) { setError('Please add at least one parent or guardian contact.'); return }
+
+    const hasPhone = namedContacts.some(c => c.phone.trim())
+    if (!hasPhone) { setError('At least one contact must have a phone number.'); return }
+
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
-    const { error: insertError } = await supabase.from('students').insert({
-      org_id: orgId,
-      first_name: fields.first_name.trim(),
-      last_name: fields.last_name.trim(),
-      dob: fields.dob || null,
-      subjects: fields.subjects,
-      location_id: fields.location_id,
-      notes: fields.notes.trim() || null,
-      is_active: true,
-    })
-
-    if (insertError) {
-      setError(insertError.message)
+    const result = await addStudent({ ...fields, contacts: namedContacts })
+    if (result?.error) {
+      setError(result.error)
       setLoading(false)
-      return
     }
-
-    router.push('/owner/students')
   }
 
   return (
@@ -65,21 +96,22 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
         <h1 className="text-2xl font-semibold text-slate-900">Add Student</h1>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
-            )}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        )}
 
+        {/* Student Info */}
+        <Card>
+          <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">First Name *</label>
                 <Input
                   required
                   value={fields.first_name}
-                  onChange={e => set('first_name', e.target.value)}
+                  onChange={e => setField('first_name', e.target.value)}
                   placeholder="Jane"
                 />
               </div>
@@ -88,7 +120,7 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
                 <Input
                   required
                   value={fields.last_name}
-                  onChange={e => set('last_name', e.target.value)}
+                  onChange={e => setField('last_name', e.target.value)}
                   placeholder="Smith"
                 />
               </div>
@@ -99,7 +131,7 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
               <Input
                 type="date"
                 value={fields.dob}
-                onChange={e => set('dob', e.target.value)}
+                onChange={e => setField('dob', e.target.value)}
               />
             </div>
 
@@ -113,7 +145,7 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
                       name="subjects"
                       value={s}
                       checked={fields.subjects === s}
-                      onChange={() => set('subjects', s)}
+                      onChange={() => setField('subjects', s)}
                       className="accent-teal-600"
                     />
                     <span className="text-sm text-slate-700 capitalize">
@@ -132,7 +164,7 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
                 <select
                   required
                   value={fields.location_id}
-                  onChange={e => set('location_id', e.target.value)}
+                  onChange={e => setField('location_id', e.target.value)}
                   className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   {locations.map(l => (
@@ -146,24 +178,117 @@ export function AddStudentForm({ orgId, locations }: { orgId: string; locations:
               <label className="block text-sm font-medium text-slate-700">Notes</label>
               <textarea
                 value={fields.notes}
-                onChange={e => set('notes', e.target.value)}
+                onChange={e => setField('notes', e.target.value)}
                 placeholder="Any notes about this student…"
                 rows={3}
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
               />
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={loading || locations.length === 0}>
-                {loading ? 'Saving…' : 'Add Student'}
-              </Button>
-              <Link href="/owner/students">
-                <Button type="button" variant="secondary">Cancel</Button>
-              </Link>
+        {/* Parent / Guardian Contacts */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Parent / Guardian Contacts</CardTitle>
+              <button
+                type="button"
+                onClick={addContact}
+                className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-800 font-medium transition-colors"
+              >
+                <Plus size={15} />
+                Add contact
+              </button>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {contacts.map((contact, i) => (
+              <div key={i} className="space-y-3 pb-5 border-b border-slate-100 last:border-0 last:pb-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Contact {i + 1}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-600">
+                      <input
+                        type="radio"
+                        name="primary_contact"
+                        checked={contact.is_primary}
+                        onChange={() => setPrimary(i)}
+                        className="accent-teal-600"
+                      />
+                      Primary
+                    </label>
+                    {contacts.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeContact(i)}
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1 col-span-2">
+                    <label className="block text-sm font-medium text-slate-700">Full Name *</label>
+                    <Input
+                      value={contact.full_name}
+                      onChange={e => updateContact(i, 'full_name', e.target.value)}
+                      placeholder="Mary Smith"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">Relationship</label>
+                    <select
+                      value={contact.relationship}
+                      onChange={e => updateContact(i, 'relationship', e.target.value)}
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      {RELATIONSHIPS.map(r => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">Phone</label>
+                    <Input
+                      type="tel"
+                      value={contact.phone}
+                      onChange={e => updateContact(i, 'phone', e.target.value)}
+                      placeholder="(555) 000-0000"
+                    />
+                  </div>
+
+                  <div className="space-y-1 col-span-2">
+                    <label className="block text-sm font-medium text-slate-700">Email</label>
+                    <Input
+                      type="email"
+                      value={contact.email}
+                      onChange={e => updateContact(i, 'email', e.target.value)}
+                      placeholder="mary@example.com"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <div className="flex gap-3">
+          <Button type="submit" disabled={loading || locations.length === 0}>
+            {loading ? 'Saving…' : 'Add Student'}
+          </Button>
+          <Link href="/owner/students">
+            <Button type="button" variant="secondary">Cancel</Button>
+          </Link>
+        </div>
+      </form>
     </div>
   )
 }
