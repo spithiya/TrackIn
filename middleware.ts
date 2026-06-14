@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/kiosk')) return supabaseResponse
 
-  if ((pathname.startsWith('/staff') || pathname.startsWith('/owner')) && !user) {
+  if (pathname.startsWith('/owner') && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
