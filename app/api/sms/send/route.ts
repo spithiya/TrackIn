@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { sendPickupSMS } from '@/src/lib/twilio'
-import { createServiceClient } from '@/src/lib/supabase/server'
+import { sendPickupSMS } from '@/lib/twilio'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   const { to, studentName, centerName, checkinId, orgId } = await request.json()

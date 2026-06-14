@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
-import { exportTimesheetToSheets } from '@/src/lib/google-sheets'
+import { createClient } from '@/lib/supabase/server'
+import { exportTimesheetToSheets } from '@/lib/google-sheets'
 
 export async function POST(request: Request) {
   const { locationId, locationName, period } = await request.json()
