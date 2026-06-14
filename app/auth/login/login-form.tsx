@@ -35,7 +35,7 @@ export function LoginForm({ urlError }: { urlError?: string }) {
       .eq('id', data.user.id)
       .single()
 
-    router.push(profile?.role === 'owner' ? '/owner/dashboard' : '/staff/dashboard')
+    window.location.href = profile?.role === 'owner' ? '/owner/dashboard' : '/staff/dashboard'
   }
 
   async function handleGoogleLogin() {

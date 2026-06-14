@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { OwnerPortalButton } from './owner-portal-button'
 
 export default function Home() {
   return (
@@ -24,14 +25,7 @@ export default function Home() {
           <span className="text-lg font-semibold text-gray-800">Staff Portal</span>
           <span className="text-sm text-gray-500">Dashboard &amp; check-ins</span>
         </Link>
-        <Link
-          href="/owner/dashboard"
-          className="flex flex-col items-center gap-2 bg-white rounded-2xl px-10 py-8 shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-[#0D9488] min-w-[200px]"
-        >
-          <span className="text-4xl">🏢</span>
-          <span className="text-lg font-semibold text-gray-800">Owner Portal</span>
-          <span className="text-sm text-gray-500">Analytics &amp; management</span>
-        </Link>
+        <OwnerPortalButton />
       </div>
     </main>
   )
