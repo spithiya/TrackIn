@@ -1,5 +1,5 @@
-import { KioskClient } from './kiosk-client'
+import { LocationPicker } from './location-picker'
 
 export default function KioskPage() {
-  return <KioskClient />
+  return <LocationPicker />
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut } from 'lucide-react'
+import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, MapPin } from 'lucide-react'
 import { TimerPill } from '@/components/students/timer-pill'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Button } from '@/components/ui/button'
@@ -21,23 +21,35 @@ type KioskState =
   | { step: 'processing' }
   | { step: 'success'; action: 'in' | 'out'; studentName: string }
 
-export function KioskClient() {
+export function KioskClient({ locationId }: { locationId: string }) {
   const [state, setState] = useState<KioskState>({ step: 'idle' })
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [allStudents, setAllStudents] = useState<Student[]>([])
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(new Set())
+  const [locationName, setLocationName] = useState<string>('')
   const supabase = useMemo(() => createClient(), [])
 
-  // Load all active students once on mount, sorted A–Z by first name
+  // Load location name
+  useEffect(() => {
+    supabase
+      .from('locations')
+      .select('name')
+      .eq('id', locationId)
+      .single()
+      .then(({ data }) => setLocationName(data?.name ?? ''))
+  }, [supabase, locationId])
+
+  // Load active students for this location only
   useEffect(() => {
     supabase
       .from('students')
       .select('*')
       .eq('is_active', true)
+      .eq('location_id', locationId)
       .order('first_name', { ascending: true })
       .then(({ data }) => setAllStudents(data ?? []))
-  }, [supabase])
+  }, [supabase, locationId])
 
   // Load (and periodically refresh) which students are currently checked in
   const refreshCheckedIn = useCallback(async () => {
@@ -101,7 +113,7 @@ export function KioskClient() {
       await supabase.from('student_checkins').insert({
         org_id: student.org_id,
         student_id: student.id,
-        location_id: student.location_id,
+        location_id: locationId,
         subjects_snapshot: student.subjects,
         time_limit_minutes: timeLimit,
         checkin_method: 'kiosk',
@@ -109,7 +121,7 @@ export function KioskClient() {
       refreshCheckedIn()
       setState({ step: 'success', action: 'in', studentName: student.first_name })
     },
-    [supabase, refreshCheckedIn]
+    [supabase, locationId, refreshCheckedIn]
   )
 
   const checkOut = useCallback(
@@ -270,6 +282,12 @@ export function KioskClient() {
 
         {!focused && (
           <div className="text-center mb-2">
+            {locationName && (
+              <div className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1 rounded-full mb-4">
+                <MapPin size={13} />
+                {locationName}
+              </div>
+            )}
             <h2 className="text-4xl font-bold text-slate-900 mb-2">Welcome!</h2>
             <p className="text-slate-500 text-lg">Type your name to check in or out.</p>
           </div>
