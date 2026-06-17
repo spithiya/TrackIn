@@ -110,6 +110,7 @@ export type Database = {
           email: string | null
           role_title: string | null
           location_id: string
+          location_ids: string[] | null
           subjects: 'math' | 'reading' | 'both'
           is_active: boolean
           created_at: string
@@ -125,6 +126,7 @@ export type Database = {
           email?: string | null
           role_title?: string | null
           location_id: string
+          location_ids?: string[] | null
           subjects: 'math' | 'reading' | 'both'
           is_active?: boolean
           created_at?: string
@@ -140,6 +142,7 @@ export type Database = {
           email?: string | null
           role_title?: string | null
           location_id?: string
+          location_ids?: string[] | null
           subjects?: 'math' | 'reading' | 'both'
           is_active?: boolean
           created_at?: string

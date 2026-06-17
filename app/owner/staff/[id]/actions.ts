@@ -21,6 +21,7 @@ export async function updateStaff(
     role_title: string | null
     subjects: 'math' | 'reading' | 'both'
     location_id: string
+    location_ids: string[] | null
   }
 ): Promise<{ error?: string }> {
   const orgId = await getAuthOrgId()
