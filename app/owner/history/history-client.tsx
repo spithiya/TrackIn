@@ -13,7 +13,15 @@ import type { Views } from '@/lib/supabase/types'
 type Visit = Views<'visit_history'>
 type Location = { id: string; name: string }
 
-export function HistoryClient({ orgId, locations }: { orgId: string; locations: Location[] }) {
+export function HistoryClient({
+  orgId,
+  locations,
+  globalLocationIds = [],
+}: {
+  orgId: string
+  locations: Location[]
+  globalLocationIds?: string[]
+}) {
   const [visits, setVisits] = useState<Visit[]>([])
   const [loading, setLoading] = useState(true)
   const [locationId, setLocationId] = useState('')
@@ -30,7 +38,11 @@ export function HistoryClient({ orgId, locations }: { orgId: string; locations: 
       .order('checked_in_at', { ascending: false })
       .limit(100)
 
-    if (locationId) query = query.eq('location_id', locationId)
+    if (locationId) {
+      query = query.eq('location_id', locationId)
+    } else if (globalLocationIds.length > 0) {
+      query = query.in('location_id', globalLocationIds)
+    }
     if (from) query = query.gte('checked_in_at', from)
     if (to) {
       const toDate = new Date(to)
@@ -41,7 +53,7 @@ export function HistoryClient({ orgId, locations }: { orgId: string; locations: 
     const { data } = await query
     setVisits(data ?? [])
     setLoading(false)
-  }, [orgId, locationId, from, to])
+  }, [orgId, locationId, globalLocationIds.join(','), from, to])
 
   useEffect(() => { fetch() }, [fetch])
 

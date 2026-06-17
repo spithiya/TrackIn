@@ -19,12 +19,13 @@ type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 interface Props {
   orgId: string
   staffMembers: Tables<'staff_members'>[]
+  locationIds?: string[]
 }
 
-export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
+export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Props) {
   const [tab, setTab] = useState<'students' | 'staff'>('students')
-  const { students: activeStudents, loading: loadingStudents, refetch: refetchStudents } = useActiveStudents(orgId)
-  const { staff: activeStaff, refetch: refetchStaff } = useActiveStaff(orgId)
+  const { students: activeStudents, loading: loadingStudents, refetch: refetchStudents } = useActiveStudents(orgId, locationIds)
+  const { staff: activeStaff, refetch: refetchStaff } = useActiveStaff(orgId, locationIds)
   const [toast, setToast] = useState<ToastState>(null)
 
   // Student check-in state

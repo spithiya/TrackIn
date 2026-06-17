@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { LiveClient } from './live-client'
+import { getLocationFilter } from '@/lib/location-filter'
 
 export default async function OwnerLivePage() {
   const supabase = await createClient()
@@ -11,5 +12,7 @@ export default async function OwnerLivePage() {
     .from('profiles').select('org_id').eq('id', user.id).single()
   if (!profile) redirect('/auth/login')
 
-  return <LiveClient orgId={profile.org_id} />
+  const locationIds = await getLocationFilter()
+
+  return <LiveClient orgId={profile.org_id} locationIds={locationIds} />
 }

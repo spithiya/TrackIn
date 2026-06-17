@@ -4,20 +4,19 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Views } from '@/lib/supabase/types'
 
-export function useActiveStudents(orgId: string | null) {
+export function useActiveStudents(orgId: string | null, locationIds: string[] = []) {
   const [students, setStudents] = useState<Views<'active_students'>[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchStudents = useCallback(async () => {
     if (!orgId) return
     const supabase = createClient()
-    const { data } = await supabase
-      .from('active_students')
-      .select('*')
-      .eq('org_id', orgId)
+    let query = supabase.from('active_students').select('*').eq('org_id', orgId)
+    if (locationIds.length > 0) query = query.in('location_id', locationIds)
+    const { data } = await query
     setStudents(data ?? [])
     setLoading(false)
-  }, [orgId])
+  }, [orgId, locationIds.join(',')])
 
   useEffect(() => {
     fetchStudents()

@@ -6,6 +6,7 @@ import { MetricCard } from '@/components/ui/metric-card'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { formatDate, formatDuration } from '@/lib/utils'
+import { getLocationFilter } from '@/lib/location-filter'
 
 export default async function OwnerDashboardPage() {
   const supabase = await createClient()
@@ -17,8 +18,14 @@ export default async function OwnerDashboardPage() {
   if (!profile) redirect('/auth/login')
 
   const orgId = profile.org_id
+  const locationIds = await getLocationFilter()
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
+
+  function applyLocationFilter<T extends object>(query: T): T {
+    if (locationIds.length === 0) return query
+    return (query as any).in('location_id', locationIds) as T
+  }
 
   const [
     { data: activeStudents },
@@ -27,24 +34,30 @@ export default async function OwnerDashboardPage() {
     { count: totalStudents },
     { data: recentHistory },
   ] = await Promise.all([
-    supabase.from('active_students').select('*').eq('org_id', orgId),
-    supabase.from('active_staff').select('*').eq('org_id', orgId),
-    supabase
-      .from('student_checkins')
-      .select('*', { count: 'exact', head: true })
-      .eq('org_id', orgId)
-      .gte('checked_in_at', todayStart.toISOString()),
-    supabase
-      .from('students')
-      .select('*', { count: 'exact', head: true })
-      .eq('org_id', orgId)
-      .eq('is_active', true),
-    supabase
-      .from('visit_history')
-      .select('*')
-      .eq('org_id', orgId)
-      .order('checked_out_at', { ascending: false })
-      .limit(6),
+    applyLocationFilter(supabase.from('active_students').select('*').eq('org_id', orgId)),
+    applyLocationFilter(supabase.from('active_staff').select('*').eq('org_id', orgId)),
+    applyLocationFilter(
+      supabase
+        .from('student_checkins')
+        .select('*', { count: 'exact', head: true })
+        .eq('org_id', orgId)
+        .gte('checked_in_at', todayStart.toISOString())
+    ),
+    applyLocationFilter(
+      supabase
+        .from('students')
+        .select('*', { count: 'exact', head: true })
+        .eq('org_id', orgId)
+        .eq('is_active', true)
+    ),
+    applyLocationFilter(
+      supabase
+        .from('visit_history')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('checked_out_at', { ascending: false })
+        .limit(6)
+    ),
   ])
 
   return (

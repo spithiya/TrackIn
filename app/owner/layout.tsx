@@ -5,6 +5,8 @@ import {
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getLocationFilter } from '@/lib/location-filter'
+import { LocationFilterDropdown } from '@/components/layout/location-filter-dropdown'
 import { SignOutButton } from './sign-out-button'
 
 const nav = [
@@ -27,8 +29,13 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   if (!user) redirect('/auth/login')
 
   const { data: profile } = await supabase
-    .from('profiles').select('role').eq('id', user.id).single()
+    .from('profiles').select('role, org_id').eq('id', user.id).single()
   if (!profile || profile.role !== 'owner') redirect('/')
+
+  const [{ data: locations }, selectedIds] = await Promise.all([
+    supabase.from('locations').select('id, name').eq('org_id', profile.org_id).order('name'),
+    getLocationFilter(),
+  ])
 
   return (
     <div className="flex min-h-screen">
@@ -56,6 +63,9 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <span className="text-sm text-gray-500">Owner Portal</span>
+          {locations && locations.length > 0 && (
+            <LocationFilterDropdown locations={locations} selectedIds={selectedIds} />
+          )}
         </header>
         <main className="flex-1 p-6">{children}</main>
       </div>

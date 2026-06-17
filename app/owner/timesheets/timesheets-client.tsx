@@ -24,10 +24,12 @@ export function TimesheetsClient({
   orgId,
   locations,
   staffList,
+  globalLocationIds = [],
 }: {
   orgId: string
   locations: Location[]
   staffList: StaffMember[]
+  globalLocationIds?: string[]
 }) {
   const [rows, setRows] = useState<StaffCheckin[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,7 +53,11 @@ export function TimesheetsClient({
       .limit(100)
 
     if (staffId) query = query.eq('staff_id', staffId)
-    if (locationId) query = query.eq('location_id', locationId)
+    if (locationId) {
+      query = query.eq('location_id', locationId)
+    } else if (globalLocationIds.length > 0) {
+      query = query.in('location_id', globalLocationIds)
+    }
     if (from) query = query.gte('checked_in_at', from)
     if (to) {
       const toDate = new Date(to)
@@ -62,7 +68,7 @@ export function TimesheetsClient({
     const { data } = await query
     setRows((data ?? []) as StaffCheckin[])
     setLoading(false)
-  }, [orgId, staffId, locationId, from, to])
+  }, [orgId, staffId, locationId, globalLocationIds.join(','), from, to])
 
   useEffect(() => { fetch() }, [fetch])
 

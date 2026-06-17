@@ -8,9 +8,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { fullName, formatTime } from '@/lib/utils'
 import { Users, UserCheck } from 'lucide-react'
 
-export function LiveClient({ orgId }: { orgId: string }) {
-  const { students, loading: loadingStudents } = useActiveStudents(orgId)
-  const { staff, loading: loadingStaff } = useActiveStaff(orgId)
+export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locationIds?: string[] }) {
+  const { students, loading: loadingStudents } = useActiveStudents(orgId, locationIds)
+  const { staff, loading: loadingStaff } = useActiveStaff(orgId, locationIds)
 
   return (
     <div className="space-y-6">

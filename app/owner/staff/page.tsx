@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { StaffClient } from './staff-client'
+import { getLocationFilter } from '@/lib/location-filter'
 
 export default async function OwnerStaffPage() {
   const supabase = await createClient()
@@ -11,16 +12,19 @@ export default async function OwnerStaffPage() {
     .from('profiles').select('org_id').eq('id', user.id).single()
   if (!profile) redirect('/auth/login')
 
+  const locationIds = await getLocationFilter()
+
+  let staffQuery = supabase
+    .from('staff_members')
+    .select('*')
+    .eq('org_id', profile.org_id)
+    .order('last_name', { ascending: true })
+
+  if (locationIds.length > 0) staffQuery = staffQuery.in('location_id', locationIds)
+
   const [{ data: staff }, { data: locations }] = await Promise.all([
-    supabase
-      .from('staff_members')
-      .select('*')
-      .eq('org_id', profile.org_id)
-      .order('last_name', { ascending: true }),
-    supabase
-      .from('locations')
-      .select('id, name')
-      .eq('org_id', profile.org_id),
+    staffQuery,
+    supabase.from('locations').select('id, name').eq('org_id', profile.org_id),
   ])
 
   return <StaffClient staff={staff ?? []} locations={locations ?? []} />
