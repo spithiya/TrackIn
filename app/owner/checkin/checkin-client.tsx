@@ -26,6 +26,12 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
   const { students: activeStudents, loading: loadingStudents, refetch: refetchStudents } = useActiveStudents(orgId)
   const { staff: activeStaff, refetch: refetchStaff } = useActiveStaff(orgId)
   const [toast, setToast] = useState<ToastState>(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(t)
+  }, [])
 
   // Student check-in state
   const [query, setQuery] = useState('')
@@ -133,6 +139,13 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
       refetchStaff()
     }
     setStaffBusy(null)
+  }
+
+  function elapsedLabel(checkedInAt: string) {
+    const ms = now - new Date(checkedInAt).getTime()
+    const h = Math.floor(ms / 3_600_000)
+    const m = Math.floor((ms % 3_600_000) / 60_000)
+    return h > 0 ? `${h}h ${m}m` : `${m}m`
   }
 
   const activeStaffIds = new Set(activeStaff.map(s => s.staff_id))
@@ -252,7 +265,9 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
                     <div className="flex items-center gap-3 shrink-0">
                       {active ? (
                         <>
-                          <span className="text-xs text-slate-400">since {formatTime(active.checked_in_at)}</span>
+                          <span className="text-xs text-slate-400" title={`Since ${formatTime(active.checked_in_at)}`}>
+                            {elapsedLabel(active.checked_in_at)}
+                          </span>
                           <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-700">
                             Clocked In
                           </span>

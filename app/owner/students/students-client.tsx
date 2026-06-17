@@ -55,6 +55,7 @@ export function StudentsClient({
         <div className="relative flex-1 min-w-48">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
+            autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by name…"

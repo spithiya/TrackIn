@@ -277,7 +277,9 @@ export function KioskClient() {
 
         {focused && (
           <p className="text-base font-semibold text-slate-700">
-            {query.trim() ? `Results for "${query.trim()}"` : 'All students'}
+            {query.trim()
+              ? `${displayedStudents.length} result${displayedStudents.length !== 1 ? 's' : ''} for "${query.trim()}"`
+              : `All students · ${allStudents.length}`}
           </p>
         )}
 
