@@ -5,16 +5,27 @@ export async function exportTimesheetToSheets(
 ) {
   const { google } = await import('googleapis')
 
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    },
-    scopes: [
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/drive.file',
-    ],
-  })
+  // In development, GOOGLE_APPLICATION_CREDENTIALS points to the JSON key file directly.
+  // In production (Vercel), use GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY env vars.
+  const auth = new google.auth.GoogleAuth(
+    process.env.GOOGLE_APPLICATION_CREDENTIALS
+      ? {
+          scopes: [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive.file',
+          ],
+        }
+      : {
+          credentials: {
+            client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+            private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+          },
+          scopes: [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive.file',
+          ],
+        }
+  )
 
   const sheets = google.sheets({ version: 'v4', auth })
   const drive = google.drive({ version: 'v3', auth })
