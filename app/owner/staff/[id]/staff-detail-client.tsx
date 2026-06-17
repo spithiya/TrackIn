@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateStaff, deleteStaff } from './actions'
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,13 @@ export function StaffDetailClient({
   const [error, setError] = useState<string | null>(null)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
+
+  useEffect(() => {
+    if (!editing) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [editing])
 
   async function save() {
     setSaving(true)
