@@ -115,7 +115,7 @@ export function KioskClient({
   const checkOut = useCallback(
     async (checkin: Checkin, student: Student) => {
       setState({ step: 'processing' })
-      const { data } = await supabase.rpc('checkout_student', { p_checkin_id: checkin.id, p_session_note: null })
+      const { data } = await supabase.rpc('checkout_student', { checkin_id: checkin.id })
       refreshCheckedIn()
       if (data?.send_sms && data?.parent_phone) {
         fetch('/api/sms/send', {

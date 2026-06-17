@@ -41,7 +41,7 @@ export function TimesheetsClient({
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
 
-  const fetch = useCallback(async () => {
+  const loadRows = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
     let query = supabase
@@ -66,11 +66,11 @@ export function TimesheetsClient({
     }
 
     const { data } = await query
-    setRows((data ?? []) as StaffCheckin[])
+    setRows((data ?? []) as unknown as StaffCheckin[])
     setLoading(false)
   }, [orgId, staffId, locationId, globalLocationIds.join(','), from, to])
 
-  useEffect(() => { fetch() }, [fetch])
+  useEffect(() => { loadRows() }, [loadRows])
 
   function downloadCsv() {
     if (!rows.length) return
@@ -102,7 +102,7 @@ export function TimesheetsClient({
     setExporting(true)
     const loc = locations.find(l => l.id === locationId)
     const period = from ? from.slice(0, 7) : new Date().toISOString().slice(0, 7)
-    const res = await fetch('/api/export/sheets', {
+    const res = await window.fetch('/api/export/sheets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ locationId, locationName: loc?.name, period }),

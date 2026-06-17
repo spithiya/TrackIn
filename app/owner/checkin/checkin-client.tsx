@@ -99,8 +99,8 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
     if (!checkoutTarget) return
     setCheckingOut(true)
     const { error } = await supabase.rpc('checkout_student', {
-      p_checkin_id: checkoutTarget.id,
-      p_session_note: sessionNote.trim() || null,
+      checkin_id: checkoutTarget.id,
+      session_note: sessionNote.trim() || undefined,
     })
     if (error) {
       setToast({ message: 'Failed to check out student.', variant: 'red' })
@@ -132,7 +132,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
 
   async function handleStaffClockout(staffId: string, checkinId: string, name: string) {
     setStaffBusy(staffId)
-    const { error } = await supabase.rpc('checkout_staff', { p_checkin_id: checkinId, p_by_owner: true })
+    const { error } = await supabase.rpc('checkout_staff', { checkin_id: checkinId, by_owner: true })
     if (error) {
       setToast({ message: `Failed to clock out ${name}.`, variant: 'red' })
     } else {

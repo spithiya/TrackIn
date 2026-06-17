@@ -82,7 +82,7 @@ export default function StaffMyCheckinPage() {
     if (!activeCheckin) return
     setBusy(true)
     const supabase = createClient()
-    const { data, error } = await supabase.rpc('checkout_staff', { p_checkin_id: activeCheckin.id, p_by_owner: false })
+    const { data, error } = await supabase.rpc('checkout_staff', { checkin_id: activeCheckin.id, by_owner: false })
     if (error) {
       setToast({ message: 'Failed to clock out.', variant: 'red' })
     } else {

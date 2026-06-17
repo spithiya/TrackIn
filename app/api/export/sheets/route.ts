@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const rows = (data ?? []).map(r => {
-    const staff = r.staff_members as { first_name: string; last_name: string } | null
+    const staff = r.staff_members as unknown as { first_name: string; last_name: string } | null
     return {
       staffName: staff ? `${staff.first_name} ${staff.last_name}` : 'Unknown',
       date: new Date(r.checked_in_at).toLocaleDateString(),
