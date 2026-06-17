@@ -3,7 +3,6 @@ export async function exportTimesheetToSheets(
   locationName: string,
   period: string
 ) {
-  // Dynamic import keeps googleapis out of the webpack bundle
   const { google } = await import('googleapis')
 
   const auth = new google.auth.GoogleAuth({
@@ -11,10 +10,15 @@ export async function exportTimesheetToSheets(
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     },
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    scopes: [
+      'https://www.googleapis.com/auth/spreadsheets',
+      'https://www.googleapis.com/auth/drive.file',
+    ],
   })
 
   const sheets = google.sheets({ version: 'v4', auth })
+  const drive = google.drive({ version: 'v3', auth })
+
   const title = `${locationName} Timesheet — ${period}`
   const headers = ['Staff Name', 'Date', 'Check In', 'Check Out', 'Hours']
   const values = [headers, ...rows.map(r => [r.staffName, r.date, r.checkIn, r.checkOut, r.hours])]
@@ -33,6 +37,12 @@ export async function exportTimesheetToSheets(
     range: 'Timesheet!A1',
     valueInputOption: 'RAW',
     requestBody: { values },
+  })
+
+  // Make the sheet accessible to anyone with the link
+  await drive.permissions.create({
+    fileId: spreadsheetId,
+    requestBody: { type: 'anyone', role: 'reader' },
   })
 
   return `https://docs.google.com/spreadsheets/d/${spreadsheetId}`

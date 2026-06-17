@@ -4,8 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Toast } from '@/components/ui/toast'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
 import { Download, FileSpreadsheet } from 'lucide-react'
+
+type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
 type StaffCheckin = {
   id: string
@@ -34,6 +37,7 @@ export function TimesheetsClient({
   const [rows, setRows] = useState<StaffCheckin[]>([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [toast, setToast] = useState<ToastState>(null)
   const [staffId, setStaffId] = useState('')
   const [locationId, setLocationId] = useState('')
   const [from, setFrom] = useState('')
@@ -98,22 +102,35 @@ export function TimesheetsClient({
   }
 
   async function exportSheets() {
-    if (!locationId) { alert('Select a location to export to Sheets.'); return }
+    if (!locationId) { setToast({ message: 'Select a location to export.', variant: 'amber' }); return }
     setExporting(true)
     const loc = locations.find(l => l.id === locationId)
-    const period = from ? from.slice(0, 7) : new Date().toISOString().slice(0, 7)
+    let period: string
+    if (from && to) period = `${from} to ${to}`
+    else if (from) period = `from ${from}`
+    else if (to) period = `through ${to}`
+    else period = new Date().toISOString().slice(0, 7)
     const res = await window.fetch('/api/export/sheets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locationId, locationName: loc?.name, period }),
+      body: JSON.stringify({ locationId, locationName: loc?.name, period, from, to }),
     })
     const json = await res.json()
-    if (json.url) window.open(json.url, '_blank')
+    if (json.url) {
+      window.open(json.url, '_blank')
+    } else {
+      setToast({ message: json.error ?? 'Export failed. Check that Google credentials are configured.', variant: 'red' })
+    }
     setExporting(false)
   }
 
   return (
     <div className="space-y-5">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 w-80">
+          <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Timesheets</h1>
         <div className="flex gap-2">
