@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateStudent, toggleStudentActive, addContact, deleteContact, setPrimaryContact, deleteStudent } from './actions'
 import { Button } from '@/components/ui/button'
@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SubjectTags } from '@/components/students/subject-tags'
-import { ArrowLeft, Plus, Trash2, Pencil, Check, X } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Pencil, Check, X, Copy } from 'lucide-react'
 import Link from 'next/link'
+import { Toast } from '@/components/ui/toast'
+import { createClient } from '@/lib/supabase/client'
 import type { Tables } from '@/lib/supabase/types'
 
 type Student = Tables<'students'>
@@ -18,6 +20,9 @@ type Location = { id: string; name: string }
 type Relationship = 'Mother' | 'Father' | 'Guardian' | 'Other'
 
 const RELATIONSHIPS: Relationship[] = ['Mother', 'Father', 'Guardian', 'Other']
+
+type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
+type RecentSession = { id: string; checked_in_at: string; checked_out_at: string | null; subjects_snapshot: string; session_note: string | null }
 
 interface NewContactState {
   full_name: string
@@ -52,6 +57,10 @@ export function StudentDetailClient({
   const [addingContact, setAddingContact] = useState(false)
   const [newContact, setNewContact] = useState<NewContactState>(emptyNewContact())
   const [savingContact, setSavingContact] = useState(false)
+  const [toast, setToast] = useState<ToastState>(null)
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
+  const [copiedPhone, setCopiedPhone] = useState<string | null>(null)
+  const supabase = useMemo(() => createClient(), [])
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
 
@@ -75,6 +84,17 @@ export function StudentDetailClient({
     return () => window.removeEventListener('beforeunload', handler)
   }, [editingStudent])
 
+  useEffect(() => {
+    supabase
+      .from('student_checkins')
+      .select('id, checked_in_at, checked_out_at, subjects_snapshot, session_note')
+      .eq('student_id', student.id)
+      .not('checked_out_at', 'is', null)
+      .order('checked_in_at', { ascending: false })
+      .limit(5)
+      .then(({ data }) => setRecentSessions(data ?? []))
+  }, [student.id, supabase])
+
   async function saveStudent() {
     setSavingStudent(true)
     setError(null)
@@ -91,6 +111,7 @@ export function StudentDetailClient({
     if (result.error) { setError(result.error); return }
     setStudent({ ...student, ...studentDraft })
     setEditingStudent(false)
+    setToast({ message: 'Changes saved.', variant: 'green' })
   }
 
   async function handleToggleActive() {
@@ -135,6 +156,19 @@ export function StudentDetailClient({
     router.refresh()
     setAddingContact(false)
     setNewContact(emptyNewContact())
+  }
+
+  function formatDuration(start: string, end: string) {
+    const ms = new Date(end).getTime() - new Date(start).getTime()
+    const h = Math.floor(ms / 3_600_000)
+    const m = Math.floor((ms % 3_600_000) / 60_000)
+    return h > 0 ? `${h}h ${m}m` : `${m}m`
+  }
+
+  async function copyPhone(phone: string) {
+    await navigator.clipboard.writeText(phone)
+    setCopiedPhone(phone)
+    setTimeout(() => setCopiedPhone(null), 2000)
   }
 
   return (
@@ -346,7 +380,14 @@ export function StudentDetailClient({
                   {c.is_primary && <Badge variant="teal">Primary</Badge>}
                 </div>
                 <div className="mt-1 space-y-0.5 text-sm text-slate-500">
-                  {c.phone && <div>{c.phone}</div>}
+                  {c.phone && (
+                    <div className="flex items-center gap-1.5">
+                      <span>{c.phone}</span>
+                      <button type="button" onClick={() => copyPhone(c.phone!)} className="text-slate-400 hover:text-teal-600 transition-colors" title="Copy phone">
+                        {copiedPhone === c.phone ? <Check size={12} className="text-teal-600" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  )}
                   {c.email && <div>{c.email}</div>}
                 </div>
               </div>
@@ -425,6 +466,36 @@ export function StudentDetailClient({
           )}
         </CardContent>
       </Card>
+
+      {recentSessions.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Recent Sessions</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {recentSessions.map(s => (
+              <div key={s.id} className="text-sm flex items-start justify-between gap-3 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                <div>
+                  <p className="font-medium text-slate-900">
+                    {new Date(s.checked_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                  {s.session_note && <p className="text-xs text-slate-500 mt-0.5 italic">{s.session_note}</p>}
+                </div>
+                <div className="text-right shrink-0">
+                  <SubjectTags subjects={s.subjects_snapshot as 'math' | 'reading' | 'both'} />
+                  {s.checked_out_at && (
+                    <p className="text-xs text-slate-400 mt-1">{formatDuration(s.checked_in_at, s.checked_out_at)}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 w-80">
+          <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
+        </div>
+      )}
     </div>
   )
 }

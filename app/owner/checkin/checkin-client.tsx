@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useActiveStaff } from '@/hooks/use-active-staff'
@@ -150,6 +150,10 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
   }
 
   const activeStaffIds = new Set(activeStaff.map(s => s.staff_id))
+  const sortedActiveStudents = useMemo(
+    () => [...activeStudents].sort((a, b) => new Date(a.checked_in_at).getTime() - new Date(b.checked_in_at).getTime()),
+    [activeStudents]
+  )
 
   return (
     <div>
@@ -227,7 +231,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
               <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm text-slate-400 text-center">No students currently checked in.</div>
             ) : (
               <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
-                {activeStudents.map(s => (
+                {sortedActiveStudents.map(s => (
                   <div key={s.id} className="flex items-center justify-between px-5 py-3 gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900">{fullName(s.student_first_name, s.student_last_name)}</p>

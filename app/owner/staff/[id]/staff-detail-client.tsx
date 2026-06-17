@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { ArrowLeft, Pencil, Check, X } from 'lucide-react'
 import Link from 'next/link'
+import { Toast } from '@/components/ui/toast'
 import type { Tables } from '@/lib/supabase/types'
 
 type StaffMember = Tables<'staff_members'>
 type Location = { id: string; name: string }
+type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
 export function StaffDetailClient({
   member: initialMember,
@@ -30,6 +32,7 @@ export function StaffDetailClient({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<ToastState>(null)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
 
@@ -57,6 +60,7 @@ export function StaffDetailClient({
     if (result.error) { setError(result.error); return }
     setMember({ ...member, ...draft })
     setEditing(false)
+    setToast({ message: 'Changes saved.', variant: 'green' })
   }
 
   async function handleDelete() {
@@ -219,6 +223,12 @@ export function StaffDetailClient({
           )}
         </CardContent>
       </Card>
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 w-80">
+          <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
+        </div>
+      )}
     </div>
   )
 }

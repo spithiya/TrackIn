@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, MapPin } from 'lucide-react'
+import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, MapPin, ArrowUp } from 'lucide-react'
 import { TimerPill } from '@/components/students/timer-pill'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,8 @@ export function KioskClient({
   const [allStudents] = useState<Student[]>(initialStudents)
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(new Set())
   const supabase = useMemo(() => createClient(), [])
+  const listRef = useRef<HTMLDivElement>(null)
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
   // Load (and periodically refresh) which students are currently checked in
   const refreshCheckedIn = useCallback(async () => {
@@ -138,6 +140,17 @@ export function KioskClient({
     setQuery('')
     setFocused(false)
   }, [])
+
+  useEffect(() => {
+    if (state.step !== 'confirm-checkin' && state.step !== 'confirm-checkout') return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') return
+      if (state.step === 'confirm-checkin') checkIn(state.student)
+      else if (state.step === 'confirm-checkout') checkOut(state.checkin, state.student)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [state, checkIn, checkOut])
 
   // ── Loading / processing ──
   if (state.step === 'loading' || state.step === 'processing') {
@@ -310,7 +323,11 @@ export function KioskClient({
 
         {/* Student list — shown when focused */}
         {focused && (
-          <div className="overflow-y-auto max-h-[calc(100vh-260px)] flex flex-col gap-1 pr-0.5">
+          <div
+            ref={listRef}
+            onScroll={e => setShowBackToTop(e.currentTarget.scrollTop > 100)}
+            className="overflow-y-auto max-h-[calc(100vh-260px)] flex flex-col gap-1 pr-0.5"
+          >
             {displayedStudents.length === 0 ? (
               <div className="text-center py-10 text-slate-400">
                 <p>No students found for &ldquo;<span className="text-slate-600">{query}</span>&rdquo;</p>
@@ -349,6 +366,15 @@ export function KioskClient({
               ))
             )}
           </div>
+        )}
+        {showBackToTop && (
+          <button
+            onClick={() => listRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="self-center flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            <ArrowUp size={14} />
+            Top
+          </button>
         )}
       </div>
     </div>
