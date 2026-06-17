@@ -5,7 +5,7 @@ import { addStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
 
 type Location = { id: string; name: string }
@@ -112,6 +112,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                   required
                   value={fields.first_name}
                   onChange={e => setField('first_name', e.target.value)}
+                  onClear={() => setField('first_name', '')}
                   placeholder="Jane"
                 />
               </div>
@@ -121,6 +122,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                   required
                   value={fields.last_name}
                   onChange={e => setField('last_name', e.target.value)}
+                  onClear={() => setField('last_name', '')}
                   placeholder="Smith"
                 />
               </div>
@@ -176,13 +178,20 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
 
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">Notes</label>
+              <div className="relative">
               <textarea
                 value={fields.notes}
                 onChange={e => setField('notes', e.target.value)}
                 placeholder="Any notes about this student…"
                 rows={3}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${fields.notes ? 'pr-8' : ''}`}
               />
+              {fields.notes && (
+                <button type="button" onClick={() => setField('notes', '')} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 transition-colors">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
             </div>
           </CardContent>
         </Card>
@@ -238,6 +247,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                     <Input
                       value={contact.full_name}
                       onChange={e => updateContact(i, 'full_name', e.target.value)}
+                      onClear={() => updateContact(i, 'full_name', '')}
                       placeholder="Mary Smith"
                     />
                   </div>
@@ -261,6 +271,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                       type="tel"
                       value={contact.phone}
                       onChange={e => updateContact(i, 'phone', e.target.value)}
+                      onClear={() => updateContact(i, 'phone', '')}
                       placeholder="(555) 000-0000"
                     />
                   </div>
@@ -271,6 +282,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                       type="email"
                       value={contact.email}
                       onChange={e => updateContact(i, 'email', e.target.value)}
+                      onClear={() => updateContact(i, 'email', '')}
                       placeholder="mary@example.com"
                     />
                   </div>

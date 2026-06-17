@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Clipboard, Search } from 'lucide-react'
+import { Clipboard, Search, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubjectTags } from '@/components/students/subject-tags'
@@ -11,6 +11,8 @@ import type { Tables } from '@/lib/supabase/types'
 
 type StaffMember = Tables<'staff_members'>
 type Location = { id: string; name: string }
+type SortKey = 'name' | 'location'
+type SortDir = 'asc' | 'desc'
 
 export function StaffClient({
   staff,
@@ -20,22 +22,42 @@ export function StaffClient({
   locations: Location[]
 }) {
   const [query, setQuery] = useState('')
+  const [sortKey, setSortKey] = useState<SortKey>('name')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const locationMap = useMemo(
     () => Object.fromEntries(locations.map(l => [l.id, l.name])),
     [locations]
   )
 
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  function SortIcon({ col }: { col: SortKey }) {
+    if (sortKey !== col) return <ChevronsUpDown size={13} className="inline ml-1 text-slate-300" />
+    return sortDir === 'asc'
+      ? <ChevronUp size={13} className="inline ml-1 text-teal-600" />
+      : <ChevronDown size={13} className="inline ml-1 text-teal-600" />
+  }
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
-    return staff.filter(
+    const results = staff.filter(
       s =>
         !q ||
         s.first_name.toLowerCase().includes(q) ||
         s.last_name.toLowerCase().includes(q) ||
         s.email?.toLowerCase().includes(q)
     )
-  }, [staff, query])
+    return [...results].sort((a, b) => {
+      let cmp = 0
+      if (sortKey === 'name') cmp = `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)
+      if (sortKey === 'location') cmp = (locationMap[a.location_id] ?? '').localeCompare(locationMap[b.location_id] ?? '')
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [staff, query, sortKey, sortDir, locationMap])
 
   return (
     <div className="space-y-5">
@@ -56,8 +78,13 @@ export function StaffClient({
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by name or email…"
-          className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
+        {query && (
+          <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+            <X size={14} />
+          </button>
+        )}
       </div>
 
       <Card>
@@ -71,10 +98,20 @@ export function StaffClient({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Name</th>
+                    <th
+                      className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 transition-colors"
+                      onClick={() => toggleSort('name')}
+                    >
+                      Name <SortIcon col="name" />
+                    </th>
                     <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Role</th>
                     <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Subjects</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Location</th>
+                    <th
+                      className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 transition-colors"
+                      onClick={() => toggleSort('location')}
+                    >
+                      Location <SortIcon col="location" />
+                    </th>
                     <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Status</th>
                   </tr>
                 </thead>

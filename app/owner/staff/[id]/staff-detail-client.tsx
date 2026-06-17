@@ -102,25 +102,25 @@ export function StaffDetailClient({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="block text-sm font-medium text-slate-700">First Name</label>
-                  <Input value={draft.first_name} onChange={e => setDraft(p => ({ ...p, first_name: e.target.value }))} />
+                  <Input value={draft.first_name} onChange={e => setDraft(p => ({ ...p, first_name: e.target.value }))} onClear={() => setDraft(p => ({ ...p, first_name: '' }))} />
                 </div>
                 <div className="space-y-1">
                   <label className="block text-sm font-medium text-slate-700">Last Name</label>
-                  <Input value={draft.last_name} onChange={e => setDraft(p => ({ ...p, last_name: e.target.value }))} />
+                  <Input value={draft.last_name} onChange={e => setDraft(p => ({ ...p, last_name: e.target.value }))} onClear={() => setDraft(p => ({ ...p, last_name: '' }))} />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Role Title</label>
-                <Input value={draft.role_title ?? ''} onChange={e => setDraft(p => ({ ...p, role_title: e.target.value }))} placeholder="e.g. Math Tutor" />
+                <Input value={draft.role_title ?? ''} onChange={e => setDraft(p => ({ ...p, role_title: e.target.value }))} onClear={() => setDraft(p => ({ ...p, role_title: '' }))} placeholder="e.g. Math Tutor" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="block text-sm font-medium text-slate-700">Phone</label>
-                  <Input type="tel" value={draft.phone ?? ''} onChange={e => setDraft(p => ({ ...p, phone: e.target.value }))} placeholder="(555) 000-0000" />
+                  <Input type="tel" value={draft.phone ?? ''} onChange={e => setDraft(p => ({ ...p, phone: e.target.value }))} onClear={() => setDraft(p => ({ ...p, phone: '' }))} placeholder="(555) 000-0000" />
                 </div>
                 <div className="space-y-1">
                   <label className="block text-sm font-medium text-slate-700">Email</label>
-                  <Input type="email" value={draft.email ?? ''} onChange={e => setDraft(p => ({ ...p, email: e.target.value }))} placeholder="staff@example.com" />
+                  <Input type="email" value={draft.email ?? ''} onChange={e => setDraft(p => ({ ...p, email: e.target.value }))} onClear={() => setDraft(p => ({ ...p, email: '' }))} placeholder="staff@example.com" />
                 </div>
               </div>
               <div className="space-y-1">

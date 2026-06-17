@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, X } from 'lucide-react'
 import Link from 'next/link'
 
 type Location = { id: string; name: string }
@@ -85,6 +85,7 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
                   required
                   value={fields.first_name}
                   onChange={e => set('first_name', e.target.value)}
+                  onClear={() => set('first_name', '')}
                   placeholder="Alex"
                 />
               </div>
@@ -94,6 +95,7 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
                   required
                   value={fields.last_name}
                   onChange={e => set('last_name', e.target.value)}
+                  onClear={() => set('last_name', '')}
                   placeholder="Johnson"
                 />
               </div>
@@ -105,6 +107,7 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
                 type="email"
                 value={fields.email}
                 onChange={e => set('email', e.target.value)}
+                onClear={() => set('email', '')}
                 placeholder="alex@example.com"
               />
             </div>
@@ -116,6 +119,7 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
                   type="tel"
                   value={fields.phone}
                   onChange={e => set('phone', e.target.value)}
+                  onClear={() => set('phone', '')}
                   placeholder="+1 555 000 1234"
                 />
               </div>
@@ -134,6 +138,7 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
               <Input
                 value={fields.role_title}
                 onChange={e => set('role_title', e.target.value)}
+                onClear={() => set('role_title', '')}
                 placeholder="e.g. Math Tutor"
               />
             </div>
