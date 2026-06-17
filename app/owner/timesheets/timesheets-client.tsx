@@ -104,22 +104,32 @@ export function TimesheetsClient({
   async function exportSheets() {
     if (!locationId) { setToast({ message: 'Select a location to export.', variant: 'amber' }); return }
     setExporting(true)
-    const loc = locations.find(l => l.id === locationId)
-    let period: string
-    if (from && to) period = `${from} to ${to}`
-    else if (from) period = `from ${from}`
-    else if (to) period = `through ${to}`
-    else period = new Date().toISOString().slice(0, 7)
-    const res = await window.fetch('/api/export/sheets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locationId, locationName: loc?.name, period, from, to }),
-    })
-    const json = await res.json()
-    if (json.url) {
-      window.open(json.url, '_blank')
-    } else {
-      setToast({ message: json.error ?? 'Export failed. Check that Google credentials are configured.', variant: 'red' })
+    // Open blank tab during the click gesture to avoid popup blockers
+    const win = window.open('', '_blank')
+    try {
+      const loc = locations.find(l => l.id === locationId)
+      let period: string
+      if (from && to) period = `${from} to ${to}`
+      else if (from) period = `from ${from}`
+      else if (to) period = `through ${to}`
+      else period = new Date().toISOString().slice(0, 7)
+      const res = await globalThis.fetch('/api/export/sheets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId, locationName: loc?.name, period, from, to }),
+      })
+      const json = await res.json()
+      if (json.url) {
+        if (win) win.location.href = json.url
+        else window.open(json.url, '_blank')
+      } else {
+        win?.close()
+        setToast({ message: json.error ?? 'Export failed. Check that Google credentials are configured.', variant: 'red' })
+      }
+    } catch (err) {
+      win?.close()
+      setToast({ message: 'Export failed. Check console for details.', variant: 'red' })
+      console.error('Sheets export error:', err)
     }
     setExporting(false)
   }

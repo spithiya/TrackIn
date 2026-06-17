@@ -46,8 +46,9 @@ export async function POST(request: Request) {
   try {
     const url = await exportTimesheetToSheets(rows, locationName, period)
     return NextResponse.json({ url })
-  } catch (err) {
-    console.error('Sheets export error:', err)
-    return NextResponse.json({ error: 'Export failed' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Sheets export error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
