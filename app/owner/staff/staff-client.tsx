@@ -79,7 +79,11 @@ export function StaffClient({
                 </thead>
                 <tbody>
                   {filtered.map(s => (
-                    <tr key={s.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={s.id}
+                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/owner/staff/${s.id}`}
+                    >
                       <td className="px-4 py-3">
                         <p className="font-medium text-slate-900">{s.last_name}, {s.first_name}</p>
                         {s.email && <p className="text-xs text-slate-400 mt-0.5">{s.email}</p>}

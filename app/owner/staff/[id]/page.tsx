@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { StudentsClient } from './students-client'
+import { redirect, notFound } from 'next/navigation'
+import { StaffDetailClient } from './staff-detail-client'
 
-export default async function StudentRecordsPage() {
+export default async function StaffDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -11,18 +11,20 @@ export default async function StudentRecordsPage() {
     .from('profiles').select('org_id').eq('id', user.id).single()
   if (!profile) redirect('/auth/login')
 
-  const [{ data: students }, { data: locations }] = await Promise.all([
+  const [{ data: member }, { data: locations }] = await Promise.all([
     supabase
-      .from('students')
+      .from('staff_members')
       .select('*')
+      .eq('id', params.id)
       .eq('org_id', profile.org_id)
-      .eq('is_active', true)
-      .order('last_name', { ascending: true }),
+      .single(),
     supabase
       .from('locations')
       .select('id, name')
       .eq('org_id', profile.org_id),
   ])
 
-  return <StudentsClient students={students ?? []} locations={locations ?? []} />
+  if (!member) notFound()
+
+  return <StaffDetailClient member={member} locations={locations ?? []} />
 }

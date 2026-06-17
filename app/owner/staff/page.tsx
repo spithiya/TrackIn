@@ -16,6 +16,7 @@ export default async function OwnerStaffPage() {
       .from('staff_members')
       .select('*')
       .eq('org_id', profile.org_id)
+      .eq('is_active', true)
       .order('last_name', { ascending: true }),
     supabase
       .from('locations')

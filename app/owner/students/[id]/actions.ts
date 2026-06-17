@@ -85,3 +85,16 @@ export async function setPrimaryContact(contactId: string, studentId: string): P
   const { error } = await service.from('parent_contacts').update({ is_primary: true }).eq('id', contactId).eq('org_id', orgId)
   return error ? { error: error.message } : {}
 }
+
+export async function deleteStudent(studentId: string): Promise<{ error?: string }> {
+  const orgId = await getAuthOrgId()
+  if (!orgId) return { error: 'Not authenticated.' }
+
+  const service = createServiceClient()
+  const { error } = await service
+    .from('students')
+    .update({ is_active: false })
+    .eq('id', studentId)
+    .eq('org_id', orgId)
+  return error ? { error: error.message } : {}
+}
