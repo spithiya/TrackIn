@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateStudent, toggleStudentActive, addContact, deleteContact, setPrimaryContact, deleteStudent } from './actions'
 import { Button } from '@/components/ui/button'
@@ -54,6 +54,13 @@ export function StudentDetailClient({
   const [savingContact, setSavingContact] = useState(false)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
+
+  useEffect(() => {
+    if (!editingStudent) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [editingStudent])
 
   async function saveStudent() {
     setSavingStudent(true)
