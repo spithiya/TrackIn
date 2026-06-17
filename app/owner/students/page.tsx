@@ -18,6 +18,7 @@ export default async function StudentRecordsPage() {
     .from('students')
     .select('*')
     .eq('org_id', profile.org_id)
+    .eq('is_active', true)
     .order('last_name', { ascending: true })
 
   if (locationIds.length > 0) studentsQuery = studentsQuery.in('location_id', locationIds)

@@ -18,6 +18,7 @@ export default async function OwnerStaffPage() {
     .from('staff_members')
     .select('*')
     .eq('org_id', profile.org_id)
+    .eq('is_active', true)
     .order('last_name', { ascending: true })
 
   if (locationIds.length > 0) staffQuery = staffQuery.in('location_id', locationIds)

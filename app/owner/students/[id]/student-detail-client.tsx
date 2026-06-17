@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateStudent, toggleStudentActive, addContact, deleteContact, setPrimaryContact } from './actions'
+import { updateStudent, toggleStudentActive, addContact, deleteContact, setPrimaryContact, deleteStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -46,6 +46,8 @@ export function StudentDetailClient({
   const [editingStudent, setEditingStudent] = useState(false)
   const [studentDraft, setStudentDraft] = useState(student)
   const [savingStudent, setSavingStudent] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [addingContact, setAddingContact] = useState(false)
   const [newContact, setNewContact] = useState<NewContactState>(emptyNewContact())
@@ -75,6 +77,13 @@ export function StudentDetailClient({
     const result = await toggleStudentActive(student.id, !student.is_active)
     if (result.error) { setError(result.error); return }
     setStudent(prev => ({ ...prev, is_active: !prev.is_active }))
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    const result = await deleteStudent(student.id)
+    if (result.error) { setError(result.error); setDeleting(false); return }
+    router.push('/owner/students')
   }
 
   async function handleDeleteContact(id: string) {
@@ -239,13 +248,38 @@ export function StudentDetailClient({
                   <dd className="text-slate-700 whitespace-pre-wrap">{student.notes}</dd>
                 </div>
               )}
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                 <button
                   onClick={handleToggleActive}
-                  className={`text-sm font-medium transition-colors ${student.is_active ? 'text-red-500 hover:text-red-700' : 'text-teal-600 hover:text-teal-800'}`}
+                  className={`text-sm font-medium transition-colors ${student.is_active ? 'text-amber-500 hover:text-amber-700' : 'text-teal-600 hover:text-teal-800'}`}
                 >
                   {student.is_active ? 'Mark as inactive' : 'Mark as active'}
                 </button>
+                {!confirmDelete ? (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    Delete student
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-600">Are you sure?</span>
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting…' : 'Yes, delete'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
             </dl>
           )}
