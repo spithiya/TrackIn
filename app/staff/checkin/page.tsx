@@ -19,8 +19,22 @@ type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
 export default function StaffCheckinPage() {
   const { profile } = useCurrentUser()
-  const { students: activeStudents, loading: loadingActive, refetch } = useActiveStudents(profile?.org_id ?? null)
-  const { staff: activeStaff } = useActiveStaff(profile?.org_id ?? null)
+  const [staffMember, setStaffMember] = useState<{ id: string; location_id: string; location_ids: string[] | null } | null>(null)
+  const locationIds = staffMember ? [staffMember.location_id, ...(staffMember.location_ids ?? [])] : []
+
+  useEffect(() => {
+    if (!profile) return
+    const supabase = createClient()
+    supabase
+      .from('staff_members')
+      .select('id, location_id, location_ids')
+      .eq('profile_id', profile.id)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setStaffMember(data) })
+  }, [profile])
+
+  const { students: activeStudents, loading: loadingActive, refetch } = useActiveStudents(profile?.org_id ?? null, locationIds)
+  const { staff: activeStaff } = useActiveStaff(profile?.org_id ?? null, locationIds)
 
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Tables<'students'>[]>([])
@@ -44,16 +58,17 @@ export default function StaffCheckinPage() {
     }
     setSearching(true)
     const supabase = createClient()
-    const { data } = await supabase
+    let query = supabase
       .from('students')
       .select('*')
       .eq('org_id', profile.org_id)
       .eq('is_active', true)
       .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
-      .limit(10)
+    if (locationIds.length > 0) query = query.in('location_id', locationIds)
+    const { data } = await query.limit(10)
     setSearchResults(data ?? [])
     setSearching(false)
-  }, [profile?.org_id])
+  }, [profile?.org_id, locationIds.join(',')])
 
   useEffect(() => {
     const t = setTimeout(() => searchStudents(query), 300)
@@ -72,12 +87,6 @@ export default function StaffCheckinPage() {
     if (!checkinStudent || !profile) return
     setCheckingIn(true)
     const supabase = createClient()
-
-    const { data: staffMember } = await supabase
-      .from('staff_members')
-      .select('id')
-      .eq('profile_id', profile.id)
-      .maybeSingle()
 
     const { error } = await supabase.from('student_checkins').insert({
       org_id: profile.org_id,
@@ -108,7 +117,7 @@ export default function StaffCheckinPage() {
 
     const { data, error } = await supabase.rpc('checkout_student', {
       checkin_id: checkoutTarget.id,
-      session_note: sessionNote.trim() || null,
+      session_note: sessionNote.trim() || undefined,
     })
 
     if (error) {

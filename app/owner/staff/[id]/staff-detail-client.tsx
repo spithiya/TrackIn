@@ -46,6 +46,7 @@ export function StaffDetailClient({
   async function save() {
     setSaving(true)
     setError(null)
+    const extraIds = (draft.location_ids ?? []).filter(id => id !== draft.location_id)
     const result = await updateStaff(member.id, {
       first_name: draft.first_name.trim(),
       last_name: draft.last_name.trim(),
@@ -55,6 +56,7 @@ export function StaffDetailClient({
       role_title: draft.role_title?.trim() || null,
       subjects: draft.subjects,
       location_id: draft.location_id,
+      location_ids: extraIds.length > 0 ? extraIds : null,
     })
     setSaving(false)
     if (result.error) { setError(result.error); return }
@@ -143,15 +145,51 @@ export function StaffDetailClient({
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-slate-700">Location</label>
+                <label className="block text-sm font-medium text-slate-700">Primary Location</label>
                 <select
                   value={draft.location_id}
-                  onChange={e => setDraft(p => ({ ...p, location_id: e.target.value }))}
+                  onChange={e => setDraft(p => ({
+                    ...p,
+                    location_id: e.target.value,
+                    location_ids: (p.location_ids ?? []).filter(id => id !== e.target.value),
+                  }))}
                   className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               </div>
+              {locations.filter(l => l.id !== draft.location_id).length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Additional Locations{' '}
+                    <span className="text-slate-400 font-normal">(optional)</span>
+                  </label>
+                  <div className="space-y-1.5">
+                    {locations.filter(l => l.id !== draft.location_id).map(l => {
+                      const checked = (draft.location_ids ?? []).includes(l.id)
+                      return (
+                        <label key={l.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => setDraft(p => {
+                              const ids = p.location_ids ?? []
+                              return {
+                                ...p,
+                                location_ids: checked
+                                  ? ids.filter(id => id !== l.id)
+                                  : [...ids, l.id],
+                              }
+                            })}
+                            className="accent-teal-600 rounded"
+                          />
+                          <span className="text-sm text-slate-700">{l.name}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2 pt-1">
                 <Button size="sm" onClick={save} disabled={saving}>
                   <Check size={14} className="mr-1" />
@@ -177,8 +215,13 @@ export function StaffDetailClient({
                 <dd><SubjectTags subjects={member.subjects} /></dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">Location</dt>
-                <dd className="text-slate-700">{locationMap[member.location_id] ?? '—'}</dd>
+                <dt className="text-slate-500">Location(s)</dt>
+                <dd className="text-slate-700 text-right">
+                  {[member.location_id, ...(member.location_ids ?? [])]
+                    .map(id => locationMap[id])
+                    .filter(Boolean)
+                    .join(', ') || '—'}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-slate-500">Phone</dt>
