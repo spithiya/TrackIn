@@ -100,16 +100,29 @@ export function TimesheetsClient({
   async function exportSheets() {
     if (!locationId) { alert('Select a location to export to Sheets.'); return }
     setExporting(true)
-    const loc = locations.find(l => l.id === locationId)
-    const period = from ? from.slice(0, 7) : new Date().toISOString().slice(0, 7)
-    const res = await globalThis.fetch('/api/export/sheets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locationId, locationName: loc?.name, period }),
-    })
-    const json = await res.json()
-    if (json.url) window.open(json.url, '_blank')
-    else alert(json.error ?? 'Export failed.')
+    // Open a blank tab now (while inside a user gesture) to avoid popup blockers
+    const win = window.open('', '_blank')
+    try {
+      const loc = locations.find(l => l.id === locationId)
+      const period = from ? from.slice(0, 7) : new Date().toISOString().slice(0, 7)
+      const res = await globalThis.fetch('/api/export/sheets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId, locationName: loc?.name, period }),
+      })
+      const json = await res.json()
+      if (json.url) {
+        if (win) win.location.href = json.url
+        else window.open(json.url, '_blank')
+      } else {
+        win?.close()
+        alert(json.error ?? 'Export failed.')
+      }
+    } catch (err) {
+      win?.close()
+      alert('Export failed. Check console for details.')
+      console.error('Sheets export error:', err)
+    }
     setExporting(false)
   }
 
