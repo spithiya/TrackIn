@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin, Clock } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import type { Tables } from '@/lib/supabase/types'
 
 type Location = Tables<'locations'>
@@ -21,36 +20,17 @@ function saveLocationId(id: string) {
   document.cookie = `${COOKIE}=${encodeURIComponent(id)}; expires=${expires}; path=/; SameSite=Lax`
 }
 
-export function LocationPicker() {
+export function LocationPicker({ locations }: { locations: Location[] }) {
   const router = useRouter()
-  const [locations, setLocations] = useState<Location[]>([])
-  const [loading, setLoading] = useState(true)
   const [lastId, setLastId] = useState<string | null>(null)
 
   useEffect(() => {
     setLastId(getLastLocationId())
-    createClient()
-      .from('locations')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data }) => {
-        setLocations(data ?? [])
-        setLoading(false)
-      })
   }, [])
 
   function select(loc: Location) {
     saveLocationId(loc.id)
     router.push(`/kiosk/${loc.id}`)
-  }
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
   }
 
   if (!locations.length) {

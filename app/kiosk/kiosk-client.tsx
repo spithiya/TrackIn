@@ -21,35 +21,21 @@ type KioskState =
   | { step: 'processing' }
   | { step: 'success'; action: 'in' | 'out'; studentName: string }
 
-export function KioskClient({ locationId }: { locationId: string }) {
+export function KioskClient({
+  locationId,
+  locationName,
+  initialStudents,
+}: {
+  locationId: string
+  locationName: string
+  initialStudents: Student[]
+}) {
   const [state, setState] = useState<KioskState>({ step: 'idle' })
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
-  const [allStudents, setAllStudents] = useState<Student[]>([])
+  const [allStudents] = useState<Student[]>(initialStudents)
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(new Set())
-  const [locationName, setLocationName] = useState<string>('')
   const supabase = useMemo(() => createClient(), [])
-
-  // Load location name
-  useEffect(() => {
-    supabase
-      .from('locations')
-      .select('name')
-      .eq('id', locationId)
-      .single()
-      .then(({ data }) => setLocationName(data?.name ?? ''))
-  }, [supabase, locationId])
-
-  // Load active students for this location only
-  useEffect(() => {
-    supabase
-      .from('students')
-      .select('*')
-      .eq('is_active', true)
-      .eq('location_id', locationId)
-      .order('first_name', { ascending: true })
-      .then(({ data }) => setAllStudents(data ?? []))
-  }, [supabase, locationId])
 
   // Load (and periodically refresh) which students are currently checked in
   const refreshCheckedIn = useCallback(async () => {
