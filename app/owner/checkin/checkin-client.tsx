@@ -11,7 +11,7 @@ import { TimerPill } from '@/components/students/timer-pill'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { TIME_LIMITS, SUBJECTS } from '@/lib/constants'
 import { fullName, formatTime } from '@/lib/utils'
-import { Search } from 'lucide-react'
+import { Search, Info, X } from 'lucide-react'
 import type { Tables, Views } from '@/lib/supabase/types'
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
@@ -185,11 +185,16 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
-                className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className={`w-full pl-9 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 ${query ? 'pr-8' : 'pr-4'}`}
                 placeholder="Search student by name…"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
               />
+              {query && (
+                <button type="button" onClick={() => { setQuery(''); setSearchResults([]) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                  <X size={14} />
+                </button>
+              )}
               {query.length >= 2 && (
                 <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-slate-200 shadow-md overflow-hidden">
                   {searching ? (
@@ -312,6 +317,12 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
             <p className="text-slate-700">
               Checking in <span className="font-semibold">{fullName(checkinStudent.first_name, checkinStudent.last_name)}</span>
             </p>
+            {checkinStudent.notes && (
+              <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                <Info size={15} className="text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">{checkinStudent.notes}</p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
               <select
@@ -366,13 +377,20 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Session Note <span className="text-slate-400 font-normal">(optional)</span>
               </label>
-              <textarea
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
-                rows={3}
-                placeholder="How did the session go?"
-                value={sessionNote}
-                onChange={e => setSessionNote(e.target.value)}
-              />
+              <div className="relative">
+                <textarea
+                  className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${sessionNote ? 'pr-8' : ''}`}
+                  rows={3}
+                  placeholder="How did the session go?"
+                  value={sessionNote}
+                  onChange={e => setSessionNote(e.target.value)}
+                />
+                {sessionNote && (
+                  <button type="button" onClick={() => setSessionNote('')} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 transition-colors">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
               <Button variant="secondary" size="md" onClick={() => setCheckoutTarget(null)} disabled={checkingOut}>Cancel</Button>

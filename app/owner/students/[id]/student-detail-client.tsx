@@ -55,6 +55,19 @@ export function StudentDetailClient({
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
 
+  function calcAge(dob: string) {
+    const today = new Date()
+    const birth = new Date(dob + 'T00:00:00')
+    let age = today.getFullYear() - birth.getFullYear()
+    const m = today.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+    return age
+  }
+
+  function formatDob(dob: string) {
+    return new Date(dob + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
   useEffect(() => {
     if (!editingStudent) return
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
@@ -166,6 +179,7 @@ export function StudentDetailClient({
                   <Input
                     value={studentDraft.first_name}
                     onChange={e => setStudentDraft(p => ({ ...p, first_name: e.target.value }))}
+                    onClear={() => setStudentDraft(p => ({ ...p, first_name: '' }))}
                   />
                 </div>
                 <div className="space-y-1">
@@ -173,6 +187,7 @@ export function StudentDetailClient({
                   <Input
                     value={studentDraft.last_name}
                     onChange={e => setStudentDraft(p => ({ ...p, last_name: e.target.value }))}
+                    onClear={() => setStudentDraft(p => ({ ...p, last_name: '' }))}
                   />
                 </div>
               </div>
@@ -214,12 +229,19 @@ export function StudentDetailClient({
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Notes</label>
+                <div className="relative">
                 <textarea
                   value={studentDraft.notes ?? ''}
                   onChange={e => setStudentDraft(p => ({ ...p, notes: e.target.value }))}
                   rows={3}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                  className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${studentDraft.notes ? 'pr-8' : ''}`}
                 />
+                {studentDraft.notes && (
+                  <button type="button" onClick={() => setStudentDraft(p => ({ ...p, notes: '' }))} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 transition-colors">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
               </div>
               <div className="flex gap-2 pt-1">
                 <Button size="sm" onClick={saveStudent} disabled={savingStudent}>
@@ -239,7 +261,9 @@ export function StudentDetailClient({
               </div>
               <div className="flex justify-between">
                 <dt className="text-slate-500">Date of Birth</dt>
-                <dd className="text-slate-700">{student.dob ?? '—'}</dd>
+                <dd className="text-slate-700">
+                  {student.dob ? `${formatDob(student.dob)} (age ${calcAge(student.dob)})` : '—'}
+                </dd>
               </div>
               <div className="flex justify-between items-center">
                 <dt className="text-slate-500">Subjects</dt>
@@ -353,6 +377,7 @@ export function StudentDetailClient({
                 <Input
                   value={newContact.full_name}
                   onChange={e => setNewContact(p => ({ ...p, full_name: e.target.value }))}
+                  onClear={() => setNewContact(p => ({ ...p, full_name: '' }))}
                   placeholder="Mary Smith"
                 />
               </div>
@@ -373,6 +398,7 @@ export function StudentDetailClient({
                     type="tel"
                     value={newContact.phone}
                     onChange={e => setNewContact(p => ({ ...p, phone: e.target.value }))}
+                    onClear={() => setNewContact(p => ({ ...p, phone: '' }))}
                     placeholder="(555) 000-0000"
                   />
                 </div>
@@ -383,6 +409,7 @@ export function StudentDetailClient({
                   type="email"
                   value={newContact.email}
                   onChange={e => setNewContact(p => ({ ...p, email: e.target.value }))}
+                  onClear={() => setNewContact(p => ({ ...p, email: '' }))}
                   placeholder="mary@example.com"
                 />
               </div>

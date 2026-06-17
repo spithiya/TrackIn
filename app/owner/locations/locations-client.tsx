@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil, Trash2, MapPin, Phone, Clock } from 'lucide-react'
+import { Plus, Pencil, Trash2, MapPin, Phone, Clock, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -192,69 +192,51 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field label="Location name *">
-            <input
-              required
-              value={form.name}
-              onChange={e => set('name', e.target.value)}
-              placeholder="e.g. Main Campus"
-              className={inputCls}
-            />
+            <div className="relative">
+              <input required value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Main Campus" className={`${inputCls} ${form.name ? 'pr-8' : ''}`} />
+              {form.name && <button type="button" onClick={() => set('name', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+            </div>
           </Field>
 
           <Field label="Street address *">
-            <input
-              required
-              value={form.address_street}
-              onChange={e => set('address_street', e.target.value)}
-              placeholder="123 Main St"
-              className={inputCls}
-            />
+            <div className="relative">
+              <input required value={form.address_street} onChange={e => set('address_street', e.target.value)} placeholder="123 Main St" className={`${inputCls} ${form.address_street ? 'pr-8' : ''}`} />
+              {form.address_street && <button type="button" onClick={() => set('address_street', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+            </div>
           </Field>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
               <Field label="City *">
-                <input
-                  required
-                  value={form.address_city}
-                  onChange={e => set('address_city', e.target.value)}
-                  placeholder="Springfield"
-                  className={inputCls}
-                />
+                <div className="relative">
+                  <input required value={form.address_city} onChange={e => set('address_city', e.target.value)} placeholder="Springfield" className={`${inputCls} ${form.address_city ? 'pr-8' : ''}`} />
+                  {form.address_city && <button type="button" onClick={() => set('address_city', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+                </div>
               </Field>
             </div>
             <div className="col-span-1">
               <Field label="State *">
-                <input
-                  required
-                  maxLength={2}
-                  value={form.address_state}
-                  onChange={e => set('address_state', e.target.value.toUpperCase())}
-                  placeholder="IL"
-                  className={inputCls}
-                />
+                <div className="relative">
+                  <input required maxLength={2} value={form.address_state} onChange={e => set('address_state', e.target.value.toUpperCase())} placeholder="IL" className={`${inputCls} ${form.address_state ? 'pr-8' : ''}`} />
+                  {form.address_state && <button type="button" onClick={() => set('address_state', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+                </div>
               </Field>
             </div>
             <div className="col-span-1">
               <Field label="ZIP *">
-                <input
-                  required
-                  value={form.address_zip}
-                  onChange={e => set('address_zip', e.target.value)}
-                  placeholder="62701"
-                  className={inputCls}
-                />
+                <div className="relative">
+                  <input required value={form.address_zip} onChange={e => set('address_zip', e.target.value)} placeholder="62701" className={`${inputCls} ${form.address_zip ? 'pr-8' : ''}`} />
+                  {form.address_zip && <button type="button" onClick={() => set('address_zip', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+                </div>
               </Field>
             </div>
           </div>
 
           <Field label="Phone">
-            <input
-              value={form.phone}
-              onChange={e => set('phone', e.target.value)}
-              placeholder="(555) 000-0000"
-              className={inputCls}
-            />
+            <div className="relative">
+              <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="(555) 000-0000" className={`${inputCls} ${form.phone ? 'pr-8' : ''}`} />
+              {form.phone && <button type="button" onClick={() => set('phone', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+            </div>
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
@@ -279,13 +261,10 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
           </div>
 
           <Field label="Notes">
-            <textarea
-              rows={2}
-              value={form.notes}
-              onChange={e => set('notes', e.target.value)}
-              placeholder="Optional notes…"
-              className={`${inputCls} resize-none`}
-            />
+            <div className="relative">
+              <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Optional notes…" className={`${inputCls} resize-none ${form.notes ? 'pr-8' : ''}`} />
+              {form.notes && <button type="button" onClick={() => set('notes', '')} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 transition-colors"><X size={14} /></button>}
+            </div>
           </Field>
 
           {editing && (
