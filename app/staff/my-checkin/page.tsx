@@ -84,6 +84,7 @@ export default function StaffMyCheckinPage() {
     const supabase = createClient()
     const { data, error } = await supabase.rpc('checkout_staff', { checkin_id: activeCheckin.id, by_owner: false })
     if (error) {
+      console.error('checkout_staff error:', error)
       setToast({ message: 'Failed to clock out.', variant: 'red' })
     } else {
       const duration = (data as { duration_minutes: number })?.duration_minutes

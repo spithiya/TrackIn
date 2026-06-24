@@ -134,6 +134,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
     setStaffBusy(staffId)
     const { error } = await supabase.rpc('checkout_staff', { checkin_id: checkinId, by_owner: true })
     if (error) {
+      console.error('checkout_staff error:', error)
       setToast({ message: `Failed to clock out ${name}.`, variant: 'red' })
     } else {
       setToast({ message: `${name} clocked out.`, variant: 'green' })
