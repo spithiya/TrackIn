@@ -3,7 +3,11 @@
 -- checkin_id / by_owner (matching checkout_student convention). PostgREST
 -- uses strict named-parameter matching, so the mismatch caused the RPC to fail.
 
-create or replace function checkout_staff(
+-- PostgreSQL does not allow renaming parameters via CREATE OR REPLACE;
+-- the old signature must be dropped first.
+drop function if exists checkout_staff(uuid, boolean);
+
+create function checkout_staff(
   checkin_id uuid,
   by_owner   boolean default false
 )
