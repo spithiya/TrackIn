@@ -1,14 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Toast } from '@/components/ui/toast'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
-import { Download, FileSpreadsheet } from 'lucide-react'
-
-type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
+import { Download, ChevronDown, FileText, FileSpreadsheet, File } from 'lucide-react'
 
 type StaffCheckin = {
   id: string
@@ -36,14 +33,25 @@ export function TimesheetsClient({
 }) {
   const [rows, setRows] = useState<StaffCheckin[]>([])
   const [loading, setLoading] = useState(true)
-  const [exporting, setExporting] = useState(false)
-  const [toast, setToast] = useState<ToastState>(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
   const [staffId, setStaffId] = useState('')
   const [locationId, setLocationId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const loadRows = useCallback(async () => {
     setLoading(true)
@@ -76,10 +84,9 @@ export function TimesheetsClient({
 
   useEffect(() => { loadRows() }, [loadRows])
 
-  function downloadCsv() {
-    if (!rows.length) return
+  function getTableData() {
     const headers = ['Staff', 'Role', 'Location', 'Date', 'Clock In', 'Clock Out', 'Duration']
-    const data = rows.map(r => {
+    const body = rows.map(r => {
       const staff = r.staff_members
       return [
         staff ? `${staff.last_name}, ${staff.first_name}` : '—',
@@ -91,7 +98,13 @@ export function TimesheetsClient({
         r.duration_minutes ? formatDuration(r.duration_minutes) : '—',
       ]
     })
-    const csv = [headers, ...data].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
+    return { headers, body }
+  }
+
+  function downloadCsv() {
+    if (!rows.length) return
+    const { headers, body } = getTableData()
+    const csv = [headers, ...body].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -99,59 +112,82 @@ export function TimesheetsClient({
     a.download = 'timesheets.csv'
     a.click()
     URL.revokeObjectURL(url)
+    setDropdownOpen(false)
   }
 
-  async function exportSheets() {
-    if (!locationId) { setToast({ message: 'Select a location to export.', variant: 'amber' }); return }
-    setExporting(true)
-    // Open blank tab during the click gesture to avoid popup blockers
-    const win = window.open('', '_blank')
-    try {
-      const loc = locations.find(l => l.id === locationId)
-      let period: string
-      if (from && to) period = `${from} to ${to}`
-      else if (from) period = `from ${from}`
-      else if (to) period = `through ${to}`
-      else period = new Date().toISOString().slice(0, 7)
-      const res = await globalThis.fetch('/api/export/sheets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ locationId, locationName: loc?.name, period, from, to }),
-      })
-      const json = await res.json()
-      if (json.url) {
-        if (win) win.location.href = json.url
-        else window.open(json.url, '_blank')
-      } else {
-        win?.close()
-        setToast({ message: json.error ?? 'Export failed. Check that Google credentials are configured.', variant: 'red' })
-      }
-    } catch (err) {
-      win?.close()
-      setToast({ message: 'Export failed. Check console for details.', variant: 'red' })
-      console.error('Sheets export error:', err)
-    }
-    setExporting(false)
+  async function downloadExcel() {
+    if (!rows.length) return
+    const { headers, body } = getTableData()
+    const { utils, writeFile } = await import('xlsx')
+    const ws = utils.aoa_to_sheet([headers, ...body])
+    const wb = utils.book_new()
+    utils.book_append_sheet(wb, ws, 'Timesheets')
+    writeFile(wb, 'timesheets.xlsx')
+    setDropdownOpen(false)
+  }
+
+  async function downloadPdf() {
+    if (!rows.length) return
+    const { headers, body } = getTableData()
+    const { default: jsPDF } = await import('jspdf')
+    await import('jspdf-autotable')
+    const doc = new jsPDF({ orientation: 'landscape' })
+    doc.setFontSize(14)
+    doc.text('Timesheets', 14, 15)
+    ;(doc as any).autoTable({
+      head: [headers],
+      body,
+      startY: 22,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [15, 118, 110] },
+    })
+    doc.save('timesheets.pdf')
+    setDropdownOpen(false)
   }
 
   return (
     <div className="space-y-5">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 w-80">
-          <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Timesheets</h1>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={downloadCsv} disabled={!rows.length}>
-            <Download size={14} className="mr-1.5" />
-            CSV
+
+        <div className="relative" ref={dropdownRef}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setDropdownOpen(o => !o)}
+            disabled={!rows.length}
+            className="flex items-center gap-1.5"
+          >
+            <Download size={14} />
+            Download
+            <ChevronDown size={13} className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
           </Button>
-          <Button size="sm" variant="secondary" onClick={exportSheets} disabled={exporting}>
-            <FileSpreadsheet size={14} className="mr-1.5" />
-            {exporting ? 'Exporting…' : 'Google Sheets'}
-          </Button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
+              <button
+                onClick={downloadCsv}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <FileText size={14} className="text-slate-400" />
+                CSV
+              </button>
+              <button
+                onClick={downloadExcel}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <FileSpreadsheet size={14} className="text-green-600" />
+                Excel (.xlsx)
+              </button>
+              <button
+                onClick={downloadPdf}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <File size={14} className="text-red-500" />
+                PDF
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
