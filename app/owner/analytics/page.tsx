@@ -13,14 +13,15 @@ export default async function OwnerAnalyticsPage() {
   if (!profile) redirect('/auth/login')
 
   const locationIds = await getLocationFilter()
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  // 180 days: 90-day view + 90-day prior period for trend comparison
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 180)
 
   let query = supabase
     .from('visit_history')
     .select('checked_in_at, duration_minutes, subjects_snapshot, checkin_method')
     .eq('org_id', profile.org_id)
-    .gte('checked_in_at', thirtyDaysAgo.toISOString())
+    .gte('checked_in_at', cutoff.toISOString())
     .order('checked_in_at', { ascending: true })
 
   if (locationIds.length > 0) query = query.in('location_id', locationIds)

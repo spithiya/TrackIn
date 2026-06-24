@@ -43,12 +43,17 @@ export async function POST(request: Request) {
     }
   })
 
+  console.log('Sheets export: GOOGLE_APPLICATION_CREDENTIALS =', process.env.GOOGLE_APPLICATION_CREDENTIALS ?? '(not set)')
+  console.log('Sheets export: GOOGLE_SERVICE_ACCOUNT_EMAIL =', process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ?? '(not set)')
+  console.log('Sheets export: row count =', rows.length)
+
   try {
     const url = await exportTimesheetToSheets(rows, locationName, period)
     return NextResponse.json({ url })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    console.error('Sheets export error:', message)
+    const stack = err instanceof Error ? err.stack : ''
+    console.error('Sheets export error:', stack || message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

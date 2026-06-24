@@ -5,9 +5,10 @@ interface MetricCardProps {
   value: number | string
   variant?: 'default' | 'green' | 'yellow' | 'red'
   className?: string
+  trend?: number
 }
 
-export function MetricCard({ label, value, variant = 'default', className }: MetricCardProps) {
+export function MetricCard({ label, value, variant = 'default', className, trend }: MetricCardProps) {
   return (
     <div
       className={cn(
@@ -22,6 +23,14 @@ export function MetricCard({ label, value, variant = 'default', className }: Met
     >
       <p className="text-sm text-gray-500 mb-1">{label}</p>
       <p className="text-3xl font-semibold text-gray-900 font-mono">{value}</p>
+      {trend !== undefined && (
+        <p className={cn(
+          'text-xs mt-1.5 font-medium',
+          trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-500' : 'text-slate-400'
+        )}>
+          {trend > 0 ? '↑' : trend < 0 ? '↓' : '→'} {Math.abs(trend)}% vs prior period
+        </p>
+      )}
     </div>
   )
 }
