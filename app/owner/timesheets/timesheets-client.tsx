@@ -129,12 +129,14 @@ export function TimesheetsClient({
   async function downloadPdf() {
     if (!rows.length) return
     const { headers, body } = getTableData()
-    const { default: jsPDF } = await import('jspdf')
-    await import('jspdf-autotable')
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ])
     const doc = new jsPDF({ orientation: 'landscape' })
     doc.setFontSize(14)
     doc.text('Timesheets', 14, 15)
-    ;(doc as any).autoTable({
+    autoTable(doc, {
       head: [headers],
       body,
       startY: 22,
