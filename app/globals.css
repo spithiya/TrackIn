@@ -19,9 +19,12 @@
   body {
     font-family: var(--font-inter), system-ui, sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, #ffffff 0%, #FEF9E7 55%, #FEF3C7 100%);
-    background-attachment: fixed;
     color: #0F172A;
+    background-color: #EDE8D2;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900'><circle cx='80' cy='840' r='385' fill='%23C4952A' fill-opacity='0.13'/><circle cx='80' cy='840' r='406' fill='none' stroke='%23C4952A' stroke-width='3' stroke-dasharray='.001 11' stroke-linecap='round' opacity='0.42'/><circle cx='790' cy='-20' r='395' fill='%23C4952A' fill-opacity='0.11'/><circle cx='790' cy='-20' r='416' fill='none' stroke='%23C4952A' stroke-width='3' stroke-dasharray='.001 11' stroke-linecap='round' opacity='0.42'/><circle cx='1442' cy='535' r='365' fill='%23C4952A' fill-opacity='0.10'/><circle cx='1442' cy='535' r='386' fill='none' stroke='%23C4952A' stroke-width='3' stroke-dasharray='.001 11' stroke-linecap='round' opacity='0.42'/></svg>");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
   }
 }
 
