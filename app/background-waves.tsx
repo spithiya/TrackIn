@@ -18,59 +18,89 @@ export function BackgroundWaves() {
         style={{ width: '100%', height: '100%' }}
       >
         <defs>
-          {/* Heavy blur for the outer soft glow — fades colour to white at ribbon edges */}
-          <filter id="bw-glow" x="-30%" y="-60%" width="160%" height="220%">
+          {/*
+            Outer glow — heavily blurred so colour fades to white well
+            beyond the ribbon edges, matching the soft radiance in the reference.
+          */}
+          <filter id="bw-glow" x="-15%" y="-25%" width="130%" height="150%">
             <feGaussianBlur stdDeviation="42" />
           </filter>
-          {/* Light blur for the ribbon core — keeps shape while staying soft */}
-          <filter id="bw-core" x="-10%" y="-25%" width="120%" height="150%">
+          {/*
+            Core — lightly blurred to keep the ribbon crisp while still
+            avoiding a hard edge.
+          */}
+          <filter id="bw-core" x="-5%" y="-10%" width="110%" height="120%">
             <feGaussianBlur stdDeviation="9" />
           </filter>
         </defs>
 
         {/*
-          Ribbon 1 — enters left side at the vertical middle (top edge at y≈450),
-          tapers from wide (≈200 px) on the left to thin (≈55 px) on the right,
-          follows a sinusoidal S-curve down to the bottom-right.
+          ── RIBBON 1 ─────────────────────────────────────────────────────────
+          Direction : left-middle → bottom-right
+          Taper     : THICK (200 px) on the left → THIN (60 px) on the right
+
+          The ribbon is defined by two independent cubic bezier edges.
+          Top edge  : y=450 → y=840   (P1 pulls upward to create the gentle arc)
+          Bottom edge: y=650 → y=900   (same arc shape, shifted down by 200→60 taper)
+
+          Because the top/bottom control points are NOT vertically equidistant,
+          the gap between the two edges shrinks from left to right — this is
+          the actual taper. There is exactly ONE inflection (the upward bow at
+          the start) and the curve is otherwise monotonically descending.
+
+          ONE CROSSING: the two ribbons share the same [y_top, y_bottom] range
+          only at x≈720 (the midpoint). Before and after that x position they
+          occupy separate, non-overlapping y bands, producing a single crossing.
         */}
 
-        {/* Outer glow — wide path, heavy blur */}
+        {/* R1 outer glow — wide band, heavy blur */}
         <path
-          d="M0 440 C280 330 480 730 720 618 C910 520 1130 870 1440 838
-             L1440 900 C1130 930 910 618 720 738 C480 870 280 548 0 658 Z"
+          d="M0 450 C500 350 950 850 1440 840
+             L1440 900
+             C950 940 500 503 0 650 Z"
           fill="#C4952A"
-          opacity={0.42}
+          opacity={0.35}
           filter="url(#bw-glow)"
         />
-        {/* Core — narrow path, light blur, more opaque */}
+        {/* R1 core — narrow band, light blur */}
         <path
-          d="M0 508 C280 408 480 788 720 648 C910 548 1130 882 1440 858
-             L1440 878 C1130 898 910 568 720 668 C480 808 280 428 0 528 Z"
+          d="M0 510 C500 397 950 873 1440 858
+             L1440 882
+             C950 910 500 457 0 590 Z"
           fill="#C4952A"
-          opacity={0.68}
+          opacity={0.58}
           filter="url(#bw-core)"
         />
 
         {/*
-          Ribbon 2 — enters bottom-left thin (≈55 px), tapers wider (≈200 px)
-          on the right, follows a mirrored sinusoidal S-curve up to the right middle.
-          Crosses Ribbon 1 around x≈720, y≈660.
+          ── RIBBON 2 ─────────────────────────────────────────────────────────
+          Direction : bottom-left → right-middle
+          Taper     : THIN (60 px) on the left → THICK (200 px) on the right
+
+          Exact horizontal mirror of Ribbon 1.
+          Top edge  : y=840 → y=450
+          Bottom edge: y=900 → y=650
+
+          The mirroring is achieved by reversing the control-point order of
+          each edge, so the arc shape is identical but flows the opposite way.
         */}
 
-        {/* Outer glow */}
+        {/* R2 outer glow */}
         <path
-          d="M0 838 C280 870 480 520 720 618 C910 730 1130 330 1440 440
-             L1440 658 C1130 548 910 870 720 738 C480 618 280 930 0 900 Z"
+          d="M0 840 C500 850 950 350 1440 450
+             L1440 650
+             C950 503 500 940 0 900 Z"
           fill="#C4952A"
-          opacity={0.42}
+          opacity={0.35}
           filter="url(#bw-glow)"
         />
-        {/* Core */}
+        {/* R2 core */}
         <path
-          d="M0 858 C280 878 480 548 720 648 C910 788 1130 408 1440 508
-             L1440 528 C1130 428 910 808 720 668 C480 568 280 898 0 878 Z"
+          d="M0 858 C500 873 950 397 1440 510
+             L1440 590
+             C950 457 500 910 0 882 Z"
           fill="#C4952A"
-          opacity={0.68}
+          opacity={0.58}
           filter="url(#bw-core)"
         />
       </svg>
