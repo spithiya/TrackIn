@@ -5,7 +5,7 @@ import { LoginForm } from './login-form'
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string }
+  searchParams: { error?: string; message?: string }
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
@@ -17,9 +17,11 @@ export default function LoginPage({
           <ArrowLeft size={14} />
           Back
         </Link>
-        <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Sign in</h1>
-        <p className="text-sm text-gray-500 mb-6">BrightMind staff &amp; owner portal</p>
-        <LoginForm urlError={searchParams.error} />
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#0F172A] mb-1">BrightMind</h1>
+          <p className="text-sm text-gray-500">Staff &amp; owner portal</p>
+        </div>
+        <LoginForm urlError={searchParams.error} urlMessage={searchParams.message} />
       </div>
     </div>
   )

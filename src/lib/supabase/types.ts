@@ -5,6 +5,36 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      org_invite_keys: {
+        Row: {
+          id: string
+          org_id: string
+          created_by: string
+          key_value: string
+          expires_at: string
+          use_count: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          created_by: string
+          key_value: string
+          expires_at?: string
+          use_count?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          created_by?: string
+          key_value?: string
+          expires_at?: string
+          use_count?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           id: string
@@ -78,6 +108,7 @@ export type Database = {
           role: 'owner' | 'staff'
           full_name: string
           email: string
+          username: string | null
           created_at: string
         }
         Insert: {
@@ -86,6 +117,7 @@ export type Database = {
           role: 'owner' | 'staff'
           full_name: string
           email: string
+          username?: string | null
           created_at?: string
         }
         Update: {
@@ -94,6 +126,7 @@ export type Database = {
           role?: 'owner' | 'staff'
           full_name?: string
           email?: string
+          username?: string | null
           created_at?: string
         }
         Relationships: []

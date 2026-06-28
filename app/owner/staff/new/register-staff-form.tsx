@@ -2,16 +2,48 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { ArrowLeft, X } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
 type Location = { id: string; name: string }
 
-export function RegisterStaffForm({ orgId, locations }: { orgId: string; locations: Location[] }) {
+function PasswordInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative">
+      <input
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder ?? '••••••••'}
+        required
+        autoComplete="new-password"
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+      />
+      <button
+        type="button"
+        onClick={() => setShow(v => !v)}
+        tabIndex={-1}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+      >
+        {show ? <EyeOff size={15} /> : <Eye size={15} />}
+      </button>
+    </div>
+  )
+}
+
+export function RegisterStaffForm({ locations }: { locations: Location[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -20,6 +52,8 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
     first_name: '',
     last_name: '',
     email: '',
+    username: '',
+    password: '',
     phone: '',
     role_title: '',
     dob: '',
@@ -37,23 +71,26 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
-    const { error: insertError } = await supabase.from('staff_members').insert({
-      org_id: orgId,
-      first_name: fields.first_name.trim(),
-      last_name: fields.last_name.trim(),
-      email: fields.email.trim() || null,
-      phone: fields.phone.trim() || null,
-      role_title: fields.role_title.trim() || null,
-      dob: fields.dob || null,
-      subjects: fields.subjects,
-      location_id: fields.location_id,
-      is_active: true,
-      profile_id: null,
+    const res = await fetch('/api/owner/register-staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        first_name: fields.first_name,
+        last_name: fields.last_name,
+        email: fields.email,
+        username: fields.username,
+        password: fields.password,
+        phone: fields.phone,
+        role_title: fields.role_title,
+        dob: fields.dob,
+        subjects: fields.subjects,
+        location_id: fields.location_id,
+      }),
     })
 
-    if (insertError) {
-      setError(insertError.message)
+    const json = await res.json()
+    if (!res.ok) {
+      setError(json.error ?? 'Failed to register staff.')
       setLoading(false)
       return
     }
@@ -81,66 +118,45 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">First Name *</label>
-                <Input
-                  required
-                  value={fields.first_name}
-                  onChange={e => set('first_name', e.target.value)}
-                  onClear={() => set('first_name', '')}
-                  placeholder="Alex"
-                />
+                <Input required value={fields.first_name} onChange={e => set('first_name', e.target.value)} onClear={() => set('first_name', '')} placeholder="Alex" />
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Last Name *</label>
-                <Input
-                  required
-                  value={fields.last_name}
-                  onChange={e => set('last_name', e.target.value)}
-                  onClear={() => set('last_name', '')}
-                  placeholder="Johnson"
-                />
+                <Input required value={fields.last_name} onChange={e => set('last_name', e.target.value)} onClear={() => set('last_name', '')} placeholder="Johnson" />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Email</label>
-              <Input
-                type="email"
-                value={fields.email}
-                onChange={e => set('email', e.target.value)}
-                onClear={() => set('email', '')}
-                placeholder="alex@example.com"
-              />
+              <label className="block text-sm font-medium text-slate-700">Email *</label>
+              <Input required type="email" value={fields.email} onChange={e => set('email', e.target.value)} onClear={() => set('email', '')} placeholder="alex@example.com" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-slate-700">Username *</label>
+                <Input required value={fields.username} onChange={e => set('username', e.target.value)} onClear={() => set('username', '')} placeholder="alex_johnson" />
+                <p className="text-xs text-slate-400">3–20 chars, letters/numbers/_ -</p>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-slate-700">Password *</label>
+                <PasswordInput value={fields.password} onChange={v => set('password', v)} placeholder="Min. 8 characters" />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Phone</label>
-                <Input
-                  type="tel"
-                  value={fields.phone}
-                  onChange={e => set('phone', e.target.value)}
-                  onClear={() => set('phone', '')}
-                  placeholder="+1 555 000 1234"
-                />
+                <Input type="tel" value={fields.phone} onChange={e => set('phone', e.target.value)} onClear={() => set('phone', '')} placeholder="+1 555 000 1234" />
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Date of Birth</label>
-                <Input
-                  type="date"
-                  value={fields.dob}
-                  onChange={e => set('dob', e.target.value)}
-                />
+                <Input type="date" value={fields.dob} onChange={e => set('dob', e.target.value)} />
               </div>
             </div>
 
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">Role Title</label>
-              <Input
-                value={fields.role_title}
-                onChange={e => set('role_title', e.target.value)}
-                onClear={() => set('role_title', '')}
-                placeholder="e.g. Math Tutor"
-              />
+              <Input value={fields.role_title} onChange={e => set('role_title', e.target.value)} onClear={() => set('role_title', '')} placeholder="e.g. Math Tutor" />
             </div>
 
             <div className="space-y-2">
@@ -148,17 +164,8 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
               <div className="flex gap-3">
                 {(['math', 'reading', 'both'] as const).map(s => (
                   <label key={s} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="subjects"
-                      value={s}
-                      checked={fields.subjects === s}
-                      onChange={() => set('subjects', s)}
-                      className="accent-teal-600"
-                    />
-                    <span className="text-sm text-slate-700">
-                      {s === 'both' ? 'Math + Reading' : s.charAt(0).toUpperCase() + s.slice(1)}
-                    </span>
+                    <input type="radio" name="subjects" value={s} checked={fields.subjects === s} onChange={() => set('subjects', s)} className="accent-teal-600" />
+                    <span className="text-sm text-slate-700">{s === 'both' ? 'Math + Reading' : s.charAt(0).toUpperCase() + s.slice(1)}</span>
                   </label>
                 ))}
               </div>
@@ -169,22 +176,15 @@ export function RegisterStaffForm({ orgId, locations }: { orgId: string; locatio
               {locations.length === 0 ? (
                 <p className="text-sm text-amber-600">No locations found. Add a location first.</p>
               ) : (
-                <select
-                  required
-                  value={fields.location_id}
-                  onChange={e => set('location_id', e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  {locations.map(l => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
+                <select required value={fields.location_id} onChange={e => set('location_id', e.target.value)} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               )}
             </div>
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={loading || locations.length === 0}>
-                {loading ? 'Saving…' : 'Register Staff'}
+                {loading ? 'Creating account…' : 'Register Staff'}
               </Button>
               <Link href="/owner/staff">
                 <Button type="button" variant="secondary">Cancel</Button>

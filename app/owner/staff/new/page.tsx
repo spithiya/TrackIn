@@ -17,5 +17,5 @@ export default async function RegisterStaffPage() {
     .eq('org_id', profile.org_id)
     .eq('is_active', true)
 
-  return <RegisterStaffForm orgId={profile.org_id} locations={locations ?? []} />
+  return <RegisterStaffForm locations={locations ?? []} />
 }
