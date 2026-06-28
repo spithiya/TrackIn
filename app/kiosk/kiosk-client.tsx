@@ -157,7 +157,7 @@ export function KioskClient({
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-500 text-sm">Just a moment…</p>
         </div>
       </div>
@@ -169,8 +169,8 @@ export function KioskClient({
     return (
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="flex flex-col items-center gap-6 text-center">
-          <div className="w-24 h-24 rounded-full bg-teal-50 flex items-center justify-center">
-            <CheckCircle2 size={52} className="text-teal-600" />
+          <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center">
+            <CheckCircle2 size={52} className="text-blue-600" />
           </div>
           <div>
             {state.action === 'in' ? (
@@ -204,14 +204,14 @@ export function KioskClient({
           </div>
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-              <BookOpen size={18} className="text-teal-600 shrink-0" />
+              <BookOpen size={18} className="text-blue-600 shrink-0" />
               <div>
                 <p className="text-xs text-slate-500 mb-1">Today's subjects</p>
                 <SubjectTags subjects={student.subjects} />
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-              <Clock size={18} className="text-teal-600 shrink-0" />
+              <Clock size={18} className="text-blue-600 shrink-0" />
               <div>
                 <p className="text-xs text-slate-500 mb-0.5">Session time</p>
                 <p className="text-sm font-medium text-slate-900">{timeLimit} minutes</p>
@@ -243,14 +243,14 @@ export function KioskClient({
           </div>
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-              <Clock size={18} className="text-teal-600 shrink-0" />
+              <Clock size={18} className="text-blue-600 shrink-0" />
               <div>
                 <p className="text-xs text-slate-500 mb-1">Time in session</p>
                 <TimerPill checkedInAt={checkin.checked_in_at} subjects={checkin.subjects_snapshot} />
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-              <BookOpen size={18} className="text-teal-600 shrink-0" />
+              <BookOpen size={18} className="text-blue-600 shrink-0" />
               <div>
                 <p className="text-xs text-slate-500 mb-1">Subjects</p>
                 <SubjectTags subjects={checkin.subjects_snapshot} />
@@ -282,7 +282,7 @@ export function KioskClient({
         {!focused && (
           <div className="text-center mb-2">
             {locationName && (
-              <div className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1 rounded-full mb-4">
+              <div className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full mb-4">
                 <MapPin size={13} />
                 {locationName}
               </div>
@@ -309,7 +309,7 @@ export function KioskClient({
             onChange={e => setQuery(e.target.value)}
             onFocus={() => setFocused(true)}
             placeholder="Search your name…"
-            className="w-full pl-11 pr-10 py-4 text-lg rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent shadow-sm"
+            className="w-full pl-11 pr-10 py-4 text-lg rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           />
           {query && (
             <button
@@ -338,10 +338,10 @@ export function KioskClient({
                 <button
                   key={student.id}
                   onClick={() => selectStudent(student)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-slate-100 hover:border-teal-300 hover:bg-teal-50 transition-all text-left group"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
                 >
                   <div>
-                    <p className="text-base font-semibold text-slate-900 group-hover:text-teal-700 transition-colors">
+                    <p className="text-base font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
                       {fullName(student.first_name, student.last_name)}
                     </p>
                     <div className="mt-0.5">
@@ -350,8 +350,8 @@ export function KioskClient({
                   </div>
                   <div className="flex items-center gap-2 ml-4 shrink-0">
                     {checkedInIds.has(student.id) ? (
-                      <span className="flex items-center gap-1 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block" />
+                      <span className="flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
                         In
                       </span>
                     ) : (
@@ -360,7 +360,7 @@ export function KioskClient({
                         Out
                       </span>
                     )}
-                    <span className="text-slate-300 group-hover:text-teal-400 text-xl transition-colors">›</span>
+                    <span className="text-slate-300 group-hover:text-blue-400 text-xl transition-colors">›</span>
                   </div>
                 </button>
               ))

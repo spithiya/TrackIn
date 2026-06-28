@@ -84,7 +84,7 @@ export default async function OwnerDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Recent Visits</CardTitle>
-              <Link href="/owner/history" className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1">
+              <Link href="/owner/history" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
                 View all <ArrowRight size={12} />
               </Link>
             </div>
@@ -115,7 +115,7 @@ export default async function OwnerDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Currently In</CardTitle>
-              <Link href="/owner/live" className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1">
+              <Link href="/owner/live" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
                 Live view <ArrowRight size={12} />
               </Link>
             </div>

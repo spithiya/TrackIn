@@ -38,8 +38,8 @@ export function StaffClient({
   function SortIcon({ col }: { col: SortKey }) {
     if (sortKey !== col) return <ChevronsUpDown size={13} className="inline ml-1 text-slate-300" />
     return sortDir === 'asc'
-      ? <ChevronUp size={13} className="inline ml-1 text-teal-600" />
-      : <ChevronDown size={13} className="inline ml-1 text-teal-600" />
+      ? <ChevronUp size={13} className="inline ml-1 text-blue-600" />
+      : <ChevronDown size={13} className="inline ml-1 text-blue-600" />
   }
 
   const filtered = useMemo(() => {
@@ -78,7 +78,7 @@ export function StaffClient({
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by name or email…"
-          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {query && (
           <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">

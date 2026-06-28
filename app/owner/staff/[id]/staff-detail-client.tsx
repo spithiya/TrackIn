@@ -95,7 +95,7 @@ export function StaffDetailClient({
             {!editing && (
               <button
                 onClick={() => { setDraft(member); setEditing(true) }}
-                className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-800 font-medium transition-colors"
+                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
                 <Pencil size={14} /> Edit
               </button>
@@ -138,7 +138,7 @@ export function StaffDetailClient({
                 <div className="flex gap-3">
                   {(['math', 'reading', 'both'] as const).map(s => (
                     <label key={s} className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" checked={draft.subjects === s} onChange={() => setDraft(p => ({ ...p, subjects: s }))} className="accent-teal-600" />
+                      <input type="radio" checked={draft.subjects === s} onChange={() => setDraft(p => ({ ...p, subjects: s }))} className="accent-blue-600" />
                       <span className="text-sm">{s === 'both' ? 'Math + Reading' : s.charAt(0).toUpperCase() + s.slice(1)}</span>
                     </label>
                   ))}
@@ -153,7 +153,7 @@ export function StaffDetailClient({
                     location_id: e.target.value,
                     location_ids: (p.location_ids ?? []).filter(id => id !== e.target.value),
                   }))}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
@@ -181,7 +181,7 @@ export function StaffDetailClient({
                                   : [...ids, l.id],
                               }
                             })}
-                            className="accent-teal-600 rounded"
+                            className="accent-blue-600 rounded"
                           />
                           <span className="text-sm text-slate-700">{l.name}</span>
                         </label>

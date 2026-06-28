@@ -190,7 +190,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
-                className={`w-full pl-9 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 ${query ? 'pr-8' : 'pr-4'}`}
+                className={`w-full pl-9 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${query ? 'pr-8' : 'pr-4'}`}
                 placeholder="Search student by name…"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
@@ -331,7 +331,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
               <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={selectedSubject}
                 onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}
               >
@@ -345,7 +345,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                 Assign to Staff <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={assignedStaffId}
                 onChange={e => setAssignedStaffId(e.target.value)}
               >
@@ -384,7 +384,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
               </label>
               <div className="relative">
                 <textarea
-                  className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${sessionNote ? 'pr-8' : ''}`}
+                  className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${sessionNote ? 'pr-8' : ''}`}
                   rows={3}
                   placeholder="How did the session go?"
                   value={sessionNote}

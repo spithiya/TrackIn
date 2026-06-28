@@ -6,5 +6,5 @@ interface StaffBadgeProps {
 
 export function StaffBadge({ name }: StaffBadgeProps) {
   if (!name) return null
-  return <Badge variant="teal">{name}</Badge>
+  return <Badge variant="blue">{name}</Badge>
 }

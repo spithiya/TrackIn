@@ -148,7 +148,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                       value={s}
                       checked={fields.subjects === s}
                       onChange={() => setField('subjects', s)}
-                      className="accent-teal-600"
+                      className="accent-blue-600"
                     />
                     <span className="text-sm text-slate-700 capitalize">
                       {s === 'both' ? 'Math + Reading' : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -167,7 +167,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                   required
                   value={fields.location_id}
                   onChange={e => setField('location_id', e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {locations.map(l => (
                     <option key={l.id} value={l.id}>{l.name}</option>
@@ -184,7 +184,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                 onChange={e => setField('notes', e.target.value)}
                 placeholder="Any notes about this student…"
                 rows={3}
-                className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${fields.notes ? 'pr-8' : ''}`}
+                className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${fields.notes ? 'pr-8' : ''}`}
               />
               {fields.notes && (
                 <button type="button" onClick={() => setField('notes', '')} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -204,7 +204,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
               <button
                 type="button"
                 onClick={addContact}
-                className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-800 font-medium transition-colors"
+                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
                 <Plus size={15} />
                 Add contact
@@ -225,7 +225,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                         name="primary_contact"
                         checked={contact.is_primary}
                         onChange={() => setPrimary(i)}
-                        className="accent-teal-600"
+                        className="accent-blue-600"
                       />
                       Primary
                     </label>
@@ -257,7 +257,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                     <select
                       value={contact.relationship}
                       onChange={e => updateContact(i, 'relationship', e.target.value)}
-                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {RELATIONSHIPS.map(r => (
                         <option key={r} value={r}>{r}</option>

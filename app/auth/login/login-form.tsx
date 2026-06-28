@@ -30,7 +30,7 @@ function PasswordInput({
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
-        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent"
+        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D65F2] focus:border-transparent"
       />
       <button
         type="button"
@@ -55,7 +55,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputCls =
-  'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent'
+  'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D65F2] focus:border-transparent'
 
 export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMessage?: string }) {
   const [tab, setTab] = useState<Tab>('signin')
@@ -195,9 +195,9 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
       {tab === 'signin' && (
         <form onSubmit={handleSignIn} className="space-y-4">
           {urlMessage === 'password_changed' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg">
-              <CheckCircle2 size={15} className="text-teal-600 shrink-0" />
-              <p className="text-sm text-teal-800">Password changed successfully. Please sign in.</p>
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <CheckCircle2 size={15} className="text-blue-600 shrink-0" />
+              <p className="text-sm text-blue-800">Password changed successfully. Please sign in.</p>
             </div>
           )}
           {signInError && (
@@ -225,7 +225,7 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
             <div className="flex justify-end mt-1">
               <Link
                 href="/auth/forgot-password"
-                className="text-xs text-[#0D9488] hover:text-teal-700 transition-colors"
+                className="text-xs text-[#0D65F2] hover:text-blue-700 transition-colors"
               >
                 Forgot password?
               </Link>

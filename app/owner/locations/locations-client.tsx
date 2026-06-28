@@ -273,7 +273,7 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
                 type="checkbox"
                 checked={form.is_active}
                 onChange={e => set('is_active', e.target.checked)}
-                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               Active location
             </label>
@@ -305,4 +305,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputCls =
-  'w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500'
+  'w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'

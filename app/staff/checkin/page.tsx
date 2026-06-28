@@ -229,7 +229,7 @@ export default function StaffCheckinPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0D9488]"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0D65F2]"
                 value={selectedSubject}
                 onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}
               >
@@ -245,7 +245,7 @@ export default function StaffCheckinPage() {
                 <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0D9488]"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0D65F2]"
                 value={assignedStaffId}
                 onChange={e => setAssignedStaffId(e.target.value)}
               >
@@ -288,7 +288,7 @@ export default function StaffCheckinPage() {
                 <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <textarea
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488] resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D65F2] resize-none"
                 rows={3}
                 placeholder="How did the session go?"
                 value={sessionNote}

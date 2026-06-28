@@ -197,7 +197,7 @@ export function TimesheetsClient({
         <select
           value={staffId}
           onChange={e => setStaffId(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All staff</option>
           {staffList.map(s => (
@@ -207,7 +207,7 @@ export function TimesheetsClient({
         <select
           value={locationId}
           onChange={e => setLocationId(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All locations</option>
           {locations.map(l => (
@@ -219,14 +219,14 @@ export function TimesheetsClient({
             type="date"
             value={from}
             onChange={e => setFrom(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <span className="text-slate-400 text-sm">to</span>
           <input
             type="date"
             value={to}
             onChange={e => setTo(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {(staffId || locationId || from || to) && (
@@ -245,7 +245,7 @@ export function TimesheetsClient({
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : rows.length === 0 ? (
             <p className="text-sm text-slate-400 py-12 text-center">No timesheet entries found.</p>

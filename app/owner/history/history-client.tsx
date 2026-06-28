@@ -77,7 +77,7 @@ export function HistoryClient({
         <select
           value={locationId}
           onChange={e => setLocationId(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All locations</option>
           {locations.map(l => (
@@ -89,14 +89,14 @@ export function HistoryClient({
             type="date"
             value={from}
             onChange={e => setFrom(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <span className="text-slate-400 text-sm">to</span>
           <input
             type="date"
             value={to}
             onChange={e => setTo(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {(locationId || from || to) && (
@@ -115,7 +115,7 @@ export function HistoryClient({
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : visits.length === 0 ? (
             <p className="text-sm text-slate-400 py-12 text-center">No visits found.</p>
@@ -145,7 +145,7 @@ export function HistoryClient({
                       <td className="px-4 py-3 text-slate-500 font-mono">{formatDuration(v.duration_minutes)}</td>
                       <td className="px-4 py-3"><SubjectTags subjects={v.subjects_snapshot} /></td>
                       <td className="px-4 py-3">
-                        <Badge variant={v.checkin_method === 'kiosk' ? 'teal' : 'default'}>
+                        <Badge variant={v.checkin_method === 'kiosk' ? 'blue' : 'default'}>
                           {v.checkin_method === 'kiosk' ? 'Kiosk' : 'Staff'}
                         </Badge>
                       </td>

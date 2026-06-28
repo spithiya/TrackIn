@@ -61,20 +61,20 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
               onClick={() => select(loc)}
               className={`relative group p-8 rounded-2xl border-2 text-left transition-all shadow-sm active:scale-[0.98] ${
                 isLast
-                  ? 'border-teal-500 bg-teal-50 shadow-teal-100'
-                  : 'border-slate-200 bg-white hover:border-teal-400 hover:bg-teal-50 hover:shadow-md'
+                  ? 'border-blue-500 bg-blue-50 shadow-blue-100'
+                  : 'border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
               }`}
             >
               {isLast && (
-                <span className="absolute top-4 right-4 text-xs font-medium text-teal-700 bg-teal-100 px-2.5 py-0.5 rounded-full">
+                <span className="absolute top-4 right-4 text-xs font-medium text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
                   Last used
                 </span>
               )}
 
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                isLast ? 'bg-teal-200' : 'bg-teal-100 group-hover:bg-teal-200'
+                isLast ? 'bg-blue-200' : 'bg-blue-100 group-hover:bg-blue-200'
               }`}>
-                <MapPin size={28} className="text-teal-700" />
+                <MapPin size={28} className="text-blue-700" />
               </div>
 
               <h3 className="text-2xl font-bold text-slate-900 mb-2 leading-tight">{loc.name}</h3>

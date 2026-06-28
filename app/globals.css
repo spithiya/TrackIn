@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --brand: #0D9488;
-  --brand-light: #F0FDFA;
+  --brand: #0D65F2;
+  --brand-light: #EFF6FF;
   --green: #3B6D11;
   --amber: #BA7517;
   --red: #A32D2D;
-  --teal: #0D9488;
+  --blue: #0D65F2;
 }
 
 @layer base {
   body {
     font-family: var(--font-inter), system-ui, sans-serif;
-    background-color: #F8FAFC;
+    background-color: #FFFFFF;
     color: #0F172A;
   }
 }

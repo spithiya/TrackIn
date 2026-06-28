@@ -27,10 +27,10 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <Users size={16} className="text-teal-600" />
+                <Users size={16} className="text-blue-600" />
                 Active Students
               </CardTitle>
-              <span className="text-sm font-mono font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
+              <span className="text-sm font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                 {students.length}
               </span>
             </div>
@@ -38,7 +38,7 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardContent>
             {loadingStudents ? (
               <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : students.length === 0 ? (
               <p className="text-sm text-slate-400 py-8 text-center">No students checked in.</p>
@@ -64,10 +64,10 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <UserCheck size={16} className="text-teal-600" />
+                <UserCheck size={16} className="text-blue-600" />
                 Active Staff
               </CardTitle>
-              <span className="text-sm font-mono font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
+              <span className="text-sm font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                 {staff.length}
               </span>
             </div>
@@ -75,7 +75,7 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardContent>
             {loadingStaff ? (
               <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : staff.length === 0 ? (
               <p className="text-sm text-slate-400 py-8 text-center">No staff clocked in.</p>

@@ -59,7 +59,7 @@ export function LocationFilterDropdown({ locations, selectedIds: initialIds }: P
         onClick={() => setOpen(o => !o)}
         className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border transition-colors ${
           filtered
-            ? 'border-teal-500 bg-teal-50 text-teal-700'
+            ? 'border-blue-500 bg-blue-50 text-blue-700'
             : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
         }`}
       >
@@ -84,7 +84,7 @@ export function LocationFilterDropdown({ locations, selectedIds: initialIds }: P
                   className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
                 >
                   <span className={`flex-none w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                    checked ? 'bg-teal-600 border-teal-600' : 'border-slate-300'
+                    checked ? 'bg-blue-600 border-blue-600' : 'border-slate-300'
                   }`}>
                     {checked && <Check size={10} className="text-white" strokeWidth={3} />}
                   </span>
@@ -104,7 +104,7 @@ export function LocationFilterDropdown({ locations, selectedIds: initialIds }: P
             <button
               onClick={confirm}
               disabled={isPending}
-              className="flex-1 bg-teal-600 text-white text-xs font-medium py-1.5 rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
+              className="flex-1 bg-blue-600 text-white text-xs font-medium py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {isPending ? 'Saving…' : 'Confirm'}
             </button>

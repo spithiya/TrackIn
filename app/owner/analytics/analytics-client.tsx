@@ -19,7 +19,7 @@ type HistoryRow = {
 const DAYS_OPTIONS = [7, 30, 90] as const
 type DaysOption = typeof DAYS_OPTIONS[number]
 
-const SUBJECT_COLORS = { Math: '#0D9488', Reading: '#534AB7', 'Math + Reading': '#F59E0B' }
+const SUBJECT_COLORS = { Math: '#0D65F2', Reading: '#534AB7', 'Math + Reading': '#F59E0B' }
 const TOOLTIP_STYLE = { borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 }
 
 function trendPct(curr: number, prev: number): number | undefined {
@@ -217,8 +217,8 @@ export function AnalyticsClient({ history }: { history: HistoryRow[] }) {
                   axisLine={false}
                   allowDecimals={false}
                 />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#F0FDFA' }} />
-                <Bar dataKey="count" fill="#0D9488" radius={[4, 4, 0, 0]} name="Visits" />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#EFF6FF' }} />
+                <Bar dataKey="count" fill="#0D65F2" radius={[4, 4, 0, 0]} name="Visits" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -329,7 +329,7 @@ export function AnalyticsClient({ history }: { history: HistoryRow[] }) {
               </div>
               <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full bg-teal-600 rounded-full transition-all duration-500"
+                  className="h-full bg-blue-600 rounded-full transition-all duration-500"
                   style={{ width: `${methodStats.kioskPct}%` }}
                 />
               </div>

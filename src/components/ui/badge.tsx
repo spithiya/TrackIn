@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'green' | 'yellow' | 'red' | 'teal' | 'purple' | 'gray'
+  variant?: 'default' | 'green' | 'yellow' | 'red' | 'blue' | 'purple' | 'gray'
 }
 
 export function Badge({ className, variant = 'default', ...props }: BadgeProps) {
@@ -14,8 +14,8 @@ export function Badge({ className, variant = 'default', ...props }: BadgeProps) 
           'bg-green-100 text-green-800': variant === 'green',
           'bg-amber-100 text-amber-800': variant === 'yellow',
           'bg-red-100 text-red-800': variant === 'red',
-          'bg-teal-100 text-teal-800': variant === 'teal',
-          'bg-[#F0FDFA] text-[#0D9488]': variant === 'purple',
+          'bg-blue-100 text-blue-800': variant === 'blue',
+          'bg-[#EFF6FF] text-[#0D65F2]': variant === 'purple',
           'bg-gray-100 text-gray-600': variant === 'gray',
         },
         className
