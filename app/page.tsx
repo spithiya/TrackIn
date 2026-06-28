@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-[#FFFFFF] px-4">
+    <main className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-[#0D65F2] mb-2">BrightMind</h1>
         <p className="text-gray-600">Tutoring Center Management</p>

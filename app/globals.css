@@ -12,9 +12,15 @@
 }
 
 @layer base {
+  html {
+    min-height: 100%;
+  }
+
   body {
     font-family: var(--font-inter), system-ui, sans-serif;
-    background-color: #FFFFFF;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ffffff 0%, #FEF9E7 55%, #FEF3C7 100%);
+    background-attachment: fixed;
     color: #0F172A;
   }
 }
