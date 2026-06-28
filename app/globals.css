@@ -20,11 +20,7 @@
     font-family: var(--font-inter), system-ui, sans-serif;
     min-height: 100vh;
     color: #0F172A;
-    background-color: #ffffff;
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900'><path d='M0 900 C0 600 100 150 500 270 C800 345 1000 200 1440 290 L1440 900 Z' fill='%23C4952A' fill-opacity='0.06'/><path d='M0 900 C0 800 200 300 600 380 C900 440 1050 280 1300 380 C1380 410 1430 480 1440 530 L1440 900 Z' fill='%23C4952A' fill-opacity='0.12'/><path d='M0 900 C0 850 250 370 620 420 C900 460 1080 310 1330 405 C1400 433 1435 505 1440 555 L1440 900 Z' fill='%23C4952A' fill-opacity='0.18'/><path d='M0 900 C0 880 300 440 650 460 C920 480 1110 340 1350 430 C1415 456 1437 530 1440 580 L1440 900 Z' fill='%23C4952A' fill-opacity='0.24'/><path d='M0 900 C0 895 340 510 680 500 C950 498 1140 370 1370 455 C1428 478 1440 553 1440 605 L1440 900 Z' fill='%23C4952A' fill-opacity='0.30'/></svg>");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background: transparent;
   }
 }
 
