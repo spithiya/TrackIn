@@ -19,5 +19,5 @@ export function Clock() {
     return () => clearInterval(interval)
   }, [])
 
-  return <span className="text-sm text-slate-500 font-mono tabular-nums">{time}</span>
+  return <span className="text-sm text-white/80 font-mono tabular-nums">{time}</span>
 }

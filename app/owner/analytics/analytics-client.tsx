@@ -157,7 +157,7 @@ export function AnalyticsClient({ history }: { history: HistoryRow[] }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Analytics</h1>
+          <h1 className="text-2xl font-semibold text-[#252E3D]">Analytics</h1>
           <p className="text-sm text-slate-500 mt-0.5">Last {days} days</p>
         </div>
         <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
@@ -218,7 +218,7 @@ export function AnalyticsClient({ history }: { history: HistoryRow[] }) {
                   allowDecimals={false}
                 />
                 <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#EFF6FF' }} />
-                <Bar dataKey="count" fill="#0D65F2" radius={[4, 4, 0, 0]} name="Visits" />
+                <Bar dataKey="count" fill="#3D4A5C" radius={[4, 4, 0, 0]} name="Visits" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -329,7 +329,7 @@ export function AnalyticsClient({ history }: { history: HistoryRow[] }) {
               </div>
               <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                  className="h-full bg-[#3D4A5C] rounded-full transition-all duration-500"
                   style={{ width: `${methodStats.kioskPct}%` }}
                 />
               </div>

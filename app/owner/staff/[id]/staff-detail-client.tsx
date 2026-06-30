@@ -95,7 +95,7 @@ export function StaffDetailClient({
             {!editing && (
               <button
                 onClick={() => { setDraft(member); setEditing(true) }}
-                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                className="flex items-center gap-1.5 text-sm text-[#3D4A5C] hover:text-[#252E3D] font-medium transition-colors"
               >
                 <Pencil size={14} /> Edit
               </button>
@@ -153,7 +153,7 @@ export function StaffDetailClient({
                     location_id: e.target.value,
                     location_ids: (p.location_ids ?? []).filter(id => id !== e.target.value),
                   }))}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
                 >
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>

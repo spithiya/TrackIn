@@ -62,7 +62,7 @@ export default async function OwnerDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+      <h1 className="text-2xl font-semibold text-[#252E3D]">Dashboard</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
@@ -84,7 +84,7 @@ export default async function OwnerDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Recent Visits</CardTitle>
-              <Link href="/owner/history" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <Link href="/owner/history" className="text-xs text-[#3D4A5C] hover:text-[#252E3D] flex items-center gap-1">
                 View all <ArrowRight size={12} />
               </Link>
             </div>
@@ -115,7 +115,7 @@ export default async function OwnerDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Currently In</CardTitle>
-              <Link href="/owner/live" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              <Link href="/owner/live" className="text-xs text-[#3D4A5C] hover:text-[#252E3D] flex items-center gap-1">
                 Live view <ArrowRight size={12} />
               </Link>
             </div>

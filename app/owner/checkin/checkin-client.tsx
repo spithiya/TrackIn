@@ -54,7 +54,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
   const supabase = createClient()
 
   const searchStudents = useCallback(async (q: string) => {
-    if (q.trim().length < 2) { setSearchResults([]); return }
+    if (q.trim().length < 1) { setSearchResults([]); return }
     setSearching(true)
     const { data } = await supabase
       .from('students')
@@ -158,7 +158,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-900 mb-5">Check In / Out</h1>
+      <h1 className="text-2xl font-semibold text-[#252E3D] mb-5">Check In / Out</h1>
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 w-80">
@@ -190,7 +190,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
-                className={`w-full pl-9 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${query ? 'pr-8' : 'pr-4'}`}
+                className={`w-full pl-9 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#3D4A5C] ${query ? 'pr-8' : 'pr-4'}`}
                 placeholder="Search student by name…"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
@@ -200,7 +200,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                   <X size={14} />
                 </button>
               )}
-              {query.length >= 2 && (
+              {query.length >= 1 && (
                 <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-slate-200 shadow-md overflow-hidden">
                   {searching ? (
                     <div className="px-4 py-3 text-sm text-slate-400">Searching…</div>
@@ -331,7 +331,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
               <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
                 value={selectedSubject}
                 onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}
               >
@@ -345,7 +345,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                 Assign to Staff <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
                 value={assignedStaffId}
                 onChange={e => setAssignedStaffId(e.target.value)}
               >
@@ -384,7 +384,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
               </label>
               <div className="relative">
                 <textarea
-                  className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${sessionNote ? 'pr-8' : ''}`}
+                  className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3D4A5C] resize-none ${sessionNote ? 'pr-8' : ''}`}
                   rows={3}
                   placeholder="How did the session go?"
                   value={sessionNote}

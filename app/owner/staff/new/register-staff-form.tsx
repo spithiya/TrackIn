@@ -29,7 +29,7 @@ function PasswordInput({
         placeholder={placeholder ?? '••••••••'}
         required
         autoComplete="new-password"
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3D4A5C] focus:border-transparent"
       />
       <button
         type="button"
@@ -176,7 +176,7 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
               {locations.length === 0 ? (
                 <p className="text-sm text-amber-600">No locations found. Add a location first.</p>
               ) : (
-                <select required value={fields.location_id} onChange={e => set('location_id', e.target.value)} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select required value={fields.location_id} onChange={e => set('location_id', e.target.value)} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]">
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               )}

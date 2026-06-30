@@ -36,7 +36,7 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
   if (!locations.length) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-slate-400 text-lg">No active locations found.</p>
+        <p className="text-[#9A8F7E] text-lg">No active locations found.</p>
       </div>
     )
   }
@@ -44,8 +44,8 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8">
       <div className="text-center mb-10">
-        <h2 className="text-4xl font-bold text-slate-900 mb-2">Select Your Location</h2>
-        <p className="text-slate-500 text-lg">Tap the location for this kiosk.</p>
+        <h2 className="text-4xl font-bold text-[#1a1209] mb-2">Select Your Location</h2>
+        <p className="text-[#9A8F7E] text-lg">Tap the location for this kiosk.</p>
       </div>
 
       <div className={`grid gap-5 w-full max-w-2xl ${
@@ -59,32 +59,26 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
             <button
               key={loc.id}
               onClick={() => select(loc)}
-              className={`relative group p-8 rounded-2xl border-2 text-left transition-all shadow-sm active:scale-[0.98] ${
-                isLast
-                  ? 'border-blue-500 bg-blue-50 shadow-blue-100'
-                  : 'border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
-              }`}
+              className="relative group flex flex-col items-start p-8 rounded-2xl border border-gray-200 bg-white text-left shadow-sm hover:shadow-lg hover:-translate-y-2 active:scale-[0.98] transition-all duration-200"
             >
               {isLast && (
-                <span className="absolute top-4 right-4 text-xs font-medium text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                <span className="absolute top-4 right-4 text-xs font-medium text-[#7A5C30] bg-[#F5EDD8] px-2.5 py-0.5 rounded-full">
                   Last used
                 </span>
               )}
 
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                isLast ? 'bg-blue-200' : 'bg-blue-100 group-hover:bg-blue-200'
-              }`}>
-                <MapPin size={28} className="text-blue-700" />
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 bg-[#F5EDD8] group-hover:bg-[#F0E5CC] transition-colors shrink-0">
+                <MapPin size={28} className="text-[#C9A96E]" />
               </div>
 
-              <h3 className="text-2xl font-bold text-slate-900 mb-2 leading-tight">{loc.name}</h3>
+              <h3 className="text-2xl font-bold text-[#1a1209] mb-2 leading-tight">{loc.name}</h3>
 
-              <p className="text-sm text-slate-500 leading-snug">
+              <p className="text-sm text-[#9A8F7E] leading-snug">
                 {loc.address_street}<br />
                 {loc.address_city}, {loc.address_state} {loc.address_zip}
               </p>
 
-              <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-[#9A8F7E]">
                 <Clock size={12} />
                 <span>{loc.opens_at} – {loc.closes_at}</span>
               </div>

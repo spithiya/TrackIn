@@ -38,8 +38,8 @@ export function StaffClient({
   function SortIcon({ col }: { col: SortKey }) {
     if (sortKey !== col) return <ChevronsUpDown size={13} className="inline ml-1 text-slate-300" />
     return sortDir === 'asc'
-      ? <ChevronUp size={13} className="inline ml-1 text-blue-600" />
-      : <ChevronDown size={13} className="inline ml-1 text-blue-600" />
+      ? <ChevronUp size={13} className="inline ml-1 text-[#3D4A5C]" />
+      : <ChevronDown size={13} className="inline ml-1 text-[#3D4A5C]" />
   }
 
   const filtered = useMemo(() => {
@@ -62,7 +62,7 @@ export function StaffClient({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Staff Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-[#252E3D]">Staff Dashboard</h1>
         <Link href="/owner/staff/new">
           <Button size="sm">
             <Clipboard size={15} className="mr-1.5" />
@@ -78,7 +78,7 @@ export function StaffClient({
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by name or email…"
-          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
         />
         {query && (
           <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -97,29 +97,29 @@ export function StaffClient({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
+                  <tr className="border-b border-slate-200 bg-[#ECEEF1]">
                     <th
-                      className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 transition-colors"
+                      className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 transition-colors"
                       onClick={() => toggleSort('name')}
                     >
                       Name <SortIcon col="name" />
                     </th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Role</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Subjects</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Role</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Subjects</th>
                     <th
-                      className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 transition-colors"
+                      className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide cursor-pointer select-none hover:text-slate-700 transition-colors"
                       onClick={() => toggleSort('location')}
                     >
                       Location <SortIcon col="location" />
                     </th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Status</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map(s => (
                     <tr
                       key={s.id}
-                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="border-b border-slate-100 last:border-0 hover:bg-[#F1F2F5] transition-colors cursor-pointer"
                       onClick={() => window.location.href = `/owner/staff/${s.id}`}
                     >
                       <td className="px-4 py-3">

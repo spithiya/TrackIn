@@ -1,15 +1,7 @@
-import Link from 'next/link'
-import { LayoutDashboard, UserCheck, Clock, FileText } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { StaffNav } from './staff-nav'
 import { SignOutButton } from './sign-out-button'
-
-const nav = [
-  { href: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/staff/checkin', label: 'Check In/Out', icon: UserCheck },
-  { href: '/staff/my-checkin', label: 'My Check-in', icon: Clock },
-  { href: '/staff/my-timesheet', label: 'My Timesheet', icon: FileText },
-]
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -22,32 +14,27 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <span className="text-lg font-bold text-[#0D65F2]">BrightMind</span>
-          <p className="text-xs text-gray-500 mt-0.5">Staff Portal</p>
+      {/* ── Sidebar ── */}
+      <aside className="w-56 bg-[#1E3A6E] flex flex-col shrink-0">
+        <div className="px-6 py-5 border-b border-white/10">
+          <span className="text-lg font-bold text-white">BrightMind</span>
+          <p className="text-xs text-white/45 mt-0.5 font-medium tracking-wide uppercase">Staff Portal</p>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {nav.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-[#EFF6FF] hover:text-[#0D65F2] transition-colors"
-            >
-              <Icon size={16} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <div className="px-3 py-4 border-t border-gray-100">
+        <StaffNav />
+        <div className="px-3 py-4 border-t border-white/10">
           <SignOutButton />
         </div>
       </aside>
+
+      {/* ── Content ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <span className="text-sm text-gray-500">Staff Portal</span>
+        <header className="bg-white border-b border-[#D6E3FF] px-6 py-3.5 flex items-center justify-between">
+          <span className="text-sm font-medium text-[#3B6FD4]">Staff Portal</span>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 bg-[#F4F7FF]">{children}</main>
+        <footer className="px-6 py-2.5 border-t border-[#D6E3FF] bg-white text-xs text-gray-400 text-center">
+          © 2026 BrightMind. All rights reserved.
+        </footer>
       </div>
     </div>
   )

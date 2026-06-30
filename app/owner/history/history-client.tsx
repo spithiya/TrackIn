@@ -66,7 +66,7 @@ export function HistoryClient({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Visit History</h1>
+        <h1 className="text-2xl font-semibold text-[#252E3D]">Visit History</h1>
         <Button size="sm" variant="secondary" onClick={exportCsv}>
           <Download size={14} className="mr-1.5" />
           Export CSV
@@ -77,7 +77,7 @@ export function HistoryClient({
         <select
           value={locationId}
           onChange={e => setLocationId(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
         >
           <option value="">All locations</option>
           {locations.map(l => (
@@ -89,14 +89,14 @@ export function HistoryClient({
             type="date"
             value={from}
             onChange={e => setFrom(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
           />
           <span className="text-slate-400 text-sm">to</span>
           <input
             type="date"
             value={to}
             onChange={e => setTo(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
           />
         </div>
         {(locationId || from || to) && (
@@ -115,7 +115,7 @@ export function HistoryClient({
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#3D4A5C] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : visits.length === 0 ? (
             <p className="text-sm text-slate-400 py-12 text-center">No visits found.</p>
@@ -123,19 +123,19 @@ export function HistoryClient({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Student</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Date</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">In</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Out</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Duration</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Subjects</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Method</th>
+                  <tr className="border-b border-slate-200 bg-[#ECEEF1]">
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Student</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Date</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">In</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Out</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Duration</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Subjects</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Method</th>
                   </tr>
                 </thead>
                 <tbody>
                   {visits.map(v => (
-                    <tr key={v.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                    <tr key={v.id} className="border-b border-slate-100 last:border-0 hover:bg-[#F1F2F5] transition-colors">
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {v.student_first_name} {v.student_last_name}
                       </td>

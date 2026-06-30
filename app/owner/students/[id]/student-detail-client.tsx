@@ -197,7 +197,7 @@ export function StudentDetailClient({
             {!editingStudent && (
               <button
                 onClick={() => { setStudentDraft(student); setEditingStudent(true) }}
-                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                className="flex items-center gap-1.5 text-sm text-[#3D4A5C] hover:text-[#252E3D] font-medium transition-colors"
               >
                 <Pencil size={14} /> Edit
               </button>
@@ -256,7 +256,7 @@ export function StudentDetailClient({
                 <select
                   value={studentDraft.location_id}
                   onChange={e => setStudentDraft(p => ({ ...p, location_id: e.target.value }))}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
                 >
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
@@ -268,7 +268,7 @@ export function StudentDetailClient({
                   value={studentDraft.notes ?? ''}
                   onChange={e => setStudentDraft(p => ({ ...p, notes: e.target.value }))}
                   rows={3}
-                  className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${studentDraft.notes ? 'pr-8' : ''}`}
+                  className={`w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C] resize-none ${studentDraft.notes ? 'pr-8' : ''}`}
                 />
                 {studentDraft.notes && (
                   <button type="button" onClick={() => setStudentDraft(p => ({ ...p, notes: '' }))} className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -316,7 +316,7 @@ export function StudentDetailClient({
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                 <button
                   onClick={handleToggleActive}
-                  className={`text-sm font-medium transition-colors ${student.is_active ? 'text-amber-500 hover:text-amber-700' : 'text-blue-600 hover:text-blue-800'}`}
+                  className={`text-sm font-medium transition-colors ${student.is_active ? 'text-amber-500 hover:text-amber-700' : 'text-[#3D4A5C] hover:text-[#252E3D]'}`}
                 >
                   {student.is_active ? 'Mark as inactive' : 'Mark as active'}
                 </button>
@@ -359,7 +359,7 @@ export function StudentDetailClient({
             {!addingContact && (
               <button
                 onClick={() => setAddingContact(true)}
-                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                className="flex items-center gap-1.5 text-sm text-[#3D4A5C] hover:text-[#252E3D] font-medium transition-colors"
               >
                 <Plus size={15} /> Add contact
               </button>
@@ -383,8 +383,8 @@ export function StudentDetailClient({
                   {c.phone && (
                     <div className="flex items-center gap-1.5">
                       <span>{c.phone}</span>
-                      <button type="button" onClick={() => copyPhone(c.phone!)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Copy phone">
-                        {copiedPhone === c.phone ? <Check size={12} className="text-blue-600" /> : <Copy size={12} />}
+                      <button type="button" onClick={() => copyPhone(c.phone!)} className="text-slate-400 hover:text-[#3D4A5C] transition-colors" title="Copy phone">
+                        {copiedPhone === c.phone ? <Check size={12} className="text-[#3D4A5C]" /> : <Copy size={12} />}
                       </button>
                     </div>
                   )}
@@ -395,7 +395,7 @@ export function StudentDetailClient({
                 {!c.is_primary && (
                   <button
                     onClick={() => handleSetPrimary(c.id)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    className="text-xs text-[#3D4A5C] hover:text-[#252E3D] font-medium transition-colors"
                   >
                     Set primary
                   </button>
@@ -428,7 +428,7 @@ export function StudentDetailClient({
                   <select
                     value={newContact.relationship}
                     onChange={e => setNewContact(p => ({ ...p, relationship: e.target.value as Relationship }))}
-                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
                   >
                     {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>

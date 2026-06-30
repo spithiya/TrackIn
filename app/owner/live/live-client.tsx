@@ -15,7 +15,7 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Live Display</h1>
+        <h1 className="text-2xl font-semibold text-[#252E3D]">Live Display</h1>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-sm text-slate-500">Real-time</span>
@@ -27,10 +27,10 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <Users size={16} className="text-blue-600" />
+                <Users size={16} className="text-[#3D4A5C]" />
                 Active Students
               </CardTitle>
-              <span className="text-sm font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+              <span className="text-sm font-mono font-semibold text-[#3D4A5C] bg-[#ECEEF1] px-2 py-0.5 rounded-full">
                 {students.length}
               </span>
             </div>
@@ -38,7 +38,7 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardContent>
             {loadingStudents ? (
               <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[#3D4A5C] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : students.length === 0 ? (
               <p className="text-sm text-slate-400 py-8 text-center">No students checked in.</p>
@@ -64,10 +64,10 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <UserCheck size={16} className="text-blue-600" />
+                <UserCheck size={16} className="text-[#3D4A5C]" />
                 Active Staff
               </CardTitle>
-              <span className="text-sm font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+              <span className="text-sm font-mono font-semibold text-[#3D4A5C] bg-[#ECEEF1] px-2 py-0.5 rounded-full">
                 {staff.length}
               </span>
             </div>
@@ -75,7 +75,7 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           <CardContent>
             {loadingStaff ? (
               <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[#3D4A5C] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : staff.length === 0 ? (
               <p className="text-sm text-slate-400 py-8 text-center">No staff clocked in.</p>

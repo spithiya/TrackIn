@@ -17,6 +17,8 @@ import type { Tables, Views } from '@/lib/supabase/types'
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
+const selectCls = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#3B6FD4] bg-white'
+
 export default function StaffCheckinPage() {
   const { profile } = useCurrentUser()
   const [staffMember, setStaffMember] = useState<{ id: string; location_id: string; location_ids: string[] | null } | null>(null)
@@ -52,10 +54,7 @@ export default function StaffCheckinPage() {
   const [toast, setToast] = useState<ToastState>(null)
 
   const searchStudents = useCallback(async (q: string) => {
-    if (!profile?.org_id || q.trim().length < 2) {
-      setSearchResults([])
-      return
-    }
+    if (!profile?.org_id || q.trim().length < 1) { setSearchResults([]); return }
     setSearching(true)
     const supabase = createClient()
     let query = supabase
@@ -87,7 +86,6 @@ export default function StaffCheckinPage() {
     if (!checkinStudent || !profile) return
     setCheckingIn(true)
     const supabase = createClient()
-
     const { error } = await supabase.from('student_checkins').insert({
       org_id: profile.org_id,
       student_id: checkinStudent.id,
@@ -99,7 +97,6 @@ export default function StaffCheckinPage() {
       checked_in_by_staff_id: staffMember?.id ?? null,
       sms_sent: false,
     })
-
     if (error) {
       setToast({ message: 'Failed to check in student.', variant: 'red' })
     } else {
@@ -114,12 +111,10 @@ export default function StaffCheckinPage() {
     if (!checkoutTarget) return
     setCheckingOut(true)
     const supabase = createClient()
-
     const { data, error } = await supabase.rpc('checkout_student', {
       checkin_id: checkoutTarget.id,
       session_note: sessionNote.trim() || undefined,
     })
-
     if (error) {
       setToast({ message: 'Failed to check out student.', variant: 'red' })
     } else {
@@ -146,7 +141,7 @@ export default function StaffCheckinPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Check In / Out</h1>
+      <h1 className="text-2xl font-semibold text-[#1E3A6E] mb-6">Check In / Out</h1>
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 w-80">
@@ -155,16 +150,16 @@ export default function StaffCheckinPage() {
       )}
 
       {/* Search to check in */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <h2 className="text-base font-semibold text-gray-800 mb-3">Check In a Student</h2>
+      <div className="bg-white rounded-xl border border-[#D6E3FF] border-t-[3px] border-t-[#3B6FD4] p-5 mb-6">
+        <h2 className="text-sm font-semibold text-[#1E3A6E] uppercase tracking-wider mb-3">Check In a Student</h2>
         <div className="relative">
           <SearchInput
             placeholder="Search student by name…"
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
-          {query.length >= 2 && (
-            <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-gray-200 shadow-md overflow-hidden">
+          {query.length >= 1 && (
+            <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-[#D6E3FF] shadow-md overflow-hidden">
               {searching ? (
                 <div className="px-4 py-3 text-sm text-gray-400">Searching…</div>
               ) : searchResults.length === 0 ? (
@@ -173,7 +168,7 @@ export default function StaffCheckinPage() {
                 searchResults.map(s => (
                   <button
                     key={s.id}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex items-center justify-between border-b border-gray-100 last:border-0"
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-[#F5F8FF] flex items-center justify-between border-b border-[#EEF3FF] last:border-0 transition-colors"
                     onClick={() => openCheckinModal(s)}
                   >
                     <span className="font-medium text-gray-900">{fullName(s.first_name, s.last_name)}</span>
@@ -187,33 +182,44 @@ export default function StaffCheckinPage() {
       </div>
 
       {/* Active students */}
-      <h2 className="text-base font-semibold text-gray-800 mb-3">Currently Checked In</h2>
+      <h2 className="text-sm font-semibold text-[#1E3A6E] uppercase tracking-wider mb-3">Currently Checked In</h2>
       {loadingActive ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 text-sm text-gray-400 text-center">Loading…</div>
+        <div className="bg-white rounded-xl border border-[#D6E3FF] p-6 text-sm text-gray-400 text-center">Loading…</div>
       ) : activeStudents.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 text-sm text-gray-400 text-center">No students currently checked in.</div>
+        <div className="bg-white rounded-xl border border-[#D6E3FF] p-6 text-sm text-gray-400 text-center">No students currently checked in.</div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-          {activeStudents.map(s => (
-            <div key={s.id} className="flex items-center justify-between px-5 py-3 gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">{fullName(s.student_first_name, s.student_last_name)}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <SubjectTags subjects={s.subjects_snapshot} />
-                  {s.assigned_staff_name && (
-                    <span className="text-xs text-gray-400">{s.assigned_staff_name}</span>
-                  )}
+        <div className="bg-white rounded-xl border border-[#D6E3FF] overflow-hidden">
+          <div className="grid grid-cols-[1fr_auto] px-5 py-2.5 bg-[#EEF3FF] border-b border-[#D6E3FF]">
+            <span className="text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider">Student</span>
+            <span className="text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider">Actions</span>
+          </div>
+          <div className="divide-y divide-[#EEF3FF]">
+            {activeStudents.map(s => (
+              <div key={s.id} className="flex items-center justify-between px-5 py-3 gap-4 hover:bg-[#F5F8FF] transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900">{fullName(s.student_first_name, s.student_last_name)}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <SubjectTags subjects={s.subjects_snapshot} />
+                    {s.assigned_staff_name && (
+                      <span className="text-xs text-gray-400">{s.assigned_staff_name}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs text-gray-400">{formatTime(s.checked_in_at)}</span>
+                  <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setCheckoutTarget(s); setSessionNote('') }}
+                    className="border-[#3B6FD4] text-[#3B6FD4] hover:bg-[#EEF3FF]"
+                  >
+                    Check Out
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="text-xs text-gray-400">{formatTime(s.checked_in_at)}</span>
-                <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
-                <Button variant="outline" size="sm" onClick={() => { setCheckoutTarget(s); setSessionNote('') }}>
-                  Check Out
-                </Button>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
@@ -223,32 +229,21 @@ export default function StaffCheckinPage() {
           <div className="space-y-4">
             <p className="text-gray-700">
               Checking in{' '}
-              <span className="font-semibold">{fullName(checkinStudent.first_name, checkinStudent.last_name)}</span>
+              <span className="font-semibold text-[#1E3A6E]">{fullName(checkinStudent.first_name, checkinStudent.last_name)}</span>
             </p>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0D65F2]"
-                value={selectedSubject}
-                onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}
-              >
+              <select className={selectCls} value={selectedSubject} onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}>
                 <option value="math">Math (30 min)</option>
                 <option value="reading">Reading (30 min)</option>
                 <option value="both">Math + Reading (60 min)</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assign to Staff{' '}
-                <span className="text-gray-400 font-normal">(optional)</span>
+                Assign to Staff <span className="text-gray-400 font-normal">(optional)</span>
               </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0D65F2]"
-                value={assignedStaffId}
-                onChange={e => setAssignedStaffId(e.target.value)}
-              >
+              <select className={selectCls} value={assignedStaffId} onChange={e => setAssignedStaffId(e.target.value)}>
                 <option value="">Unassigned</option>
                 {activeStaff.map(s => (
                   <option key={s.staff_id} value={s.staff_id}>
@@ -257,12 +252,9 @@ export default function StaffCheckinPage() {
                 ))}
               </select>
             </div>
-
             <div className="flex gap-3 justify-end pt-2">
-              <Button variant="secondary" size="md" onClick={() => setCheckinStudent(null)} disabled={checkingIn}>
-                Cancel
-              </Button>
-              <Button variant="primary" size="md" onClick={handleCheckin} disabled={checkingIn}>
+              <Button variant="secondary" size="md" onClick={() => setCheckinStudent(null)} disabled={checkingIn}>Cancel</Button>
+              <Button size="md" onClick={handleCheckin} disabled={checkingIn} className="bg-[#3B6FD4] hover:bg-[#2558C8] focus-visible:ring-[#3B6FD4]">
                 {checkingIn ? 'Checking in…' : 'Check In'}
               </Button>
             </div>
@@ -276,7 +268,7 @@ export default function StaffCheckinPage() {
           <div className="space-y-4">
             <p className="text-gray-700">
               Checking out{' '}
-              <span className="font-semibold">{fullName(checkoutTarget.student_first_name, checkoutTarget.student_last_name)}</span>
+              <span className="font-semibold text-[#1E3A6E]">{fullName(checkoutTarget.student_first_name, checkoutTarget.student_last_name)}</span>
             </p>
             <div className="flex items-center gap-3">
               <TimerPill checkedInAt={checkoutTarget.checked_in_at} subjects={checkoutTarget.subjects_snapshot} />
@@ -284,11 +276,10 @@ export default function StaffCheckinPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Session Note{' '}
-                <span className="text-gray-400 font-normal">(optional)</span>
+                Session Note <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <textarea
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D65F2] resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3B6FD4] resize-none"
                 rows={3}
                 placeholder="How did the session go?"
                 value={sessionNote}
@@ -296,10 +287,8 @@ export default function StaffCheckinPage() {
               />
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <Button variant="secondary" size="md" onClick={() => setCheckoutTarget(null)} disabled={checkingOut}>
-                Cancel
-              </Button>
-              <Button variant="primary" size="md" onClick={handleCheckout} disabled={checkingOut}>
+              <Button variant="secondary" size="md" onClick={() => setCheckoutTarget(null)} disabled={checkingOut}>Cancel</Button>
+              <Button size="md" onClick={handleCheckout} disabled={checkingOut} className="bg-[#3B6FD4] hover:bg-[#2558C8] focus-visible:ring-[#3B6FD4]">
                 {checkingOut ? 'Checking out…' : 'Check Out'}
               </Button>
             </div>

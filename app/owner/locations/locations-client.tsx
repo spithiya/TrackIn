@@ -96,7 +96,7 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Locations</h1>
+        <h1 className="text-2xl font-semibold text-[#252E3D]">Locations</h1>
         <Button size="sm" onClick={openAdd}>
           <Plus size={15} className="mr-1.5" />
           Add Location
@@ -273,7 +273,7 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
                 type="checkbox"
                 checked={form.is_active}
                 onChange={e => set('is_active', e.target.checked)}
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-slate-300 text-[#3D4A5C] focus:ring-[#3D4A5C]"
               />
               Active location
             </label>
@@ -305,4 +305,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputCls =
-  'w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+  'w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]'
