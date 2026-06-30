@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin, Clock } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 import type { Tables } from '@/lib/supabase/types'
 
 type Location = Tables<'locations'>
@@ -22,6 +23,7 @@ function saveLocationId(id: string) {
 
 export function LocationPicker({ locations }: { locations: Location[] }) {
   const router = useRouter()
+  const posthog = usePostHog()
   const [lastId, setLastId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -30,6 +32,11 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
 
   function select(loc: Location) {
     saveLocationId(loc.id)
+    posthog.capture('kiosk_location_selected', {
+      location_id: loc.id,
+      location_name: loc.name,
+      was_last_used: lastId === loc.id,
+    })
     router.push(`/kiosk/${loc.id}`)
   }
 

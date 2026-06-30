@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, MapPin, ArrowUp } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 import { TimerPill } from '@/components/students/timer-pill'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Button } from '@/components/ui/button'
@@ -36,6 +37,7 @@ export function KioskClient({
   const [allStudents] = useState<Student[]>(initialStudents)
   const [checkedInIds, setCheckedInIds] = useState<Set<string>>(new Set())
   const supabase = useMemo(() => createClient(), [])
+  const posthog = usePostHog()
   const listRef = useRef<HTMLDivElement>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
 
@@ -103,16 +105,26 @@ export function KioskClient({
         time_limit_minutes: timeLimit,
         checkin_method: 'kiosk',
       })
+      posthog.capture('kiosk_checkin_completed', {
+        subjects: student.subjects,
+        location_id: locationId,
+        location_name: locationName,
+      })
       refreshCheckedIn()
       setState({ step: 'success', action: 'in', studentName: student.first_name })
     },
-    [supabase, locationId, refreshCheckedIn]
+    [supabase, locationId, locationName, posthog, refreshCheckedIn]
   )
 
   const checkOut = useCallback(
     async (checkin: Checkin, student: Student) => {
       setState({ step: 'processing' })
       const { data } = await supabase.rpc('checkout_student', { checkin_id: checkin.id })
+      posthog.capture('kiosk_checkout_completed', {
+        subjects: checkin.subjects_snapshot,
+        location_id: locationId,
+        location_name: locationName,
+      })
       refreshCheckedIn()
       if (data?.send_sms && data?.parent_phone) {
         fetch('/api/sms/send', {
@@ -129,7 +141,7 @@ export function KioskClient({
       }
       setState({ step: 'success', action: 'out', studentName: student.first_name })
     },
-    [supabase, refreshCheckedIn]
+    [supabase, locationId, locationName, posthog, refreshCheckedIn]
   )
 
   const reset = useCallback(() => {

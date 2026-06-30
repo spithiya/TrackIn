@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { createClient } from '@/lib/supabase/client'
+import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 import { Toast } from '@/components/ui/toast'
 import { formatTime, formatDuration, elapsedMinutes, fullName } from '@/lib/utils'
@@ -18,6 +19,7 @@ export default function StaffMyCheckinPage() {
   const [busy, setBusy] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [toast, setToast] = useState<ToastState>(null)
+  const posthog = usePostHog()
 
   const fetchStatus = useCallback(async () => {
     if (!profile) return
@@ -59,6 +61,7 @@ export default function StaffMyCheckinPage() {
     if (error) {
       setToast({ message: 'Failed to clock in.', variant: 'red' })
     } else {
+      posthog.capture('staff_clockin', { location_id: staffMember.location_id })
       setToast({ message: 'You are clocked in.', variant: 'green' })
       fetchStatus()
     }
@@ -74,6 +77,7 @@ export default function StaffMyCheckinPage() {
       setToast({ message: 'Failed to clock out.', variant: 'red' })
     } else {
       const duration = (data as { duration_minutes: number })?.duration_minutes
+      posthog.capture('staff_clockout', { duration_minutes: duration ?? null })
       setToast({
         message: duration != null ? `Clocked out. Total: ${formatDuration(duration)}.` : 'Clocked out.',
         variant: 'green',
