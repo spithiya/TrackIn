@@ -23,7 +23,7 @@ export function StaffNav() {
             href={href}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
               active
-                ? 'bg-[#3B6FD4] text-white font-medium'
+                ? 'bg-[#1B3A6B] text-white font-medium'
                 : 'text-white/65 hover:bg-white/10 hover:text-white'
             }`}
           >

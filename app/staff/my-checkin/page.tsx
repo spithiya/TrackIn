@@ -88,7 +88,7 @@ export default function StaffMyCheckinPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-[#1E3A6E] mb-6">My Check-in</h1>
+      <h1 className="text-2xl font-semibold text-[#0F2040] mb-6">My Check-in</h1>
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 w-80">
@@ -97,17 +97,17 @@ export default function StaffMyCheckinPage() {
       )}
 
       {isLoading ? (
-        <div className="bg-white rounded-xl border border-[#D6E3FF] p-8 text-sm text-gray-400 text-center">Loading…</div>
+        <div className="bg-white rounded-xl border border-[#BECDE8] p-8 text-sm text-gray-400 text-center">Loading…</div>
       ) : !staffMember ? (
-        <div className="bg-white rounded-xl border border-[#D6E3FF] p-8 text-sm text-gray-500 text-center">
+        <div className="bg-white rounded-xl border border-[#BECDE8] p-8 text-sm text-gray-500 text-center">
           No staff profile linked to your account. Contact your owner.
         </div>
       ) : activeCheckin ? (
-        <div className="bg-white rounded-xl border border-[#D6E3FF] border-t-[3px] border-t-[#3B6FD4] p-6">
+        <div className="bg-white rounded-xl border border-[#BECDE8] border-t-[3px] border-t-[#1B3A6B] p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider mb-1">Currently on duty</p>
-              <p className="text-xl font-semibold text-[#1E3A6E]">
+              <p className="text-xs font-semibold text-[#1B3A6B] uppercase tracking-wider mb-1">Currently on duty</p>
+              <p className="text-xl font-semibold text-[#0F2040]">
                 {fullName(activeCheckin.staff_first_name, activeCheckin.staff_last_name)}
               </p>
               <p className="text-sm text-gray-400 mt-0.5">Clocked in since {formatTime(activeCheckin.checked_in_at)}</p>
@@ -126,14 +126,14 @@ export default function StaffMyCheckinPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-[#D6E3FF] p-10 flex flex-col items-center gap-5">
+        <div className="bg-white rounded-xl border border-[#BECDE8] p-10 flex flex-col items-center gap-5">
           <div className="text-center">
             <p className="text-gray-900 font-medium">
               {fullName(staffMember.first_name, staffMember.last_name)}
             </p>
             <p className="text-sm text-gray-400 mt-1">Not currently clocked in.</p>
           </div>
-          <Button size="lg" onClick={handleCheckin} disabled={busy} className="bg-[#3B6FD4] hover:bg-[#2558C8] focus-visible:ring-[#3B6FD4]">
+          <Button size="lg" onClick={handleCheckin} disabled={busy} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
             {busy ? 'Clocking in…' : 'Clock In'}
           </Button>
         </div>

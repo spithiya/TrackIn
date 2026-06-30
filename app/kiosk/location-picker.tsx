@@ -36,7 +36,7 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
   if (!locations.length) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-[#9A8F7E] text-lg">No active locations found.</p>
+        <p className="text-gray-500 text-lg">No active locations found.</p>
       </div>
     )
   }
@@ -45,7 +45,7 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
     <div className="flex-1 flex flex-col items-center justify-center p-8">
       <div className="text-center mb-10">
         <h2 className="text-4xl font-bold text-[#1a1209] mb-2">Select Your Location</h2>
-        <p className="text-[#9A8F7E] text-lg">Tap the location for this kiosk.</p>
+        <p className="text-gray-500 text-lg">Tap the location for this kiosk.</p>
       </div>
 
       <div className={`grid gap-5 w-full max-w-2xl ${
@@ -62,13 +62,13 @@ export function LocationPicker({ locations }: { locations: Location[] }) {
               className="relative group flex flex-col items-start p-8 rounded-2xl border border-gray-200 bg-white text-left shadow-sm hover:shadow-lg hover:-translate-y-2 active:scale-[0.98] transition-all duration-200"
             >
               {isLast && (
-                <span className="absolute top-4 right-4 text-xs font-medium text-[#7A5C30] bg-[#F5EDD8] px-2.5 py-0.5 rounded-full">
+                <span className="absolute top-4 right-4 text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
                   Last used
                 </span>
               )}
 
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 bg-[#F5EDD8] group-hover:bg-[#F0E5CC] transition-colors shrink-0">
-                <MapPin size={28} className="text-[#C9A96E]" />
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 bg-[#F2F2F4] group-hover:bg-[#E5E5EA] transition-colors shrink-0">
+                <MapPin size={28} className="text-[#2D2D3A]" />
               </div>
 
               <h3 className="text-2xl font-bold text-[#1a1209] mb-2 leading-tight">{loc.name}</h3>

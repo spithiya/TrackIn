@@ -10,7 +10,7 @@ export function KioskBackButton() {
   return (
     <Link
       href={href}
-      className="flex items-center gap-1 text-yellow-100 hover:text-white transition-colors text-sm font-medium"
+      className="flex items-center gap-1 text-white/70 hover:text-white transition-colors text-sm font-medium"
     >
       <ArrowLeft size={16} />
       Back

@@ -15,7 +15,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen">
       {/* ── Sidebar ── */}
-      <aside className="w-56 bg-[#1E3A6E] flex flex-col shrink-0">
+      <aside className="w-56 bg-[#0F2040] flex flex-col shrink-0">
         <div className="px-6 py-5 border-b border-white/10">
           <span className="text-lg font-bold text-white">BrightMind</span>
           <p className="text-xs text-white/45 mt-0.5 font-medium tracking-wide uppercase">Staff Portal</p>
@@ -28,11 +28,11 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
       {/* ── Content ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-[#D6E3FF] px-6 py-3.5 flex items-center justify-between">
-          <span className="text-sm font-medium text-[#3B6FD4]">Staff Portal</span>
+        <header className="bg-white border-b border-[#BECDE8] px-6 py-3.5 flex items-center justify-between">
+          <span className="text-sm font-medium text-[#1B3A6B]">Staff Portal</span>
         </header>
         <main className="flex-1 p-6 bg-[#F4F7FF]">{children}</main>
-        <footer className="px-6 py-2.5 border-t border-[#D6E3FF] bg-white text-xs text-gray-400 text-center">
+        <footer className="px-6 py-2.5 border-t border-[#BECDE8] bg-white text-xs text-gray-400 text-center">
           © 2026 BrightMind. All rights reserved.
         </footer>
       </div>

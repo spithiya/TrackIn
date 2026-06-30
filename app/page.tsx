@@ -33,10 +33,10 @@ export default function Home() {
         {/* Student Kiosk — Gold */}
         <Link
           href="/kiosk"
-          className="group bg-white rounded-2xl p-6 flex flex-col min-h-[360px] border border-gray-200 border-t-[3px] border-t-[#C9A96E] shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-200"
+          className="group bg-white rounded-2xl p-6 flex flex-col min-h-[360px] border border-gray-200 border-t-[3px] border-t-[#2D2D3A] shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-200"
         >
           <div className="flex items-start justify-between mb-10">
-            <div className="w-11 h-11 rounded-xl bg-[#C9A96E] flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-[#2D2D3A] flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 7V5a2 2 0 0 1 2-2h2" />
                 <path d="M17 3h2a2 2 0 0 1 2 2v2" />
@@ -47,7 +47,7 @@ export default function Home() {
             </div>
             <span className="text-[#1a1209]/35 text-base leading-none">↗</span>
           </div>
-          <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[#C9A96E] mb-2">
+          <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[#2D2D3A] mb-2">
             For Students
           </p>
           <h2 className="font-serif text-[1.65rem] font-bold text-[#1a1209] leading-tight mb-3">
@@ -56,7 +56,7 @@ export default function Home() {
           <p className="text-[13px] text-[#374151] leading-relaxed flex-1">
             Self-service check-in and check-out. Search a name, confirm subjects, sit down — under ten seconds, no staff required.
           </p>
-          <span className="mt-8 text-[13px] font-medium text-[#1a1209] group-hover:text-[#C9A96E] transition-colors">
+          <span className="mt-8 text-[13px] font-medium text-[#1a1209] group-hover:text-[#2D2D3A] transition-colors">
             Open kiosk →
           </span>
         </Link>
@@ -64,10 +64,10 @@ export default function Home() {
         {/* Staff Portal — Slate blue */}
         <Link
           href="/auth/login"
-          className="group bg-white rounded-2xl p-6 flex flex-col min-h-[360px] border border-gray-200 border-t-[3px] border-t-[#3B6FD4] shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-200"
+          className="group bg-white rounded-2xl p-6 flex flex-col min-h-[360px] border border-gray-200 border-t-[3px] border-t-[#1B3A6B] shadow-sm hover:shadow-lg hover:-translate-y-2 transition-all duration-200"
         >
           <div className="flex items-start justify-between mb-10">
-            <div className="w-11 h-11 rounded-xl bg-[#3B6FD4] flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-[#1B3A6B] flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
@@ -77,7 +77,7 @@ export default function Home() {
             </div>
             <span className="text-[#1a1209]/35 text-base leading-none">↗</span>
           </div>
-          <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[#3B6FD4] mb-2">
+          <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-[#1B3A6B] mb-2">
             For Tutors
           </p>
           <h2 className="font-serif text-[1.65rem] font-bold text-[#1a1209] leading-tight mb-3">
@@ -86,7 +86,7 @@ export default function Home() {
           <p className="text-[13px] text-[#374151] leading-relaxed flex-1">
             Live floor view of every student in the building, manual check-ins, and automatic timesheets the front desk used to keep by hand.
           </p>
-          <span className="mt-8 text-[13px] font-medium text-[#1a1209] group-hover:text-[#3B6FD4] transition-colors">
+          <span className="mt-8 text-[13px] font-medium text-[#1a1209] group-hover:text-[#1B3A6B] transition-colors">
             Open staff portal →
           </span>
         </Link>

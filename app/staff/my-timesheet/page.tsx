@@ -35,27 +35,27 @@ export default function StaffMyTimesheetPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-[#1E3A6E] mb-6">My Timesheet</h1>
+      <h1 className="text-2xl font-semibold text-[#0F2040] mb-6">My Timesheet</h1>
 
       {loadingProfile || loading ? (
-        <div className="bg-white rounded-xl border border-[#D6E3FF] p-8 text-sm text-gray-400 text-center">Loading…</div>
+        <div className="bg-white rounded-xl border border-[#BECDE8] p-8 text-sm text-gray-400 text-center">Loading…</div>
       ) : sessions.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#D6E3FF] p-8 text-sm text-gray-400 text-center">No completed sessions yet.</div>
+        <div className="bg-white rounded-xl border border-[#BECDE8] p-8 text-sm text-gray-400 text-center">No completed sessions yet.</div>
       ) : (
         <>
-          <div className="bg-white rounded-xl border border-[#D6E3FF] overflow-hidden mb-3">
+          <div className="bg-white rounded-xl border border-[#BECDE8] overflow-hidden mb-3">
             <table className="w-full text-sm">
-              <thead className="bg-[#EEF3FF] border-b border-[#D6E3FF]">
+              <thead className="bg-[#E8EDF7] border-b border-[#BECDE8]">
                 <tr>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider">Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider">Clock In</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider">Clock Out</th>
-                  <th className="text-right px-5 py-3 text-xs font-semibold text-[#3B6FD4] uppercase tracking-wider">Duration</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#1B3A6B] uppercase tracking-wider">Date</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#1B3A6B] uppercase tracking-wider">Clock In</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#1B3A6B] uppercase tracking-wider">Clock Out</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-[#1B3A6B] uppercase tracking-wider">Duration</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EEF3FF]">
+              <tbody className="divide-y divide-[#E8EDF7]">
                 {sessions.map(s => (
-                  <tr key={s.id} className="hover:bg-[#F5F8FF] transition-colors">
+                  <tr key={s.id} className="hover:bg-[#F0F4FA] transition-colors">
                     <td className="px-5 py-3 text-gray-900">{formatDate(s.checked_in_at)}</td>
                     <td className="px-5 py-3 text-gray-700">{formatTime(s.checked_in_at)}</td>
                     <td className="px-5 py-3 text-gray-700">
@@ -72,7 +72,7 @@ export default function StaffMyTimesheetPage() {
           {totalMinutes > 0 && (
             <p className="text-sm text-gray-500 text-right pr-1">
               Total ({sessions.length} sessions):{' '}
-              <span className="font-semibold text-[#1E3A6E]">{formatDuration(totalMinutes)}</span>
+              <span className="font-semibold text-[#0F2040]">{formatDuration(totalMinutes)}</span>
             </p>
           )}
         </>
