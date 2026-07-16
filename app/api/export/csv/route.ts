@@ -2,11 +2,21 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: profile } = await supabase
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (!profile || profile.role !== 'owner') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { searchParams } = new URL(request.url)
   const locationId = searchParams.get('locationId')
-  const period = searchParams.get('period') // e.g. "2024-01"
+  const period = searchParams.get('period')
 
-  const supabase = await createClient()
   let query = supabase.from('visit_history').select('*')
   if (locationId) query = query.eq('location_id', locationId)
   if (period) query = query.gte('checked_in_at', `${period}-01`).lt('checked_in_at', `${period}-32`)
