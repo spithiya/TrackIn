@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 
 export async function POST(request: Request) {
+  const { allowed, retryAfterMs } = checkRateLimit(`signup:${getIp(request)}`, 3, 60 * 60 * 1000)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': Math.ceil(retryAfterMs / 1000).toString() } }
+    )
+  }
+
   const { email, username, password, role } = await request.json()
 
   if (!email || !username || !password || !role) {

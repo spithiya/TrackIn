@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
 
 function generateResetToken(email: string): string {
   const secret = process.env.PASSWORD_RESET_SECRET
@@ -11,6 +12,14 @@ function generateResetToken(email: string): string {
 }
 
 export async function POST(request: Request) {
+  const { allowed, retryAfterMs } = checkRateLimit(`verify-id:${getIp(request)}`, 5, 15 * 60 * 1000)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': Math.ceil(retryAfterMs / 1000).toString() } }
+    )
+  }
+
   const { identifier } = await request.json()
   if (!identifier) {
     return NextResponse.json({ error: 'Email or username is required.' }, { status: 400 })

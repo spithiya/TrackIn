@@ -9,8 +9,9 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
+    .from('profiles').select('org_id, role').eq('id', user.id).single()
   if (!profile) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (profile.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { locationId, locationName, period, from, to } = await request.json()
 
