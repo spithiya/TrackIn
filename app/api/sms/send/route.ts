@@ -5,15 +5,34 @@ import { createServiceClient } from '@/lib/supabase/server'
 export async function POST(request: Request) {
   const { to, studentName, centerName, checkinId, orgId } = await request.json()
 
-  if (!to || !studentName || !centerName) {
+  if (!to || !studentName || !centerName || !checkinId || !orgId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  const supabase = createServiceClient()
+
+  // Verify the checkin exists, belongs to the claimed org, and was checked out recently
+  const { data: checkin } = await supabase
+    .from('student_checkins')
+    .select('org_id, checked_out_at')
+    .eq('id', checkinId)
+    .not('checked_out_at', 'is', null)
+    .maybeSingle()
+
+  if (!checkin) {
+    return NextResponse.json({ error: 'Invalid checkin' }, { status: 403 })
+  }
+  if (checkin.org_id !== orgId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  const ageSeconds = (Date.now() - new Date(checkin.checked_out_at!).getTime()) / 1000
+  if (ageSeconds > 300) {
+    return NextResponse.json({ error: 'Checkin too old to send SMS' }, { status: 403 })
   }
 
   try {
     const result = await sendPickupSMS(to, studentName, centerName)
 
-    // Log to sms_log
-    const supabase = createServiceClient()
     await supabase.from('sms_log').insert({
       org_id: orgId,
       checkin_id: checkinId,

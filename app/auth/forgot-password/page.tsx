@@ -50,8 +50,9 @@ export default function ForgotPasswordPage() {
   const [verifying, setVerifying] = useState(false)
   const [identifierError, setIdentifierError] = useState<string | null>(null)
 
-  // Step 2 — new password (email is remembered from step 1)
+  // Step 2 — new password (email + token remembered from step 1)
   const [resolvedEmail, setResolvedEmail] = useState<string | null>(null)
+  const [resetToken, setResetToken] = useState<string | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [resetting, setResetting] = useState(false)
@@ -76,6 +77,7 @@ export default function ForgotPasswordPage() {
     }
 
     setResolvedEmail(json.email)
+    setResetToken(json.resetToken)
     setVerifying(false)
   }
 
@@ -97,7 +99,7 @@ export default function ForgotPasswordPage() {
     const res = await fetch('/api/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: resolvedEmail, newPassword }),
+      body: JSON.stringify({ email: resolvedEmail, newPassword, resetToken }),
     })
     const json = await res.json()
 
@@ -193,7 +195,7 @@ export default function ForgotPasswordPage() {
 
             <button
               type="button"
-              onClick={() => { setResolvedEmail(null); setNewPassword(''); setConfirmPassword(''); setResetError(null) }}
+              onClick={() => { setResolvedEmail(null); setResetToken(null); setNewPassword(''); setConfirmPassword(''); setResetError(null) }}
               className="w-full text-sm text-gray-400 hover:text-gray-600 transition-colors text-center"
             >
               Use a different account
