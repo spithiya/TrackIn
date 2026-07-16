@@ -1,20 +1,12 @@
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['twilio', '@supabase/supabase-js', 'node-fetch'],
-  },
-  webpack(config, { isServer }) {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        stream: false,
-        canvas: false,
-      }
-    }
-    return config
-  },
+  outputFileTracingRoot: __dirname,
+  serverExternalPackages: ['twilio', '@supabase/supabase-js', 'node-fetch'],
   async headers() {
     return [
       {

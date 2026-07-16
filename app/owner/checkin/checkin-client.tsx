@@ -150,7 +150,6 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
     return h > 0 ? `${h}h ${m}m` : `${m}m`
   }
 
-  const activeStaffIds = new Set(activeStaff.map(s => s.staff_id))
   const sortedActiveStudents = useMemo(
     () => [...activeStudents].sort((a, b) => new Date(a.checked_in_at).getTime() - new Date(b.checked_in_at).getTime()),
     [activeStudents]

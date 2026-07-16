@@ -17,8 +17,6 @@ export function DashboardClient({
   const { students, loading: loadingStudents } = useActiveStudents(orgId, locationIds)
   const { staff, loading: loadingStaff } = useActiveStaff(orgId, locationIds)
 
-  const redCount = students.filter(s => s.timer_status === 'red').length
-
   return (
     <div>
       <h1 className="text-2xl font-semibold text-[#0F2040] mb-6">Dashboard</h1>

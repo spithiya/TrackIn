@@ -2,11 +2,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { LoginForm } from './login-form'
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string; message?: string }
+  searchParams: Promise<{ error?: string; message?: string }>
 }) {
+  const { error, message } = await searchParams
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-sm">
@@ -21,7 +22,7 @@ export default function LoginPage({
           <h1 className="text-2xl font-bold text-[#0F172A] mb-1">BrightMind</h1>
           <p className="text-sm text-gray-500">Staff &amp; owner portal</p>
         </div>
-        <LoginForm urlError={searchParams.error} urlMessage={searchParams.message} />
+        <LoginForm urlError={error} urlMessage={message} />
       </div>
     </div>
   )

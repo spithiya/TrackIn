@@ -24,7 +24,7 @@ export default async function OwnerDashboardPage() {
 
   function applyLocationFilter<T extends object>(query: T): T {
     if (locationIds.length === 0) return query
-    return (query as any).in('location_id', locationIds) as T
+    return (query as unknown as { in(col: string, vals: string[]): T }).in('location_id', locationIds)
   }
 
   const [

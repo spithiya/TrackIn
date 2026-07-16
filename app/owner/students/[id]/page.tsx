@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { StudentDetailClient } from './student-detail-client'
 
-export default async function StudentDetailPage({ params }: { params: { id: string } }) {
+export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -15,13 +16,13 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     supabase
       .from('students')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('org_id', profile.org_id)
       .single(),
     supabase
       .from('parent_contacts')
       .select('*')
-      .eq('student_id', params.id)
+      .eq('student_id', id)
       .order('is_primary', { ascending: false }),
     supabase
       .from('locations')
