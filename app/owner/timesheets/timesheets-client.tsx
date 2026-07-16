@@ -118,11 +118,21 @@ export function TimesheetsClient({
   async function downloadExcel() {
     if (!rows.length) return
     const { headers, body } = getTableData()
-    const { utils, writeFile } = await import('xlsx')
-    const ws = utils.aoa_to_sheet([headers, ...body])
-    const wb = utils.book_new()
-    utils.book_append_sheet(wb, ws, 'Timesheets')
-    writeFile(wb, 'timesheets.xlsx')
+    const ExcelJS = (await import('exceljs')).default
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet('Timesheets')
+    ws.addRow(headers)
+    body.forEach(row => ws.addRow(row))
+    const buffer = await wb.xlsx.writeBuffer()
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'timesheets.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
     setDropdownOpen(false)
   }
 
