@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server'
 import { sendPickupSMS } from '@/lib/twilio'
 import { createServiceClient } from '@/lib/supabase/server'
+import { checkRateLimit, getIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
+  const { allowed, retryAfterMs } = checkRateLimit(`sms:${getIp(request)}`, 10, 5 * 60 * 1000)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': Math.ceil(retryAfterMs / 1000).toString() } }
+    )
+  }
+
   const { to, studentName, centerName, checkinId, orgId } = await request.json()
 
   if (!to || !studentName || !centerName || !checkinId || !orgId) {
