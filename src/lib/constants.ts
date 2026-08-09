@@ -4,8 +4,8 @@ export const TIME_LIMITS = {
 } as const
 
 export const TIMER_THRESHOLDS = {
-  single: { yellow: 15, red: 30 },
-  both: { yellow: 30, red: 60 },
+  single: { yellow: 20, red: 30 },
+  both: { yellow: 50, red: 60 },
 } as const
 
 export const CLOSING_WARNING_MINUTES = 15
