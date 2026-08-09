@@ -10,11 +10,13 @@ import { formatTime, fullName } from '@/lib/utils'
 export function DashboardClient({
   orgId,
   locationIds,
+  staffId,
 }: {
   orgId: string
   locationIds: string[]
+  staffId: string | null
 }) {
-  const { students, loading: loadingStudents } = useActiveStudents(orgId, locationIds)
+  const { students, loading: loadingStudents } = useActiveStudents(orgId, locationIds, staffId)
   const { staff, loading: loadingStaff } = useActiveStaff(orgId, locationIds)
 
   return (

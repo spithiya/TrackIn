@@ -16,7 +16,7 @@ export default async function StaffDashboardPage() {
 
   const { data: member } = await supabase
     .from('staff_members')
-    .select('location_id, location_ids')
+    .select('id, location_id, location_ids')
     .eq('profile_id', profile.id)
     .maybeSingle()
 
@@ -24,5 +24,5 @@ export default async function StaffDashboardPage() {
     ? [member.location_id, ...(member.location_ids ?? [])]
     : []
 
-  return <DashboardClient orgId={profile.org_id} locationIds={locationIds} />
+  return <DashboardClient orgId={profile.org_id} locationIds={locationIds} staffId={member?.id ?? null} />
 }

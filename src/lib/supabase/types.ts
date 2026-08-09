@@ -364,6 +364,7 @@ export type Database = {
           student_id: string
           assigned_staff_id: string | null
           message: string
+          level: 'yellow' | 'red'
           acknowledged_by: string | null
           acknowledged_at: string | null
           created_at: string
@@ -375,6 +376,7 @@ export type Database = {
           student_id: string
           assigned_staff_id?: string | null
           message: string
+          level?: 'yellow' | 'red'
           acknowledged_by?: string | null
           acknowledged_at?: string | null
           created_at?: string
@@ -386,6 +388,7 @@ export type Database = {
           student_id?: string
           assigned_staff_id?: string | null
           message?: string
+          level?: 'yellow' | 'red'
           acknowledged_by?: string | null
           acknowledged_at?: string | null
           created_at?: string
