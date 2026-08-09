@@ -38,6 +38,9 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Tables<'students'>[]>([])
   const [searching, setSearching] = useState(false)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [defaultStudents, setDefaultStudents] = useState<Tables<'students'>[]>([])
+  const [loadingDefault, setLoadingDefault] = useState(false)
   const [checkinStudent, setCheckinStudent] = useState<Tables<'students'> | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<'math' | 'reading' | 'both'>('math')
   const [assignedStaffId, setAssignedStaffId] = useState('')
@@ -71,6 +74,25 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
     const t = setTimeout(() => searchStudents(query), 300)
     return () => clearTimeout(t)
   }, [query, searchStudents])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadDefaultStudents() {
+      setLoadingDefault(true)
+      const { data } = await supabase
+        .from('students')
+        .select('*')
+        .eq('org_id', orgId)
+        .eq('is_active', true)
+        .order('first_name', { ascending: true })
+        .order('last_name', { ascending: true })
+        .limit(9)
+      if (!cancelled) setDefaultStudents(data ?? [])
+      setLoadingDefault(false)
+    }
+    loadDefaultStudents()
+    return () => { cancelled = true }
+  }, [orgId, supabase])
 
   async function handleStudentCheckin() {
     if (!checkinStudent) return
@@ -193,32 +215,48 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                 placeholder="Search student by name…"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
               />
               {query && (
                 <button type="button" onClick={() => { setQuery(''); setSearchResults([]) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                   <X size={14} />
                 </button>
               )}
-              {query.length >= 1 && (
-                <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-slate-200 shadow-md overflow-hidden">
-                  {searching ? (
-                    <div className="px-4 py-3 text-sm text-slate-400">Searching…</div>
-                  ) : searchResults.length === 0 ? (
-                    <div className="px-4 py-3 text-sm text-slate-400">No students found.</div>
-                  ) : (
-                    searchResults.map(s => (
-                      <button
-                        key={s.id}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
-                        onClick={() => { setCheckinStudent(s); setSelectedSubject(s.subjects); setAssignedStaffId(''); setQuery(''); setSearchResults([]) }}
-                      >
-                        <span className="font-medium text-slate-900">{fullName(s.first_name, s.last_name)}</span>
-                        <span className="text-xs text-slate-400">{SUBJECTS[s.subjects]}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
+              {(query.length >= 1 || searchFocused) && (() => {
+                const isDefaultList = query.trim().length < 1
+                const list = isDefaultList ? defaultStudents : searchResults
+                const isLoading = isDefaultList ? loadingDefault : searching
+                return (
+                  <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-slate-200 shadow-md overflow-hidden">
+                    {isLoading ? (
+                      <div className="px-4 py-3 text-sm text-slate-400">{isDefaultList ? 'Loading…' : 'Searching…'}</div>
+                    ) : list.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-slate-400">
+                        {isDefaultList ? 'No students enrolled yet.' : 'No students found.'}
+                      </div>
+                    ) : (
+                      <>
+                        {isDefaultList && (
+                          <div className="px-4 py-2 text-xs font-medium text-slate-400 bg-slate-50 border-b border-slate-100">
+                            All students (A–Z)
+                          </div>
+                        )}
+                        {list.map(s => (
+                          <button
+                            key={s.id}
+                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
+                            onClick={() => { setCheckinStudent(s); setSelectedSubject(s.subjects); setAssignedStaffId(''); setQuery(''); setSearchResults([]); setSearchFocused(false) }}
+                          >
+                            <span className="font-medium text-slate-900">{fullName(s.first_name, s.last_name)}</span>
+                            <span className="text-xs text-slate-400">{SUBJECTS[s.subjects]}</span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
           </div>
 

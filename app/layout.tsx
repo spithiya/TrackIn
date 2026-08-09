@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} ${playfair.variable} font-sans antialiased text-[#0F172A]`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} ${playfair.variable} font-sans antialiased text-[#0F172A]`}>
         <PHProvider>
           <BackgroundWaves />
           <Suspense>
