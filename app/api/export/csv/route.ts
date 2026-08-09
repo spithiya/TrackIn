@@ -15,10 +15,12 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url)
   const locationId = searchParams.get('locationId')
+  const studentId = searchParams.get('studentId')
   const period = searchParams.get('period')
 
   let query = supabase.from('visit_history').select('*')
   if (locationId) query = query.eq('location_id', locationId)
+  if (studentId) query = query.eq('student_id', studentId)
   if (period) query = query.gte('checked_in_at', `${period}-01`).lt('checked_in_at', `${period}-32`)
 
   const { data, error } = await query

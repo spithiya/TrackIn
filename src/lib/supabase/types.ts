@@ -325,6 +325,8 @@ export type Database = {
           duration_minutes: number | null
           checked_out_by_owner: boolean
           created_at: string
+          edited_at: string | null
+          edited_by: string | null
         }
         Insert: {
           id?: string
@@ -336,6 +338,8 @@ export type Database = {
           duration_minutes?: number | null
           checked_out_by_owner?: boolean
           created_at?: string
+          edited_at?: string | null
+          edited_by?: string | null
         }
         Update: {
           id?: string
@@ -347,6 +351,8 @@ export type Database = {
           duration_minutes?: number | null
           checked_out_by_owner?: boolean
           created_at?: string
+          edited_at?: string | null
+          edited_by?: string | null
         }
         Relationships: []
       }

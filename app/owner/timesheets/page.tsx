@@ -16,7 +16,7 @@ export default async function OwnerTimesheetsPage() {
     supabase.from('locations').select('id, name').eq('org_id', profile.org_id),
     supabase
       .from('staff_members')
-      .select('id, first_name, last_name')
+      .select('id, first_name, last_name, location_id')
       .eq('org_id', profile.org_id)
       .eq('is_active', true)
       .order('last_name'),
@@ -26,6 +26,7 @@ export default async function OwnerTimesheetsPage() {
   return (
     <TimesheetsClient
       orgId={profile.org_id}
+      ownerId={user.id}
       locations={locations ?? []}
       staffList={staffMembers ?? []}
       globalLocationIds={globalLocationIds}

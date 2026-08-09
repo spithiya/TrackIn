@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
-import { Download } from 'lucide-react'
+import { Download, Search, X } from 'lucide-react'
 import type { Views } from '@/lib/supabase/types'
 
 type Visit = Views<'visit_history'>
 type Location = { id: string; name: string }
+type StudentOption = { id: string; first_name: string; last_name: string }
 
 export function HistoryClient({
   orgId,
@@ -28,6 +29,32 @@ export function HistoryClient({
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
+  const [selectedStudent, setSelectedStudent] = useState<StudentOption | null>(null)
+  const [studentQuery, setStudentQuery] = useState('')
+  const [studentResults, setStudentResults] = useState<StudentOption[]>([])
+  const [searchingStudents, setSearchingStudents] = useState(false)
+  const [studentFocused, setStudentFocused] = useState(false)
+
+  const searchStudents = useCallback(async (q: string) => {
+    if (q.trim().length < 1) { setStudentResults([]); return }
+    setSearchingStudents(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('students')
+      .select('id, first_name, last_name')
+      .eq('org_id', orgId)
+      .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
+      .order('first_name')
+      .limit(10)
+    setStudentResults(data ?? [])
+    setSearchingStudents(false)
+  }, [orgId])
+
+  useEffect(() => {
+    const t = setTimeout(() => searchStudents(studentQuery), 300)
+    return () => clearTimeout(t)
+  }, [studentQuery, searchStudents])
+
   const fetch = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
@@ -43,6 +70,7 @@ export function HistoryClient({
     } else if (globalLocationIds.length > 0) {
       query = query.in('location_id', globalLocationIds)
     }
+    if (selectedStudent) query = query.eq('student_id', selectedStudent.id)
     if (from) query = query.gte('checked_in_at', from)
     if (to) {
       const toDate = new Date(to)
@@ -53,13 +81,14 @@ export function HistoryClient({
     const { data } = await query
     setVisits(data ?? [])
     setLoading(false)
-  }, [orgId, locationId, globalLocationIds.join(','), from, to])
+  }, [orgId, locationId, selectedStudent, globalLocationIds.join(','), from, to])
 
   useEffect(() => { fetch() }, [fetch])
 
   function exportCsv() {
     const params = new URLSearchParams()
     if (locationId) params.set('locationId', locationId)
+    if (selectedStudent) params.set('studentId', selectedStudent.id)
     window.open(`/api/export/csv?${params}`, '_blank')
   }
 
@@ -74,6 +103,51 @@ export function HistoryClient({
       </div>
 
       <div className="flex flex-wrap gap-3">
+        {selectedStudent ? (
+          <span className="flex items-center gap-1.5 text-sm bg-[#ECEEF1] border border-slate-200 rounded-lg pl-3 pr-2 py-2 text-slate-700 font-medium">
+            {selectedStudent.first_name} {selectedStudent.last_name}
+            <button
+              type="button"
+              onClick={() => { setSelectedStudent(null); setStudentQuery('') }}
+              className="text-slate-400 hover:text-slate-600 transition-colors"
+              aria-label="Clear student filter"
+            >
+              <X size={14} />
+            </button>
+          </span>
+        ) : (
+          <div className="relative w-56">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
+              placeholder="Filter by student…"
+              value={studentQuery}
+              onChange={e => setStudentQuery(e.target.value)}
+              onFocus={() => setStudentFocused(true)}
+              onBlur={() => setTimeout(() => setStudentFocused(false), 150)}
+            />
+            {studentFocused && studentQuery.trim().length >= 1 && (
+              <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-slate-200 shadow-md overflow-hidden">
+                {searchingStudents ? (
+                  <div className="px-4 py-3 text-sm text-slate-400">Searching…</div>
+                ) : studentResults.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-slate-400">No students found.</div>
+                ) : (
+                  studentResults.map(s => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 border-b border-slate-100 last:border-0"
+                      onClick={() => { setSelectedStudent(s); setStudentQuery(''); setStudentResults([]) }}
+                    >
+                      <span className="font-medium text-slate-900">{s.first_name} {s.last_name}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
         <select
           value={locationId}
           onChange={e => setLocationId(e.target.value)}
@@ -99,11 +173,11 @@ export function HistoryClient({
             className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
           />
         </div>
-        {(locationId || from || to) && (
+        {(locationId || from || to || selectedStudent) && (
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => { setLocationId(''); setFrom(''); setTo('') }}
+            onClick={() => { setLocationId(''); setFrom(''); setTo(''); setSelectedStudent(null); setStudentQuery('') }}
             className="text-slate-500"
           >
             Clear
