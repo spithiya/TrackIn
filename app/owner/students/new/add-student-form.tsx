@@ -71,16 +71,14 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
     e.preventDefault()
     if (!fields.location_id) { setError('Please select a location.'); return }
 
-    const namedContacts = contacts.filter(c => c.full_name.trim())
-    if (namedContacts.length === 0) { setError('Please add at least one parent or guardian contact.'); return }
-
-    const hasPhone = namedContacts.some(c => c.phone.trim())
-    if (!hasPhone) { setError('At least one contact must have a phone number.'); return }
+    const filledContacts = contacts.filter(c => c.full_name.trim() || c.phone.trim())
+    const hasPhone = filledContacts.some(c => c.phone.trim())
+    if (!hasPhone) { setError('Please add a parent or guardian phone number.'); return }
 
     setLoading(true)
     setError(null)
 
-    const result = await addStudent({ ...fields, contacts: namedContacts })
+    const result = await addStudent({ ...fields, contacts: filledContacts })
     if (result?.error) {
       setError(result.error)
       setLoading(false)
@@ -243,7 +241,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1 col-span-2">
-                    <label className="block text-sm font-medium text-slate-700">Full Name *</label>
+                    <label className="block text-sm font-medium text-slate-700">Full Name</label>
                     <Input
                       value={contact.full_name}
                       onChange={e => updateContact(i, 'full_name', e.target.value)}

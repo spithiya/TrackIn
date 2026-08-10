@@ -62,7 +62,7 @@ export async function addStudent(input: AddStudentInput): Promise<{ error?: stri
       namedContacts.map(c => ({
         student_id: student.id,
         org_id: profile.org_id,
-        full_name: c.full_name.trim(),
+        full_name: c.full_name.trim() || null,
         relationship: c.relationship,
         phone: c.phone.trim() || null,
         email: c.email.trim() || null,

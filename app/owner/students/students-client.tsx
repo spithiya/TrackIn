@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { UserPlus, Search, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { UserPlus, Upload, Search, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubjectTags } from '@/components/students/subject-tags'
@@ -62,12 +62,20 @@ export function StudentsClient({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-[#252E3D]">Student Records</h1>
-        <Link href="/owner/students/new">
-          <Button size="sm">
-            <UserPlus size={15} className="mr-1.5" />
-            Add Student
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/owner/students/import">
+            <Button size="sm" variant="secondary">
+              <Upload size={15} className="mr-1.5" />
+              Import Students
+            </Button>
+          </Link>
+          <Link href="/owner/students/new">
+            <Button size="sm">
+              <UserPlus size={15} className="mr-1.5" />
+              Add Student
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">

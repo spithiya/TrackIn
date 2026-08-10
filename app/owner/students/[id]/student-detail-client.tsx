@@ -375,7 +375,7 @@ export function StudentDetailClient({
             <div key={c.id} className="flex items-start gap-3 pb-4 border-b border-slate-100 last:border-0 last:pb-0">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-slate-900 text-sm">{c.full_name}</span>
+                  <span className="font-medium text-slate-900 text-sm">{c.full_name || 'No name on file'}</span>
                   <Badge variant="gray">{c.relationship}</Badge>
                   {c.is_primary && <Badge variant="blue">Primary</Badge>}
                 </div>

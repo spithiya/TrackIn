@@ -226,7 +226,7 @@ export type Database = {
           id: string
           student_id: string
           org_id: string
-          full_name: string
+          full_name: string | null
           relationship: 'Mother' | 'Father' | 'Guardian' | 'Other'
           phone: string | null
           email: string | null
@@ -237,7 +237,7 @@ export type Database = {
           id?: string
           student_id: string
           org_id: string
-          full_name: string
+          full_name?: string | null
           relationship: 'Mother' | 'Father' | 'Guardian' | 'Other'
           phone?: string | null
           email?: string | null
@@ -248,7 +248,7 @@ export type Database = {
           id?: string
           student_id?: string
           org_id?: string
-          full_name?: string
+          full_name?: string | null
           relationship?: 'Mother' | 'Father' | 'Guardian' | 'Other'
           phone?: string | null
           email?: string | null
