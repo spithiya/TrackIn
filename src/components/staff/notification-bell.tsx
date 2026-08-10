@@ -25,6 +25,7 @@ export function NotificationBell({
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const channelId = useRef(crypto.randomUUID()).current
 
   const loadAlerts = useCallback(async () => {
     if (!orgId || !staffId) return
@@ -45,7 +46,7 @@ export function NotificationBell({
     if (!orgId) return
     const supabase = createClient()
     const channel = supabase
-      .channel('session_alerts')
+      .channel(`session_alerts:${channelId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'session_alerts', filter: `org_id=eq.${orgId}` },
@@ -53,7 +54,7 @@ export function NotificationBell({
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [orgId, loadAlerts])
+  }, [orgId, loadAlerts, channelId])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

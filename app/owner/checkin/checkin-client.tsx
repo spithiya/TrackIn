@@ -42,7 +42,6 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
   const [defaultStudents, setDefaultStudents] = useState<Tables<'students'>[]>([])
   const [loadingDefault, setLoadingDefault] = useState(false)
   const [checkinStudent, setCheckinStudent] = useState<Tables<'students'> | null>(null)
-  const [selectedSubject, setSelectedSubject] = useState<'math' | 'reading' | 'both'>('math')
   const [assignedStaffId, setAssignedStaffId] = useState('')
   const [checkingIn, setCheckingIn] = useState(false)
 
@@ -101,8 +100,8 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
       org_id: orgId,
       student_id: checkinStudent.id,
       location_id: checkinStudent.location_id,
-      subjects_snapshot: selectedSubject,
-      time_limit_minutes: selectedSubject === 'both' ? TIME_LIMITS.both : TIME_LIMITS.single,
+      subjects_snapshot: checkinStudent.subjects,
+      time_limit_minutes: checkinStudent.subjects === 'both' ? TIME_LIMITS.both : TIME_LIMITS.single,
       checkin_method: 'staff',
       assigned_staff_id: assignedStaffId || null,
       sms_sent: false,
@@ -246,7 +245,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                           <button
                             key={s.id}
                             className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
-                            onClick={() => { setCheckinStudent(s); setSelectedSubject(s.subjects); setAssignedStaffId(''); setQuery(''); setSearchResults([]); setSearchFocused(false) }}
+                            onClick={() => { setCheckinStudent(s); setAssignedStaffId(''); setQuery(''); setSearchResults([]); setSearchFocused(false) }}
                           >
                             <span className="font-medium text-slate-900">{fullName(s.first_name, s.last_name)}</span>
                             <span className="text-xs text-slate-400">{SUBJECTS[s.subjects]}</span>
@@ -365,18 +364,7 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                 <p className="text-sm text-amber-800">{checkinStudent.notes}</p>
               </div>
             )}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-                value={selectedSubject}
-                onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}
-              >
-                <option value="math">Math (30 min)</option>
-                <option value="reading">Reading (30 min)</option>
-                <option value="both">Math + Reading (60 min)</option>
-              </select>
-            </div>
+            <SubjectTags subjects={checkinStudent.subjects} />
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Assign to Staff <span className="text-slate-400 font-normal">(optional)</span>

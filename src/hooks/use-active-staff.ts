@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Views } from '@/lib/supabase/types'
 
 export function useActiveStaff(orgId: string | null, locationIds: string[] = []) {
   const [staff, setStaff] = useState<Views<'active_staff'>[]>([])
   const [loading, setLoading] = useState(true)
+  const instanceId = useRef(crypto.randomUUID()).current
 
   const fetchStaff = useCallback(async () => {
     if (!orgId) return
@@ -27,7 +28,7 @@ export function useActiveStaff(orgId: string | null, locationIds: string[] = [])
     const supabase = createClient()
 
     const channel = supabase
-      .channel('active_staff')
+      .channel(`active_staff:${instanceId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'staff_checkins', filter: `org_id=eq.${orgId}` },
@@ -36,7 +37,7 @@ export function useActiveStaff(orgId: string | null, locationIds: string[] = [])
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [orgId, fetchStaff])
+  }, [orgId, fetchStaff, instanceId])
 
   return { staff, loading, refetch: fetchStaff }
 }

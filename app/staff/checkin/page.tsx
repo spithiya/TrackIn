@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useActiveStudents } from '@/hooks/use-active-students'
-import { useActiveStaff } from '@/hooks/use-active-staff'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -16,8 +15,6 @@ import { fullName, formatTime } from '@/lib/utils'
 import type { Tables, Views } from '@/lib/supabase/types'
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
-
-const selectCls = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] bg-white'
 
 export default function StaffCheckinPage() {
   const { profile } = useCurrentUser()
@@ -35,16 +32,23 @@ export default function StaffCheckinPage() {
       .then(({ data }) => { if (data) setStaffMember(data) })
   }, [profile])
 
-  const { students: activeStudents, loading: loadingActive, refetch } = useActiveStudents(profile?.org_id ?? null, locationIds)
-  const { staff: activeStaff } = useActiveStaff(profile?.org_id ?? null, locationIds)
+  // Don't fetch until staffMember has resolved — otherwise the first fetch
+  // goes out unfiltered (assignedStaffId still undefined) and can race with
+  // the correctly-filtered one that follows once staffMember loads.
+  const { students: activeStudents, loading: loadingActive, refetch } = useActiveStudents(
+    staffMember ? (profile?.org_id ?? null) : null,
+    locationIds,
+    staffMember?.id
+  )
 
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Tables<'students'>[]>([])
   const [searching, setSearching] = useState(false)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [defaultStudents, setDefaultStudents] = useState<Tables<'students'>[]>([])
+  const [loadingDefault, setLoadingDefault] = useState(false)
 
-  const [checkinStudent, setCheckinStudent] = useState<Tables<'students'> | null>(null)
-  const [selectedSubject, setSelectedSubject] = useState<'math' | 'reading' | 'both'>('math')
-  const [assignedStaffId, setAssignedStaffId] = useState('')
+  const [checkinTarget, setCheckinTarget] = useState<Tables<'students'> | null>(null)
   const [checkingIn, setCheckingIn] = useState(false)
 
   const [checkoutTarget, setCheckoutTarget] = useState<Views<'active_students'> | null>(null)
@@ -74,36 +78,57 @@ export default function StaffCheckinPage() {
     return () => clearTimeout(t)
   }, [query, searchStudents])
 
-  function openCheckinModal(student: Tables<'students'>) {
-    setCheckinStudent(student)
-    setSelectedSubject(student.subjects)
-    setAssignedStaffId('')
+  useEffect(() => {
+    if (!profile?.org_id) return
+    let cancelled = false
+    async function loadDefaultStudents() {
+      setLoadingDefault(true)
+      const supabase = createClient()
+      let q = supabase
+        .from('students')
+        .select('*')
+        .eq('org_id', profile!.org_id)
+        .eq('is_active', true)
+        .order('first_name', { ascending: true })
+        .order('last_name', { ascending: true })
+      if (locationIds.length > 0) q = q.in('location_id', locationIds)
+      const { data } = await q.limit(9)
+      if (!cancelled) setDefaultStudents(data ?? [])
+      setLoadingDefault(false)
+    }
+    loadDefaultStudents()
+    return () => { cancelled = true }
+  }, [profile?.org_id, locationIds.join(',')])
+
+  function openCheckinConfirm(student: Tables<'students'>) {
+    setCheckinTarget(student)
     setQuery('')
     setSearchResults([])
+    setSearchFocused(false)
   }
 
-  async function handleCheckin() {
-    if (!checkinStudent || !profile) return
+  async function handleConfirmCheckin() {
+    if (!profile || !staffMember || !checkinTarget) return
     setCheckingIn(true)
     const supabase = createClient()
     const { error } = await supabase.from('student_checkins').insert({
       org_id: profile.org_id,
-      student_id: checkinStudent.id,
-      location_id: checkinStudent.location_id,
-      subjects_snapshot: selectedSubject,
-      time_limit_minutes: selectedSubject === 'both' ? TIME_LIMITS.both : TIME_LIMITS.single,
+      student_id: checkinTarget.id,
+      location_id: checkinTarget.location_id,
+      subjects_snapshot: checkinTarget.subjects,
+      time_limit_minutes: checkinTarget.subjects === 'both' ? TIME_LIMITS.both : TIME_LIMITS.single,
       checkin_method: 'staff',
-      assigned_staff_id: assignedStaffId || null,
-      checked_in_by_staff_id: staffMember?.id ?? null,
+      assigned_staff_id: staffMember.id,
+      checked_in_by_staff_id: staffMember.id,
       sms_sent: false,
     })
     if (error) {
       setToast({ message: 'Failed to check in student.', variant: 'red' })
     } else {
-      setToast({ message: `${fullName(checkinStudent.first_name, checkinStudent.last_name)} checked in.`, variant: 'green' })
+      setToast({ message: `${fullName(checkinTarget.first_name, checkinTarget.last_name)} checked in.`, variant: 'green' })
       refetch()
     }
-    setCheckinStudent(null)
+    setCheckinTarget(null)
     setCheckingIn(false)
   }
 
@@ -157,27 +182,43 @@ export default function StaffCheckinPage() {
             placeholder="Search student by name…"
             value={query}
             onChange={e => setQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
           />
-          {query.length >= 1 && (
-            <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-[#BECDE8] shadow-md overflow-hidden">
-              {searching ? (
-                <div className="px-4 py-3 text-sm text-gray-400">Searching…</div>
-              ) : searchResults.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-gray-400">No students found.</div>
-              ) : (
-                searchResults.map(s => (
-                  <button
-                    key={s.id}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-[#F0F4FA] flex items-center justify-between border-b border-[#E8EDF7] last:border-0 transition-colors"
-                    onClick={() => openCheckinModal(s)}
-                  >
-                    <span className="font-medium text-gray-900">{fullName(s.first_name, s.last_name)}</span>
-                    <span className="text-xs text-gray-400">{SUBJECTS[s.subjects]}</span>
-                  </button>
-                ))
-              )}
-            </div>
-          )}
+          {(query.length >= 1 || searchFocused) && (() => {
+            const isDefaultList = query.trim().length < 1
+            const list = isDefaultList ? defaultStudents : searchResults
+            const isLoading = isDefaultList ? loadingDefault : searching
+            return (
+              <div className="absolute z-10 mt-1 w-full bg-white rounded-lg border border-[#BECDE8] shadow-md overflow-hidden">
+                {isLoading ? (
+                  <div className="px-4 py-3 text-sm text-gray-400">{isDefaultList ? 'Loading…' : 'Searching…'}</div>
+                ) : list.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-gray-400">
+                    {isDefaultList ? 'No students enrolled yet.' : 'No students found.'}
+                  </div>
+                ) : (
+                  <>
+                    {isDefaultList && (
+                      <div className="px-4 py-2 text-xs font-medium text-gray-400 bg-[#F4F7FF] border-b border-[#E8EDF7]">
+                        All students (A–Z)
+                      </div>
+                    )}
+                    {list.map(s => (
+                      <button
+                        key={s.id}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-[#F0F4FA] flex items-center justify-between border-b border-[#E8EDF7] last:border-0 transition-colors"
+                        onClick={() => openCheckinConfirm(s)}
+                      >
+                        <span className="font-medium text-gray-900">{fullName(s.first_name, s.last_name)}</span>
+                        <span className="text-xs text-gray-400">{SUBJECTS[s.subjects]}</span>
+                      </button>
+                    ))}
+                  </>
+                )}
+              </div>
+            )
+          })()}
         </div>
       </div>
 
@@ -223,38 +264,18 @@ export default function StaffCheckinPage() {
         </div>
       )}
 
-      {/* Check-in modal */}
-      <Modal open={!!checkinStudent} onClose={() => setCheckinStudent(null)} title="Check In Student">
-        {checkinStudent && (
+      {/* Check-in confirmation modal */}
+      <Modal open={!!checkinTarget} onClose={() => setCheckinTarget(null)} title="Check In Student">
+        {checkinTarget && (
           <div className="space-y-4">
             <p className="text-gray-700">
-              Checking in{' '}
-              <span className="font-semibold text-[#0F2040]">{fullName(checkinStudent.first_name, checkinStudent.last_name)}</span>
+              Check in{' '}
+              <span className="font-semibold text-[#0F2040]">{fullName(checkinTarget.first_name, checkinTarget.last_name)}</span>?
             </p>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-              <select className={selectCls} value={selectedSubject} onChange={e => setSelectedSubject(e.target.value as 'math' | 'reading' | 'both')}>
-                <option value="math">Math (30 min)</option>
-                <option value="reading">Reading (30 min)</option>
-                <option value="both">Math + Reading (60 min)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assign to Staff <span className="text-gray-400 font-normal">(optional)</span>
-              </label>
-              <select className={selectCls} value={assignedStaffId} onChange={e => setAssignedStaffId(e.target.value)}>
-                <option value="">Unassigned</option>
-                {activeStaff.map(s => (
-                  <option key={s.staff_id} value={s.staff_id}>
-                    {fullName(s.staff_first_name, s.staff_last_name)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SubjectTags subjects={checkinTarget.subjects} />
             <div className="flex gap-3 justify-end pt-2">
-              <Button variant="secondary" size="md" onClick={() => setCheckinStudent(null)} disabled={checkingIn}>Cancel</Button>
-              <Button size="md" onClick={handleCheckin} disabled={checkingIn} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
+              <Button variant="secondary" size="md" onClick={() => setCheckinTarget(null)} disabled={checkingIn}>Cancel</Button>
+              <Button size="md" onClick={handleConfirmCheckin} disabled={checkingIn} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
                 {checkingIn ? 'Checking in…' : 'Check In'}
               </Button>
             </div>

@@ -1,12 +1,17 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Views } from '@/lib/supabase/types'
 
 export function useActiveStudents(orgId: string | null, locationIds: string[] = [], assignedStaffId?: string | null) {
   const [students, setStudents] = useState<Views<'active_students'>[]>([])
   const [loading, setLoading] = useState(true)
+  // Unique per hook instance — multiple components can call this hook
+  // concurrently on the same page, and Supabase reuses an already-subscribed
+  // channel if the topic name collides, which throws when a second instance
+  // tries to attach its own postgres_changes listener.
+  const instanceId = useRef(crypto.randomUUID()).current
 
   const fetchStudents = useCallback(async () => {
     if (!orgId) return
@@ -28,7 +33,7 @@ export function useActiveStudents(orgId: string | null, locationIds: string[] = 
     const supabase = createClient()
 
     const channel = supabase
-      .channel('active_students')
+      .channel(`active_students:${instanceId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'student_checkins', filter: `org_id=eq.${orgId}` },
@@ -37,7 +42,7 @@ export function useActiveStudents(orgId: string | null, locationIds: string[] = 
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [orgId, fetchStudents])
+  }, [orgId, fetchStudents, instanceId])
 
   return { students, loading, refetch: fetchStudents }
 }

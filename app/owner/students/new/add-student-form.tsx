@@ -266,7 +266,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-sm font-medium text-slate-700">Phone</label>
+                    <label className="block text-sm font-medium text-slate-700">Phone *</label>
                     <Input
                       type="tel"
                       value={contact.phone}

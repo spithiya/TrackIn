@@ -3,6 +3,7 @@
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useActiveStaff } from '@/hooks/use-active-staff'
 import { TimerPill } from '@/components/students/timer-pill'
+import { TimerFillBar } from '@/components/students/timer-fill-bar'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { fullName, formatTime } from '@/lib/utils'
@@ -52,7 +53,10 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
                       </p>
                       <div className="mt-1"><SubjectTags subjects={s.subjects_snapshot} /></div>
                     </div>
-                    <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
+                    <div className="flex items-center gap-3">
+                      <TimerFillBar checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
+                      <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
+                    </div>
                   </div>
                 ))}
               </div>
