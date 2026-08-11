@@ -201,7 +201,11 @@ export function ImportStudentsClient({
             <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">Phone Num</span>.
             Subject should be <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">Math</span>,{' '}
             <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">Reading</span>, or{' '}
-            <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">Math-Reading</span>.
+            <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">Math-Reading</span>. Phone numbers can
+            be written as <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">1234567890</span>,{' '}
+            <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">123-456-7890</span>,{' '}
+            <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">123 456 7890</span>, or{' '}
+            <span className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">(123) 456-7890</span>.
           </p>
 
           <div>

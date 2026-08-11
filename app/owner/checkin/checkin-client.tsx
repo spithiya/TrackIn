@@ -176,6 +176,25 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
     [activeStudents]
   )
 
+  const activeByStudentId = useMemo(
+    () => new Map(activeStudents.map(s => [s.student_id, s])),
+    [activeStudents]
+  )
+
+  function selectStudent(s: Tables<'students'>) {
+    const active = activeByStudentId.get(s.id)
+    if (active) {
+      setCheckoutTarget(active)
+      setSessionNote('')
+    } else {
+      setCheckinStudent(s)
+      setAssignedStaffId('')
+    }
+    setQuery('')
+    setSearchResults([])
+    setSearchFocused(false)
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-semibold text-[#252E3D] mb-5">Check In / Out</h1>
@@ -241,16 +260,32 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                             All students (A–Z)
                           </div>
                         )}
-                        {list.map(s => (
-                          <button
-                            key={s.id}
-                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
-                            onClick={() => { setCheckinStudent(s); setAssignedStaffId(''); setQuery(''); setSearchResults([]); setSearchFocused(false) }}
-                          >
-                            <span className="font-medium text-slate-900">{fullName(s.first_name, s.last_name)}</span>
-                            <span className="text-xs text-slate-400">{SUBJECTS[s.subjects]}</span>
-                          </button>
-                        ))}
+                        {list.map(s => {
+                          const isIn = activeByStudentId.has(s.id)
+                          return (
+                            <button
+                              key={s.id}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
+                              onClick={() => selectStudent(s)}
+                            >
+                              <span className="font-medium text-slate-900">{fullName(s.first_name, s.last_name)}</span>
+                              <span className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs text-slate-400">{SUBJECTS[s.subjects]}</span>
+                                {isIn ? (
+                                  <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                                    In
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block" />
+                                    Out
+                                  </span>
+                                )}
+                              </span>
+                            </button>
+                          )
+                        })}
                       </>
                     )}
                   </div>

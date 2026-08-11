@@ -51,10 +51,14 @@ export function parseSubjects(raw: string): ParsedSubjects | null {
   return null
 }
 
+// Accepts: 1234567890, 123-456-7890, 123 456 7890, (123) 456-7890,
+// (123)456-7890, (123) 456 7890, and similar mixes of those separators.
+const PHONE_PATTERN = /^\(?(\d{3})\)?[-\s]?(\d{3})[-\s]?(\d{4})$/
+
 export function normalizePhone(raw: string): string | null {
-  const digits = raw.replace(/\D/g, '')
-  if (digits.length < 7) return null
-  return raw.trim()
+  const match = raw.trim().match(PHONE_PATTERN)
+  if (!match) return null
+  return `${match[1]}${match[2]}${match[3]}`
 }
 
 export function buildImportRows(
@@ -102,7 +106,7 @@ export function buildImportRows(
     if (!firstNameRaw) errors.push('Missing first name')
     if (!lastNameRaw) errors.push('Missing last name')
     if (!subjects) errors.push(`Invalid subjects ("${subjectsRaw || 'blank'}")`)
-    if (!phone) errors.push('Missing or invalid phone number')
+    if (!phone) errors.push(phoneRaw ? `Invalid phone format ("${phoneRaw}")` : 'Missing phone number')
 
     const duplicate = !!firstNameRaw && !!lastNameRaw &&
       existingNames.has(`${firstName.toLowerCase()}|${lastName.toLowerCase()}`)
