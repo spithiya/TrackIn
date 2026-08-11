@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, MapPin, ArrowUp } from 'lucide-react'
 import { usePostHog } from 'posthog-js/react'
 import { TimerPill } from '@/components/students/timer-pill'
@@ -12,13 +11,12 @@ import { formatTime, fullName } from '@/lib/utils'
 import type { Tables } from '@/lib/supabase/types'
 
 type Student = Tables<'students'>
-type Checkin = Tables<'student_checkins'>
+type ActiveCheckin = { id: string; student_id: string; checked_in_at: string; subjects_snapshot: 'math' | 'reading' | 'both' }
 
 type KioskState =
   | { step: 'idle' }
-  | { step: 'loading'; student: Student }
   | { step: 'confirm-checkin'; student: Student }
-  | { step: 'confirm-checkout'; student: Student; checkin: Checkin }
+  | { step: 'confirm-checkout'; student: Student; checkin: ActiveCheckin }
   | { step: 'processing' }
   | { step: 'success'; action: 'in' | 'out'; studentName: string }
 
@@ -35,19 +33,17 @@ export function KioskClient({
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [allStudents] = useState<Student[]>(initialStudents)
-  const [checkedInIds, setCheckedInIds] = useState<Set<string>>(new Set())
-  const supabase = useMemo(() => createClient(), [])
+  const [activeCheckins, setActiveCheckins] = useState<Map<string, ActiveCheckin>>(new Map())
   const posthog = usePostHog()
   const listRef = useRef<HTMLDivElement>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
 
   const refreshCheckedIn = useCallback(async () => {
-    const { data } = await supabase
-      .from('student_checkins')
-      .select('student_id')
-      .is('checked_out_at', null)
-    setCheckedInIds(new Set((data ?? []).map(r => r.student_id)))
-  }, [supabase])
+    const res = await fetch(`/api/kiosk/${locationId}/active`)
+    if (!res.ok) return
+    const { checkins } = await res.json() as { checkins: ActiveCheckin[] }
+    setActiveCheckins(new Map(checkins.map(c => [c.student_id, c])))
+  }, [locationId])
 
   useEffect(() => {
     refreshCheckedIn()
@@ -75,35 +71,23 @@ export function KioskClient({
   }, [state.step])
 
   const selectStudent = useCallback(
-    async (student: Student) => {
-      setState({ step: 'loading', student })
-      const { data } = await supabase
-        .from('student_checkins')
-        .select('*')
-        .eq('student_id', student.id)
-        .is('checked_out_at', null)
-        .limit(1)
-        .maybeSingle()
-
-      setState(data
-        ? { step: 'confirm-checkout', student, checkin: data }
+    (student: Student) => {
+      const checkin = activeCheckins.get(student.id)
+      setState(checkin
+        ? { step: 'confirm-checkout', student, checkin }
         : { step: 'confirm-checkin', student }
       )
     },
-    [supabase]
+    [activeCheckins]
   )
 
   const checkIn = useCallback(
     async (student: Student) => {
       setState({ step: 'processing' })
-      const timeLimit = student.subjects === 'both' ? TIME_LIMITS.both : TIME_LIMITS.single
-      await supabase.from('student_checkins').insert({
-        org_id: student.org_id,
-        student_id: student.id,
-        location_id: locationId,
-        subjects_snapshot: student.subjects,
-        time_limit_minutes: timeLimit,
-        checkin_method: 'kiosk',
+      await fetch('/api/kiosk/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId, studentId: student.id }),
       })
       posthog.capture('kiosk_checkin_completed', {
         subjects: student.subjects,
@@ -113,13 +97,17 @@ export function KioskClient({
       refreshCheckedIn()
       setState({ step: 'success', action: 'in', studentName: student.first_name })
     },
-    [supabase, locationId, locationName, posthog, refreshCheckedIn]
+    [locationId, locationName, posthog, refreshCheckedIn]
   )
 
   const checkOut = useCallback(
-    async (checkin: Checkin, student: Student) => {
+    async (checkin: ActiveCheckin, student: Student) => {
       setState({ step: 'processing' })
-      await supabase.rpc('checkout_student', { checkin_id: checkin.id })
+      await fetch('/api/kiosk/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId, checkinId: checkin.id }),
+      })
       posthog.capture('kiosk_checkout_completed', {
         subjects: checkin.subjects_snapshot,
         location_id: locationId,
@@ -128,7 +116,7 @@ export function KioskClient({
       refreshCheckedIn()
       setState({ step: 'success', action: 'out', studentName: student.first_name })
     },
-    [supabase, locationId, locationName, posthog, refreshCheckedIn]
+    [locationId, locationName, posthog, refreshCheckedIn]
   )
 
   const reset = useCallback(() => {
@@ -148,8 +136,8 @@ export function KioskClient({
     return () => window.removeEventListener('keydown', handler)
   }, [state, checkIn, checkOut])
 
-  // ── Loading / processing ──
-  if (state.step === 'loading' || state.step === 'processing') {
+  // ── Processing ──
+  if (state.step === 'processing') {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -353,7 +341,7 @@ export function KioskClient({
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4 shrink-0">
-                    {checkedInIds.has(student.id) ? (
+                    {activeCheckins.has(student.id) ? (
                       <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
                         In
