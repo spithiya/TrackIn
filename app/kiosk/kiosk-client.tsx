@@ -119,26 +119,13 @@ export function KioskClient({
   const checkOut = useCallback(
     async (checkin: Checkin, student: Student) => {
       setState({ step: 'processing' })
-      const { data } = await supabase.rpc('checkout_student', { checkin_id: checkin.id })
+      await supabase.rpc('checkout_student', { checkin_id: checkin.id })
       posthog.capture('kiosk_checkout_completed', {
         subjects: checkin.subjects_snapshot,
         location_id: locationId,
         location_name: locationName,
       })
       refreshCheckedIn()
-      if (data?.send_sms && data?.parent_phone) {
-        fetch('/api/sms/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: data.parent_phone,
-            studentName: data.student_first_name,
-            centerName: 'BrightMind',
-            checkinId: checkin.id,
-            orgId: student.org_id,
-          }),
-        })
-      }
       setState({ step: 'success', action: 'out', studentName: student.first_name })
     },
     [supabase, locationId, locationName, posthog, refreshCheckedIn]

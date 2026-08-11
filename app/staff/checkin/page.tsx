@@ -136,26 +136,13 @@ export default function StaffCheckinPage() {
     if (!checkoutTarget) return
     setCheckingOut(true)
     const supabase = createClient()
-    const { data, error } = await supabase.rpc('checkout_student', {
+    const { error } = await supabase.rpc('checkout_student', {
       checkin_id: checkoutTarget.id,
       session_note: sessionNote.trim() || undefined,
     })
     if (error) {
       setToast({ message: 'Failed to check out student.', variant: 'red' })
     } else {
-      if (data?.send_sms && data?.parent_phone) {
-        fetch('/api/sms/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: data.parent_phone,
-            studentName: data.student_first_name,
-            centerName: 'BrightMind',
-            checkinId: checkoutTarget.id,
-            orgId: checkoutTarget.org_id,
-          }),
-        })
-      }
       setToast({ message: `${fullName(checkoutTarget.student_first_name, checkoutTarget.student_last_name)} checked out.`, variant: 'green' })
       refetch()
     }
