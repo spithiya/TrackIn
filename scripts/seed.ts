@@ -16,7 +16,7 @@ async function seed() {
   // Org
   const { data: org, error: orgErr } = await supabase
     .from('organizations')
-    .insert({ name: 'BrightMind Tutoring' })
+    .insert({ name: 'TrackIn Tutoring' })
     .select()
     .single()
   if (orgErr) { console.error('org:', orgErr.message); process.exit(1) }

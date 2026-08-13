@@ -7,7 +7,7 @@ export default function Home() {
       {/* ── Nav ── */}
       <header className="flex items-center justify-between mb-16">
         <span className="text-xl font-semibold tracking-tight text-[#1a1209]">
-          BrightMind<sup className="text-[10px] align-super">®</sup>
+          TrackIn<sup className="text-[10px] align-super">®</sup>
         </span>
         <button className="px-5 py-2 rounded-full border border-[#1a1209]/25 bg-white/60 backdrop-blur-sm text-sm font-medium text-[#1a1209] hover:bg-white/80 transition-colors">
           Back to site
@@ -17,7 +17,7 @@ export default function Home() {
       {/* ── Hero ── */}
       <div className="mb-10 text-center">
         <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-[#2563EB] mb-4">
-          BrightMind Workspace
+          TrackIn Workspace
         </p>
         <h1 className="font-serif text-[3.6rem] leading-[1.05] font-bold text-[#1a1209] mb-5">
           Tutoring Center Management
@@ -124,7 +124,7 @@ export default function Home() {
       </div>
 
       <footer className="mt-auto pt-10 pb-6 text-center text-xs text-gray-400">
-        © 2026 BrightMind. All rights reserved.
+        © 2026 TrackIn. All rights reserved.
       </footer>
     </div>
   )

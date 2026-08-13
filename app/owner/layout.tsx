@@ -23,7 +23,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen">
       <aside className="w-56 bg-[#252E3D] flex flex-col shrink-0">
         <div className="px-6 py-5 border-b border-white/10">
-          <span className="text-lg font-bold text-white">BrightMind</span>
+          <span className="text-lg font-bold text-white">TrackIn</span>
           <p className="text-xs text-white/45 mt-0.5 font-medium tracking-wide uppercase">Owner Portal</p>
         </div>
         <OwnerNav />
@@ -40,7 +40,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
         </header>
         <main className="flex-1 p-6 bg-[#F5F6F8]">{children}</main>
         <footer className="px-6 py-2.5 border-t border-[#CDD2D9] bg-white text-xs text-gray-400 text-center">
-          © 2026 BrightMind. All rights reserved.
+          © 2026 TrackIn. All rights reserved.
         </footer>
       </div>
     </div>

@@ -19,7 +19,7 @@ export default async function LoginPage({
           Back
         </Link>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#0F172A] mb-1">BrightMind</h1>
+          <h1 className="text-2xl font-bold text-[#0F172A] mb-1">TrackIn</h1>
           <p className="text-sm text-gray-500">Staff &amp; owner portal</p>
         </div>
         <LoginForm urlError={error} urlMessage={message} />

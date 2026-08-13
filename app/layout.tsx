@@ -11,7 +11,7 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mon
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME ?? 'BrightMind Tutoring',
+  title: process.env.NEXT_PUBLIC_APP_NAME ?? 'TrackIn Tutoring',
   description: 'Check-in management for tutoring centers',
 }
 

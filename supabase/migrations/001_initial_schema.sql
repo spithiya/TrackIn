@@ -1,4 +1,4 @@
--- BrightMind Tutoring CRM — Initial Schema
+-- TrackIn Tutoring CRM — Initial Schema
 
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
