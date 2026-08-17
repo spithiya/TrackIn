@@ -76,3 +76,44 @@ export async function updateAccountSecurity(input: {
   if (profileError) return { error: profileError.message }
   return {}
 }
+
+export async function deleteMyAccount(currentPassword: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !user.email) return { error: 'Not authenticated.' }
+
+  if (!currentPassword) return { error: 'Enter your current password to confirm account deletion.' }
+
+  const ok = await verifyCurrentPassword(user.email, currentPassword)
+  if (!ok) return { error: 'Current password is incorrect.' }
+
+  const service = createServiceClient()
+
+  const { data: profile } = await service.from('profiles').select('org_id').eq('id', user.id).single()
+  if (!profile) return { error: 'Profile not found.' }
+
+  // An owner is the root of an entire organization — refuse to cascade-delete
+  // real operational data through a one-click self-service action. Only
+  // allow this when the org has no staff or students on record yet (which
+  // also guarantees no check-in/timesheet history exists, since those
+  // always reference a student or staff member).
+  const [{ count: staffCount }, { count: studentCount }] = await Promise.all([
+    service.from('staff_members').select('*', { count: 'exact', head: true }).eq('org_id', profile.org_id),
+    service.from('students').select('*', { count: 'exact', head: true }).eq('org_id', profile.org_id),
+  ])
+
+  if ((staffCount ?? 0) > 0 || (studentCount ?? 0) > 0) {
+    return {
+      error: `Your organization has ${staffCount ?? 0} staff member(s) and ${studentCount ?? 0} student(s) on record. For safety, self-service account deletion is only available for organizations with no data yet.`,
+    }
+  }
+
+  const { error: deleteUserError } = await service.auth.admin.deleteUser(user.id)
+  if (deleteUserError) return { error: deleteUserError.message }
+
+  // profiles is already gone via auth.users' cascade — clean up the now
+  // owner-less org too (cascades any locations it still has).
+  await service.from('organizations').delete().eq('id', profile.org_id)
+
+  return {}
+}

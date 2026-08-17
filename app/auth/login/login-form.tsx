@@ -200,6 +200,12 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
               <p className="text-sm text-blue-800">Password changed successfully. Please sign in.</p>
             </div>
           )}
+          {urlMessage === 'account_deleted' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <CheckCircle2 size={15} className="text-blue-600 shrink-0" />
+              <p className="text-sm text-blue-800">Your account has been deleted.</p>
+            </div>
+          )}
           {signInError && (
             <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{signInError}</p>
           )}

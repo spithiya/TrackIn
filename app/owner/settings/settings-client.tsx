@@ -1,11 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { updateProfileInfo, updateAccountSecurity } from './actions'
+import { useRouter } from 'next/navigation'
+import { updateProfileInfo, updateAccountSecurity, deleteMyAccount } from './actions'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
 
 type Profile = {
@@ -18,6 +21,7 @@ type Profile = {
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
 export function SettingsClient({ profile }: { profile: Profile }) {
+  const router = useRouter()
   const [toast, setToast] = useState<ToastState>(null)
 
   // Profile info
@@ -31,6 +35,13 @@ export function SettingsClient({ profile }: { profile: Profile }) {
   const [newPassword, setNewPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [savingAccount, setSavingAccount] = useState(false)
+
+  // Delete account
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +67,21 @@ export function SettingsClient({ profile }: { profile: Profile }) {
       setCurrentPassword('')
     }
     setSavingAccount(false)
+  }
+
+  async function handleDeleteAccount(e: React.FormEvent) {
+    e.preventDefault()
+    setDeleteError(null)
+    setDeleting(true)
+    const result = await deleteMyAccount(deletePassword)
+    if (result.error) {
+      setDeleteError(result.error)
+      setDeleting(false)
+      return
+    }
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/auth/login?message=account_deleted')
   }
 
   return (
@@ -119,6 +145,53 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           </CardContent>
         </Card>
       </form>
+
+      <Card className="border-red-200">
+        <CardHeader><CardTitle className="text-red-700">Danger Zone</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-slate-500">
+            Permanently delete your account. This cannot be undone.
+          </p>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => { setDeleteOpen(true); setDeletePassword(''); setDeleteConfirmText(''); setDeleteError(null) }}
+            >
+              Delete Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete Account">
+        <form onSubmit={handleDeleteAccount} className="space-y-4">
+          <p className="text-sm text-slate-600">
+            This permanently deletes your login. For safety, this only works if your
+            organization has no staff or students on record yet — otherwise, you&apos;ll
+            need to remove those first.
+          </p>
+          {deleteError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{deleteError}</p>
+          )}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">Current Password *</label>
+            <PasswordInput value={deletePassword} onChange={setDeletePassword} autoComplete="current-password" />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">
+              Type <span className="font-mono font-semibold">DELETE</span> to confirm *
+            </label>
+            <Input value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)} onClear={() => setDeleteConfirmText('')} />
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
+            <Button type="submit" variant="danger" disabled={deleting || deleteConfirmText !== 'DELETE' || !deletePassword}>
+              {deleting ? 'Deleting…' : 'Permanently Delete Account'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

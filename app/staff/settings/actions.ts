@@ -97,3 +97,27 @@ export async function updateAccountSecurity(input: {
   if (memberError) return { error: memberError.message }
   return {}
 }
+
+export async function deleteMyAccount(currentPassword: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !user.email) return { error: 'Not authenticated.' }
+
+  if (!currentPassword) return { error: 'Enter your current password to confirm account deletion.' }
+
+  const ok = await verifyCurrentPassword(user.email, currentPassword)
+  if (!ok) return { error: 'Current password is incorrect.' }
+
+  const service = createServiceClient()
+
+  // staff_members has real historical records (timesheets, check-ins)
+  // pointing at it with NOT NULL foreign keys — it can't be hard-deleted.
+  // Deactivate it and only remove the login; the roster record (name,
+  // history) survives with profile_id set to null via cascade below.
+  await service.from('staff_members').update({ is_active: false }).eq('profile_id', user.id)
+
+  const { error } = await service.auth.admin.deleteUser(user.id)
+  if (error) return { error: error.message }
+
+  return {}
+}
