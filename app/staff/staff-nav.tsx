@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, UserCheck, Clock, FileText } from 'lucide-react'
+import { LayoutDashboard, UserCheck, Clock, FileText, Settings } from 'lucide-react'
 
 const nav = [
   { href: '/staff/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/staff/checkin', label: 'Check In / Out', icon: UserCheck },
   { href: '/staff/my-checkin', label: 'My Check-in', icon: Clock },
   { href: '/staff/my-timesheet', label: 'My Timesheet', icon: FileText },
+  { href: '/staff/settings', label: 'Settings', icon: Settings },
 ]
 
 export function StaffNav() {

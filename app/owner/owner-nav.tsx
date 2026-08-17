@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, BarChart2, Monitor, Users, UserPlus,
-  History, UserCheck, Clipboard, MapPin, Clock, LogIn,
+  History, UserCheck, Clipboard, MapPin, Clock, LogIn, Settings,
 } from 'lucide-react'
 
 const nav = [
@@ -19,6 +19,7 @@ const nav = [
   { href: '/owner/staff/new', label: 'Register Staff', icon: Clipboard },
   { href: '/owner/timesheets', label: 'Timesheets', icon: Clock },
   { href: '/owner/locations', label: 'Locations', icon: MapPin },
+  { href: '/owner/settings', label: 'Settings', icon: Settings },
 ]
 
 export function OwnerNav() {
