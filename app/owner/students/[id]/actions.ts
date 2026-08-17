@@ -2,6 +2,7 @@
 
 import { createServiceClient } from '@/lib/supabase/server'
 import { requirePermissionForAction } from '@/lib/permissions'
+import { TIME_LIMITS } from '@/lib/constants'
 
 async function getAuthOrgId(): Promise<string | null> {
   const access = await requirePermissionForAction('manage_students')
@@ -25,7 +26,23 @@ export async function updateStudent(
 
   const service = createServiceClient()
   const { error } = await service.from('students').update(patch).eq('id', studentId).eq('org_id', orgId)
-  return error ? { error: error.message } : {}
+  if (error) return { error: error.message }
+
+  // subjects_snapshot/time_limit_minutes are frozen on student_checkins at
+  // check-in time so historical records stay accurate — but if this student
+  // is currently checked in, sync their live session to the new subjects so
+  // the timer color/limit updates immediately instead of on their next visit.
+  await service
+    .from('student_checkins')
+    .update({
+      subjects_snapshot: patch.subjects,
+      time_limit_minutes: patch.subjects === 'both' ? TIME_LIMITS.both : TIME_LIMITS.single,
+    })
+    .eq('student_id', studentId)
+    .eq('org_id', orgId)
+    .is('checked_out_at', null)
+
+  return {}
 }
 
 export async function toggleStudentActive(studentId: string, is_active: boolean): Promise<{ error?: string }> {
