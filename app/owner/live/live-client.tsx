@@ -1,17 +1,15 @@
 'use client'
 
 import { useActiveStudents } from '@/hooks/use-active-students'
-import { useActiveStaff } from '@/hooks/use-active-staff'
 import { TimerPill } from '@/components/students/timer-pill'
 import { TimerFillBar } from '@/components/students/timer-fill-bar'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { fullName, formatTime } from '@/lib/utils'
-import { Users, UserCheck } from 'lucide-react'
+import { fullName } from '@/lib/utils'
+import { Users, Phone } from 'lucide-react'
 
 export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locationIds?: string[] }) {
   const { students, loading: loadingStudents } = useActiveStudents(orgId, locationIds)
-  const { staff, loading: loadingStaff } = useActiveStaff(orgId, locationIds)
 
   return (
     <div className="space-y-6">
@@ -23,86 +21,52 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Users size={16} className="text-[#3D4A5C]" />
-                Active Students
-              </CardTitle>
-              <span className="text-sm font-mono font-semibold text-[#3D4A5C] bg-[#ECEEF1] px-2 py-0.5 rounded-full">
-                {students.length}
-              </span>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users size={16} className="text-[#3D4A5C]" />
+              Active Students
+            </CardTitle>
+            <span className="text-sm font-mono font-semibold text-[#3D4A5C] bg-[#ECEEF1] px-2 py-0.5 rounded-full">
+              {students.length}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingStudents ? (
+            <div className="flex justify-center py-8">
+              <div className="w-5 h-5 border-2 border-[#3D4A5C] border-t-transparent rounded-full animate-spin" />
             </div>
-          </CardHeader>
-          <CardContent>
-            {loadingStudents ? (
-              <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-[#3D4A5C] border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : students.length === 0 ? (
-              <p className="text-sm text-slate-400 py-8 text-center">No students checked in.</p>
-            ) : (
-              <div>
-                {students.map(s => (
-                  <div key={s.id} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">
-                        {fullName(s.student_first_name, s.student_last_name)}
+          ) : students.length === 0 ? (
+            <p className="text-sm text-slate-400 py-8 text-center">No students checked in.</p>
+          ) : (
+            <div>
+              {students.map(s => (
+                <div key={s.id} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {fullName(s.student_first_name, s.student_last_name)}
+                    </p>
+                    <div className="mt-1"><SubjectTags subjects={s.subjects_snapshot} /></div>
+                    {(s.primary_contact_name || s.primary_contact_phone) && (
+                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                        <Phone size={11} className="shrink-0" />
+                        {s.primary_contact_name || s.primary_contact_relationship || 'Contact'}
+                        {s.primary_contact_phone && ` · ${s.primary_contact_phone}`}
                       </p>
-                      <div className="mt-1"><SubjectTags subjects={s.subjects_snapshot} /></div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <TimerFillBar checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
-                      <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
-                    </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck size={16} className="text-[#3D4A5C]" />
-                Active Staff
-              </CardTitle>
-              <span className="text-sm font-mono font-semibold text-[#3D4A5C] bg-[#ECEEF1] px-2 py-0.5 rounded-full">
-                {staff.length}
-              </span>
+                  <div className="flex items-center gap-3">
+                    <TimerFillBar checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
+                    <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
+                  </div>
+                </div>
+              ))}
             </div>
-          </CardHeader>
-          <CardContent>
-            {loadingStaff ? (
-              <div className="flex justify-center py-8">
-                <div className="w-5 h-5 border-2 border-[#3D4A5C] border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : staff.length === 0 ? (
-              <p className="text-sm text-slate-400 py-8 text-center">No staff clocked in.</p>
-            ) : (
-              <div>
-                {staff.map(s => (
-                  <div key={s.id} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">
-                        {fullName(s.staff_first_name, s.staff_last_name)}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-0.5">Since {formatTime(s.checked_in_at)}</p>
-                    </div>
-                    <span className="text-sm font-mono font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {s.elapsed_minutes}m
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -494,6 +494,9 @@ export type Database = {
           assigned_staff_name: string | null
           elapsed_minutes: number
           timer_status: 'green' | 'yellow' | 'red'
+          primary_contact_name: string | null
+          primary_contact_phone: string | null
+          primary_contact_relationship: 'Mother' | 'Father' | 'Guardian' | 'Other' | null
         }
         Relationships: []
       }

@@ -234,7 +234,7 @@ export default function StaffCheckinPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-gray-400">{formatTime(s.checked_in_at)}</span>
+                  <span className="text-xs text-gray-400">Checked in: {formatTime(s.checked_in_at)}</span>
                   <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} />
                   <Button
                     variant="outline"
