@@ -1,28 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { StaffDetailClient } from './staff-detail-client'
+import { requireOwner } from '@/lib/permissions'
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const access = await requireOwner()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
 
   const [{ data: member }, { data: locations }] = await Promise.all([
     supabase
       .from('staff_members')
       .select('*')
       .eq('id', id)
-      .eq('org_id', profile.org_id)
+      .eq('org_id', access.orgId)
       .single(),
     supabase
       .from('locations')
       .select('id, name')
-      .eq('org_id', profile.org_id),
+      .eq('org_id', access.orgId),
   ])
 
   if (!member) notFound()

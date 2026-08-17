@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateStaff, deleteStaff } from './actions'
+import { updateStaff, deleteStaff, updateStaffPermissions } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -16,6 +16,13 @@ import type { Tables } from '@/lib/supabase/types'
 type StaffMember = Tables<'staff_members'>
 type Location = { id: string; name: string }
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
+
+const PERMISSION_FIELDS = [
+  { key: 'can_manage_students' as const, label: 'Manage Students', description: 'Add, edit, and remove students.' },
+  { key: 'can_view_history' as const, label: 'View Visit History', description: 'View and export the check-in/check-out log.' },
+  { key: 'can_view_analytics' as const, label: 'View Analytics', description: 'View the analytics dashboard.' },
+  { key: 'can_control_checkin' as const, label: 'Live Display / Check-in Control', description: 'Check in/out any student org-wide, not just their own.' },
+]
 
 export function StaffDetailClient({
   member: initialMember,
@@ -33,8 +40,28 @@ export function StaffDetailClient({
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastState>(null)
+  const [savingPermissions, setSavingPermissions] = useState(false)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
+
+  async function togglePermission(key: typeof PERMISSION_FIELDS[number]['key']) {
+    const next = { ...member, [key]: !member[key] }
+    setMember(next)
+    setSavingPermissions(true)
+    const result = await updateStaffPermissions(member.id, {
+      can_manage_students: next.can_manage_students,
+      can_view_history: next.can_view_history,
+      can_view_analytics: next.can_view_analytics,
+      can_control_checkin: next.can_control_checkin,
+    })
+    setSavingPermissions(false)
+    if (result.error) {
+      setMember(member) // revert
+      setToast({ message: result.error, variant: 'red' })
+    } else {
+      setToast({ message: 'Permissions updated.', variant: 'green' })
+    }
+  }
 
   useEffect(() => {
     if (!editing) return
@@ -264,6 +291,36 @@ export function StaffDetailClient({
               </div>
             </dl>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Permissions</CardTitle></CardHeader>
+        <CardContent>
+          <p className="text-sm text-slate-500 mb-4">
+            Grant this staff member access to owner-only features. Timesheet editing can
+            never be granted here — only the owner can edit timesheets.
+          </p>
+          <div className="space-y-3">
+            {PERMISSION_FIELDS.map(({ key, label, description }) => (
+              <label
+                key={key}
+                className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={member[key]}
+                  onChange={() => togglePermission(key)}
+                  disabled={savingPermissions}
+                  className="mt-0.5 accent-blue-600 rounded"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-slate-900">{label}</span>
+                  <span className="block text-xs text-slate-500 mt-0.5">{description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

@@ -1,23 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { TimesheetsClient } from './timesheets-client'
 import { getLocationFilter } from '@/lib/location-filter'
+import { requireOwner } from '@/lib/permissions'
 
 export default async function OwnerTimesheetsPage() {
+  const access = await requireOwner()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
 
   const [{ data: locations }, { data: staffMembers }, globalLocationIds] = await Promise.all([
-    supabase.from('locations').select('id, name').eq('org_id', profile.org_id),
+    supabase.from('locations').select('id, name').eq('org_id', access.orgId),
     supabase
       .from('staff_members')
       .select('id, first_name, last_name, location_id')
-      .eq('org_id', profile.org_id)
+      .eq('org_id', access.orgId)
       .eq('is_active', true)
       .order('last_name'),
     getLocationFilter(),
@@ -25,8 +20,8 @@ export default async function OwnerTimesheetsPage() {
 
   return (
     <TimesheetsClient
-      orgId={profile.org_id}
-      ownerId={user.id}
+      orgId={access.orgId}
+      ownerId={access.userId}
       locations={locations ?? []}
       staffList={staffMembers ?? []}
       globalLocationIds={globalLocationIds}

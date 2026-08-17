@@ -1,23 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { StudentDetailClient } from './student-detail-client'
+import { requireAccess } from '@/lib/permissions'
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const access = await requireAccess('manage_students')
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
 
   const [{ data: student }, { data: contacts }, { data: locations }] = await Promise.all([
     supabase
       .from('students')
       .select('*')
       .eq('id', id)
-      .eq('org_id', profile.org_id)
+      .eq('org_id', access.orgId)
       .single(),
     supabase
       .from('parent_contacts')
@@ -27,7 +23,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     supabase
       .from('locations')
       .select('id, name')
-      .eq('org_id', profile.org_id)
+      .eq('org_id', access.orgId)
       .eq('is_active', true),
   ])
 
@@ -38,7 +34,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       student={student}
       contacts={contacts ?? []}
       locations={locations ?? []}
-      orgId={profile.org_id}
+      orgId={access.orgId}
     />
   )
 }

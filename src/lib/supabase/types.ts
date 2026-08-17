@@ -150,6 +150,10 @@ export type Database = {
           subjects: 'math' | 'reading' | 'both'
           is_active: boolean
           created_at: string
+          can_manage_students: boolean
+          can_view_history: boolean
+          can_view_analytics: boolean
+          can_control_checkin: boolean
         }
         Insert: {
           id?: string
@@ -166,6 +170,10 @@ export type Database = {
           subjects: 'math' | 'reading' | 'both'
           is_active?: boolean
           created_at?: string
+          can_manage_students?: boolean
+          can_view_history?: boolean
+          can_view_analytics?: boolean
+          can_control_checkin?: boolean
         }
         Update: {
           id?: string
@@ -182,6 +190,10 @@ export type Database = {
           subjects?: 'math' | 'reading' | 'both'
           is_active?: boolean
           created_at?: string
+          can_manage_students?: boolean
+          can_view_history?: boolean
+          can_view_analytics?: boolean
+          can_control_checkin?: boolean
         }
         Relationships: []
       }

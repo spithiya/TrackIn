@@ -1,13 +1,32 @@
 'use server'
 
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { requireOwnerForAction } from '@/lib/permissions'
 
 async function getAuthOrgId(): Promise<string | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
-  return profile?.org_id ?? null
+  const access = await requireOwnerForAction()
+  return access.orgId ?? null
+}
+
+export async function updateStaffPermissions(
+  staffId: string,
+  permissions: {
+    can_manage_students: boolean
+    can_view_history: boolean
+    can_view_analytics: boolean
+    can_control_checkin: boolean
+  }
+): Promise<{ error?: string }> {
+  const access = await requireOwnerForAction()
+  if (!access.orgId) return { error: access.error }
+
+  const service = createServiceClient()
+  const { error } = await service
+    .from('staff_members')
+    .update(permissions)
+    .eq('id', staffId)
+    .eq('org_id', access.orgId)
+  return error ? { error: error.message } : {}
 }
 
 export async function updateStaff(

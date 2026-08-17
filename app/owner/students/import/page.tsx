@@ -1,26 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { ImportStudentsClient } from './import-client'
+import { requireAccess } from '@/lib/permissions'
 
 export default async function ImportStudentsPage() {
+  const access = await requireAccess('manage_students')
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
 
   const [{ data: locations }, { data: existingStudents }] = await Promise.all([
     supabase
       .from('locations')
       .select('id, name')
-      .eq('org_id', profile.org_id)
+      .eq('org_id', access.orgId)
       .eq('is_active', true),
     supabase
       .from('students')
       .select('first_name, last_name')
-      .eq('org_id', profile.org_id)
+      .eq('org_id', access.orgId)
       .eq('is_active', true),
   ])
 

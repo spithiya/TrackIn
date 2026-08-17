@@ -16,13 +16,20 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   const { data: member } = await supabase
     .from('staff_members')
-    .select('id, location_id, location_ids')
+    .select('id, location_id, location_ids, can_manage_students, can_view_history, can_view_analytics, can_control_checkin')
     .eq('profile_id', user.id)
     .maybeSingle()
 
   const locationIds = member
     ? [member.location_id, ...(member.location_ids ?? [])]
     : []
+
+  const permissions = {
+    manage_students: member?.can_manage_students ?? false,
+    view_history: member?.can_view_history ?? false,
+    view_analytics: member?.can_view_analytics ?? false,
+    control_checkin: member?.can_control_checkin ?? false,
+  }
 
   return (
     <MobileSidebarProvider>
@@ -33,7 +40,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
             <span className="text-lg font-bold text-white">TrackIn</span>
             <p className="text-xs text-white/45 mt-0.5 font-medium tracking-wide uppercase">Staff Portal</p>
           </div>
-          <StaffNav />
+          <StaffNav permissions={permissions} />
           <div className="px-3 py-4 border-t border-white/10">
             <SignOutButton />
           </div>

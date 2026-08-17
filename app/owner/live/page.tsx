@@ -1,18 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { LiveClient } from './live-client'
 import { getLocationFilter } from '@/lib/location-filter'
+import { requireAccess } from '@/lib/permissions'
 
 export default async function OwnerLivePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
-
+  const access = await requireAccess('control_checkin')
   const locationIds = await getLocationFilter()
 
-  return <LiveClient orgId={profile.org_id} locationIds={locationIds} />
+  return <LiveClient orgId={access.orgId} locationIds={locationIds} />
 }

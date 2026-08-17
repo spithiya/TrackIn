@@ -1,16 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { AnalyticsClient } from './analytics-client'
 import { getLocationFilter } from '@/lib/location-filter'
+import { requireAccess } from '@/lib/permissions'
 
 export default async function OwnerAnalyticsPage() {
+  const access = await requireAccess('view_analytics')
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
+  const profile = { org_id: access.orgId }
 
   const locationIds = await getLocationFilter()
   // 180 days: 90-day view + 90-day prior period for trend comparison

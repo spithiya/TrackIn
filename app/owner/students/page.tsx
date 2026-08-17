@@ -1,23 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { StudentsClient } from './students-client'
 import { getLocationFilter } from '@/lib/location-filter'
+import { requireAccess } from '@/lib/permissions'
 
 export default async function StudentRecordsPage() {
+  const access = await requireAccess('manage_students')
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
-
   const locationIds = await getLocationFilter()
 
   let studentsQuery = supabase
     .from('students')
     .select('*')
-    .eq('org_id', profile.org_id)
+    .eq('org_id', access.orgId)
     .eq('is_active', true)
     .order('last_name', { ascending: true })
 
@@ -25,7 +19,7 @@ export default async function StudentRecordsPage() {
 
   const [{ data: students }, { data: locations }] = await Promise.all([
     studentsQuery,
-    supabase.from('locations').select('id, name').eq('org_id', profile.org_id),
+    supabase.from('locations').select('id, name').eq('org_id', access.orgId),
   ])
 
   return <StudentsClient students={students ?? []} locations={locations ?? []} />

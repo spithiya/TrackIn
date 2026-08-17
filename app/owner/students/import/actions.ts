@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { requirePermissionForAction } from '@/lib/permissions'
 
 interface ImportStudentInput {
   firstName: string
@@ -13,14 +14,9 @@ export async function bulkImportStudents(
   locationId: string,
   students: ImportStudentInput[]
 ): Promise<{ error?: string; imported?: number }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated.' }
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id, role').eq('id', user.id).single()
-  if (!profile) return { error: 'Profile not found.' }
-  if (profile.role !== 'owner') return { error: 'Forbidden.' }
+  const access = await requirePermissionForAction('manage_students')
+  if (!access.orgId) return { error: access.error }
+  const orgId = access.orgId
   if (students.length === 0) return { error: 'No valid rows to import.' }
 
   const service = createServiceClient()
@@ -29,7 +25,7 @@ export async function bulkImportStudents(
     .from('locations')
     .select('id')
     .eq('id', locationId)
-    .eq('org_id', profile.org_id)
+    .eq('org_id', orgId)
     .maybeSingle()
   if (!location) return { error: 'Invalid location.' }
 
@@ -42,7 +38,7 @@ export async function bulkImportStudents(
     const { data: inserted, error: studentsError } = await service
       .from('students')
       .insert(chunk.map(s => ({
-        org_id: profile.org_id,
+        org_id: orgId,
         first_name: s.firstName,
         last_name: s.lastName,
         subjects: s.subjects,
@@ -59,7 +55,7 @@ export async function bulkImportStudents(
       .from('parent_contacts')
       .insert(inserted.map((row, idx) => ({
         student_id: row.id,
-        org_id: profile.org_id,
+        org_id: orgId,
         full_name: null,
         relationship: 'Guardian' as const,
         phone: chunk[idx].phone,

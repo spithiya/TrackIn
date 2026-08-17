@@ -1,13 +1,11 @@
 'use server'
 
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { requirePermissionForAction } from '@/lib/permissions'
 
 async function getAuthOrgId(): Promise<string | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
-  return profile?.org_id ?? null
+  const access = await requirePermissionForAction('manage_students')
+  return access.orgId ?? null
 }
 
 export async function updateStudent(
@@ -23,7 +21,7 @@ export async function updateStudent(
   }
 ): Promise<{ error?: string }> {
   const orgId = await getAuthOrgId()
-  if (!orgId) return { error: 'Not authenticated.' }
+  if (!orgId) return { error: 'You do not have permission to do this.' }
 
   const service = createServiceClient()
   const { error } = await service.from('students').update(patch).eq('id', studentId).eq('org_id', orgId)
@@ -32,7 +30,7 @@ export async function updateStudent(
 
 export async function toggleStudentActive(studentId: string, is_active: boolean): Promise<{ error?: string }> {
   const orgId = await getAuthOrgId()
-  if (!orgId) return { error: 'Not authenticated.' }
+  if (!orgId) return { error: 'You do not have permission to do this.' }
 
   const service = createServiceClient()
   const { error } = await service.from('students').update({ is_active }).eq('id', studentId).eq('org_id', orgId)
@@ -47,7 +45,7 @@ export async function addContact(input: {
   email: string
 }): Promise<{ id?: string; error?: string }> {
   const orgId = await getAuthOrgId()
-  if (!orgId) return { error: 'Not authenticated.' }
+  if (!orgId) return { error: 'You do not have permission to do this.' }
 
   const service = createServiceClient()
   const { data, error } = await service

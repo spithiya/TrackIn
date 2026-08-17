@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { MetricCard } from '@/components/ui/metric-card'
@@ -7,17 +6,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { formatDate, formatDuration } from '@/lib/utils'
 import { getLocationFilter } from '@/lib/location-filter'
+import { requireAnyAccess } from '@/lib/permissions'
 
 export default async function OwnerDashboardPage() {
+  const access = await requireAnyAccess()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
-
-  const orgId = profile.org_id
+  const orgId = access.orgId
   const locationIds = await getLocationFilter()
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
@@ -84,9 +78,11 @@ export default async function OwnerDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Recent Visits</CardTitle>
-              <Link href="/owner/history" className="text-xs text-[#3D4A5C] hover:text-[#252E3D] flex items-center gap-1">
-                View all <ArrowRight size={12} />
-              </Link>
+              {access.permissions.view_history && (
+                <Link href="/owner/history" className="text-xs text-[#3D4A5C] hover:text-[#252E3D] flex items-center gap-1">
+                  View all <ArrowRight size={12} />
+                </Link>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -115,9 +111,11 @@ export default async function OwnerDashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Currently In</CardTitle>
-              <Link href="/owner/live" className="text-xs text-[#3D4A5C] hover:text-[#252E3D] flex items-center gap-1">
-                Live view <ArrowRight size={12} />
-              </Link>
+              {access.permissions.control_checkin && (
+                <Link href="/owner/live" className="text-xs text-[#3D4A5C] hover:text-[#252E3D] flex items-center gap-1">
+                  Live view <ArrowRight size={12} />
+                </Link>
+              )}
             </div>
           </CardHeader>
           <CardContent>

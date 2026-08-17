@@ -1,20 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { LocationsClient } from './locations-client'
+import { requireOwner } from '@/lib/permissions'
 
 export default async function OwnerLocationsPage() {
+  const access = await requireOwner()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles').select('org_id').eq('id', user.id).single()
-  if (!profile) redirect('/auth/login')
 
   const { data: locations } = await supabase
     .from('locations')
     .select('*')
-    .eq('org_id', profile.org_id)
+    .eq('org_id', access.orgId)
     .order('name')
 
   return <LocationsClient locations={locations ?? []} />

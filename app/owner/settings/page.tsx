@@ -1,16 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { SettingsClient } from './settings-client'
+import { requireOwner } from '@/lib/permissions'
 
 export default async function OwnerSettingsPage() {
+  const access = await requireOwner()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
 
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('full_name, email, username, phone')
-    .eq('id', user.id)
+    .eq('id', access.userId)
     .single()
 
   // A failed query (e.g. a schema mismatch) is not the same as "not
