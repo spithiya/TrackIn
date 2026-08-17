@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { addStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,8 +26,9 @@ function emptyContact(isPrimary = false): ParentContact {
   return { full_name: '', relationship: 'Guardian', phone: '', email: '', is_primary: isPrimary }
 }
 
-export function AddStudentForm({ locations }: { locations: Location[] }) {
+export function AddStudentForm({ locations, basePath = '/owner' }: { locations: Location[]; basePath?: string }) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -86,13 +87,15 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
     if (result?.error) {
       setError(result.error)
       setLoading(false)
+    } else {
+      router.push(`${basePath}/students`)
     }
   }
 
   return (
     <div className="max-w-lg space-y-5">
       <div className="flex items-center gap-3">
-        <Link href="/owner/students" className="text-slate-400 hover:text-slate-600 transition-colors">
+        <Link href={`${basePath}/students`} className="text-slate-400 hover:text-slate-600 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-2xl font-semibold text-slate-900">Add Student</h1>
@@ -298,7 +301,7 @@ export function AddStudentForm({ locations }: { locations: Location[] }) {
           <Button type="submit" disabled={loading || locations.length === 0}>
             {loading ? 'Saving…' : 'Add Student'}
           </Button>
-          <Link href="/owner/students">
+          <Link href={`${basePath}/students`}>
             <Button type="button" variant="secondary">Cancel</Button>
           </Link>
         </div>

@@ -17,10 +17,10 @@ const nav = [
 ]
 
 const ELEVATED_NAV: { perm: Permission; href: string; label: string; icon: typeof Users }[] = [
-  { perm: 'manage_students', href: '/owner/students', label: 'Student Records', icon: Users },
-  { perm: 'view_history', href: '/owner/history', label: 'Visit History', icon: History },
-  { perm: 'view_analytics', href: '/owner/analytics', label: 'Analytics', icon: BarChart2 },
-  { perm: 'control_checkin', href: '/owner/live', label: 'Live Display', icon: Monitor },
+  { perm: 'manage_students', href: '/staff/students', label: 'Student Records', icon: Users },
+  { perm: 'view_history', href: '/staff/history', label: 'Visit History', icon: History },
+  { perm: 'view_analytics', href: '/staff/analytics', label: 'Analytics', icon: BarChart2 },
+  { perm: 'control_checkin', href: '/staff/live', label: 'Live Display', icon: Monitor },
 ]
 
 export function StaffNav({ permissions }: { permissions: Record<Permission, boolean> }) {

@@ -17,9 +17,11 @@ type SortDir = 'asc' | 'desc'
 export function StudentsClient({
   students,
   locations,
+  basePath = '/owner',
 }: {
   students: Student[]
   locations: Location[]
+  basePath?: string
 }) {
   const [query, setQuery] = useState('')
   const [subjectFilter, setSubjectFilter] = useState<'all' | 'math' | 'reading' | 'both'>('all')
@@ -63,13 +65,13 @@ export function StudentsClient({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-[#252E3D]">Student Records</h1>
         <div className="flex items-center gap-2">
-          <Link href="/owner/students/import">
+          <Link href={`${basePath}/students/import`}>
             <Button size="sm" variant="secondary">
               <Upload size={15} className="mr-1.5" />
               Import Students
             </Button>
           </Link>
-          <Link href="/owner/students/new">
+          <Link href={`${basePath}/students/new`}>
             <Button size="sm">
               <UserPlus size={15} className="mr-1.5" />
               Add Student
@@ -138,7 +140,7 @@ export function StudentsClient({
                     <tr
                       key={s.id}
                       className="border-b border-slate-100 last:border-0 hover:bg-[#F1F2F5] transition-colors cursor-pointer"
-                      onClick={() => window.location.href = `/owner/students/${s.id}`}
+                      onClick={() => window.location.href = `${basePath}/students/${s.id}`}
                     >
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {s.last_name}, {s.first_name}

@@ -39,11 +39,13 @@ export function StudentDetailClient({
   student: initialStudent,
   contacts: initialContacts,
   locations,
+  basePath = '/owner',
 }: {
   student: Student
   contacts: Contact[]
   locations: Location[]
   orgId: string
+  basePath?: string
 }) {
   const router = useRouter()
   const [student, setStudent] = useState(initialStudent)
@@ -124,7 +126,7 @@ export function StudentDetailClient({
     setDeleting(true)
     const result = await deleteStudent(student.id)
     if (result.error) { setError(result.error); setDeleting(false); return }
-    router.push('/owner/students')
+    router.push(`${basePath}/students`)
   }
 
   async function handleDeleteContact(id: string) {
@@ -174,7 +176,7 @@ export function StudentDetailClient({
   return (
     <div className="max-w-lg space-y-5">
       <div className="flex items-center gap-3">
-        <Link href="/owner/students" className="text-slate-400 hover:text-slate-600 transition-colors">
+        <Link href={`${basePath}/students`} className="text-slate-400 hover:text-slate-600 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-2xl font-semibold text-slate-900">

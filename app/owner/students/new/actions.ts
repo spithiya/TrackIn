@@ -1,7 +1,6 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { requirePermissionForAction } from '@/lib/permissions'
 
 interface ParentContactInput {
@@ -64,5 +63,5 @@ export async function addStudent(input: AddStudentInput): Promise<{ error?: stri
     if (contactsError) return { error: contactsError.message }
   }
 
-  redirect('/owner/students')
+  return {}
 }

@@ -16,9 +16,11 @@ type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 export function ImportStudentsClient({
   locations,
   existingNames,
+  basePath = '/owner',
 }: {
   locations: Location[]
   existingNames: string[]
+  basePath?: string
 }) {
   const router = useRouter()
   const existingNameSet = useMemo(() => new Set(existingNames), [existingNames])
@@ -136,7 +138,7 @@ export function ImportStudentsClient({
       setToast({ message: result.error, variant: 'red' })
     } else {
       setToast({ message: `Imported ${result.imported} student${result.imported === 1 ? '' : 's'}.`, variant: 'green' })
-      setTimeout(() => router.push('/owner/students'), 1200)
+      setTimeout(() => router.push(`${basePath}/students`), 1200)
     }
   }
 
@@ -149,7 +151,7 @@ export function ImportStudentsClient({
       )}
 
       <div className="flex items-center gap-3">
-        <Link href="/owner/students" className="text-slate-400 hover:text-slate-600 transition-colors">
+        <Link href={`${basePath}/students`} className="text-slate-400 hover:text-slate-600 transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-2xl font-semibold text-slate-900">Import Students</h1>
