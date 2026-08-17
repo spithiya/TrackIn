@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useActiveStaff } from '@/hooks/use-active-staff'
@@ -11,10 +12,19 @@ import { TimerPill } from '@/components/students/timer-pill'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { TIME_LIMITS, SUBJECTS } from '@/lib/constants'
 import { fullName, formatTime } from '@/lib/utils'
-import { Search, Info, X } from 'lucide-react'
+import { Search, Info, X, UserPlus } from 'lucide-react'
 import type { Tables, Views } from '@/lib/supabase/types'
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
+
+function addStudentHref(query: string): string {
+  const [first, ...rest] = query.trim().split(/\s+/)
+  const params = new URLSearchParams()
+  if (first) params.set('first', first)
+  if (rest.length) params.set('last', rest.join(' '))
+  const qs = params.toString()
+  return qs ? `/owner/students/new?${qs}` : '/owner/students/new'
+}
 
 interface Props {
   orgId: string
@@ -250,8 +260,19 @@ export function OwnerCheckinClient({ orgId, staffMembers, locationIds = [] }: Pr
                     {isLoading ? (
                       <div className="px-4 py-3 text-sm text-slate-400">{isDefaultList ? 'Loading…' : 'Searching…'}</div>
                     ) : list.length === 0 ? (
-                      <div className="px-4 py-3 text-sm text-slate-400">
-                        {isDefaultList ? 'No students enrolled yet.' : 'No students found.'}
+                      <div>
+                        <div className="px-4 py-3 text-sm text-slate-400">
+                          {isDefaultList ? 'No students enrolled yet.' : 'No students found.'}
+                        </div>
+                        {!isDefaultList && (
+                          <Link
+                            href={addStudentHref(query)}
+                            className="flex items-center gap-2 px-4 py-3 text-sm text-[#3D4A5C] hover:bg-slate-50 border-t border-slate-100 font-medium"
+                          >
+                            <UserPlus size={14} />
+                            Add &ldquo;{query.trim()}&rdquo; as a new student
+                          </Link>
+                        )}
                       </div>
                     ) : (
                       <>

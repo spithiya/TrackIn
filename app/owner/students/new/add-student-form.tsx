@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { addStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,17 +27,20 @@ function emptyContact(isPrimary = false): ParentContact {
 }
 
 export function AddStudentForm({ locations }: { locations: Location[] }) {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [fields, setFields] = useState({
-    first_name: '',
-    last_name: '',
+  // Pre-fill from a search that came up empty on the check-in page
+  // (?first=Jane&last=Smith) — only read once, on mount.
+  const [fields, setFields] = useState(() => ({
+    first_name: searchParams.get('first') ?? '',
+    last_name: searchParams.get('last') ?? '',
     dob: '',
     subjects: 'math' as 'math' | 'reading' | 'both',
     location_id: locations[0]?.id ?? '',
     notes: '',
-  })
+  }))
 
   const [contacts, setContacts] = useState<ParentContact[]>([emptyContact(true)])
 
