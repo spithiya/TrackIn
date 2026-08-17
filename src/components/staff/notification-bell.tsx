@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useSessionAlertWatcher } from '@/hooks/use-session-alert-watcher'
-import { formatTime, formatDate } from '@/lib/utils'
+import { formatTime, formatDate, generateId } from '@/lib/utils'
 import { Bell } from 'lucide-react'
 import type { Tables } from '@/lib/supabase/types'
 
@@ -25,7 +25,7 @@ export function NotificationBell({
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const channelId = useRef(crypto.randomUUID()).current
+  const channelId = useRef(generateId()).current
 
   const loadAlerts = useCallback(async () => {
     if (!orgId || !staffId) return

@@ -39,3 +39,14 @@ export function elapsedMinutes(checkedInAt: string) {
 export function fullName(firstName: string, lastName: string) {
   return `${firstName} ${lastName}`
 }
+
+// crypto.randomUUID() only exists in Safari 15.4+ (Mar 2022) and throws on
+// older versions — this is only ever used to scope realtime channel names/
+// instance keys uniquely, not for anything security-sensitive, so a
+// non-cryptographic fallback is fine.
+export function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}

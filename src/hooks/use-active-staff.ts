@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { generateId } from '@/lib/utils'
 import type { Views } from '@/lib/supabase/types'
 
 export function useActiveStaff(orgId: string | null, locationIds: string[] = []) {
   const [staff, setStaff] = useState<Views<'active_staff'>[]>([])
   const [loading, setLoading] = useState(true)
-  const instanceId = useRef(crypto.randomUUID()).current
+  const instanceId = useRef(generateId()).current
 
   const fetchStaff = useCallback(async () => {
     if (!orgId) return

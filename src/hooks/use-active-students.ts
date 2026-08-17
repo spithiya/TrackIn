@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { generateId } from '@/lib/utils'
 import type { Views } from '@/lib/supabase/types'
 
 export function useActiveStudents(orgId: string | null, locationIds: string[] = [], assignedStaffId?: string | null) {
@@ -11,7 +12,7 @@ export function useActiveStudents(orgId: string | null, locationIds: string[] = 
   // concurrently on the same page, and Supabase reuses an already-subscribed
   // channel if the topic name collides, which throws when a second instance
   // tries to attach its own postgres_changes listener.
-  const instanceId = useRef(crypto.randomUUID()).current
+  const instanceId = useRef(generateId()).current
 
   const fetchStudents = useCallback(async () => {
     if (!orgId) return
