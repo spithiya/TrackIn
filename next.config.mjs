@@ -6,7 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: __dirname,
-  serverExternalPackages: ['twilio', '@supabase/supabase-js', 'node-fetch'],
+  serverExternalPackages: ['@supabase/supabase-js', 'node-fetch'],
   async headers() {
     return [
       {
@@ -32,7 +32,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' https://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
