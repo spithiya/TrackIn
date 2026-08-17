@@ -33,6 +33,7 @@ export function SettingsClient({ profile }: { profile: Profile }) {
   const [username, setUsername] = useState(profile.username ?? '')
   const [email, setEmail] = useState(profile.email)
   const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [savingAccount, setSavingAccount] = useState(false)
 
@@ -57,6 +58,10 @@ export function SettingsClient({ profile }: { profile: Profile }) {
 
   async function handleSaveAccount(e: React.FormEvent) {
     e.preventDefault()
+    if (newPassword && newPassword !== confirmNewPassword) {
+      setToast({ message: 'New passwords do not match.', variant: 'red' })
+      return
+    }
     setSavingAccount(true)
     const result = await updateAccountSecurity({ currentPassword, username, email, newPassword })
     if (result.error) {
@@ -64,6 +69,7 @@ export function SettingsClient({ profile }: { profile: Profile }) {
     } else {
       setToast({ message: 'Account settings updated.', variant: 'green' })
       setNewPassword('')
+      setConfirmNewPassword('')
       setCurrentPassword('')
     }
     setSavingAccount(false)
@@ -133,6 +139,12 @@ export function SettingsClient({ profile }: { profile: Profile }) {
               </label>
               <PasswordInput value={newPassword} onChange={setNewPassword} />
             </div>
+            {newPassword && (
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-slate-700">Confirm New Password *</label>
+                <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+              </div>
+            )}
             <div className="pt-2 border-t border-slate-100 space-y-1">
               <label className="block text-sm font-medium text-slate-700">Current Password *</label>
               <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
