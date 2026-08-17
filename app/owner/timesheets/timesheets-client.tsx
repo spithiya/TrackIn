@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
-import { Download, ChevronDown, FileText, FileSpreadsheet, File, Pencil, Plus } from 'lucide-react'
+import { Download, ChevronDown, FileText, FileSpreadsheet, File, Pencil, Plus, Trash2 } from 'lucide-react'
 
 type StaffCheckin = {
   id: string
@@ -62,6 +62,8 @@ export function TimesheetsClient({
 
   const [toast, setToast] = useState<ToastState>(null)
   const [editRow, setEditRow] = useState<StaffCheckin | null>(null)
+  const [editStaffId, setEditStaffId] = useState('')
+  const [editLocationId, setEditLocationId] = useState('')
   const [editIn, setEditIn] = useState('')
   const [editOut, setEditOut] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
@@ -72,6 +74,9 @@ export function TimesheetsClient({
   const [addIn, setAddIn] = useState('')
   const [addOut, setAddOut] = useState('')
   const [savingAdd, setSavingAdd] = useState(false)
+
+  const [deleteTarget, setDeleteTarget] = useState<StaffCheckin | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
   const staffMap = Object.fromEntries(staffList.map(s => [s.id, s]))
@@ -118,12 +123,14 @@ export function TimesheetsClient({
 
   function openEdit(row: StaffCheckin) {
     setEditRow(row)
+    setEditStaffId(row.staff_id)
+    setEditLocationId(row.location_id)
     setEditIn(toDatetimeLocal(row.checked_in_at))
     setEditOut(toDatetimeLocal(row.checked_out_at))
   }
 
   async function handleSaveEdit() {
-    if (!editRow || !editIn) return
+    if (!editRow || !editIn || !editStaffId || !editLocationId) return
     const checkedInAt = fromDatetimeLocal(editIn)!
     const checkedOutAt = fromDatetimeLocal(editOut)
     if (checkedOutAt && checkedOutAt <= checkedInAt) {
@@ -135,6 +142,8 @@ export function TimesheetsClient({
     const { error } = await supabase
       .from('staff_checkins')
       .update({
+        staff_id: editStaffId,
+        location_id: editLocationId,
         checked_in_at: checkedInAt,
         checked_out_at: checkedOutAt,
         edited_at: new Date().toISOString(),
@@ -149,6 +158,21 @@ export function TimesheetsClient({
       loadRows()
     }
     setSavingEdit(false)
+  }
+
+  async function handleDeleteEntry() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const supabase = createClient()
+    const { error } = await supabase.from('staff_checkins').delete().eq('id', deleteTarget.id)
+    if (error) {
+      setToast({ message: 'Failed to delete entry.', variant: 'red' })
+    } else {
+      setToast({ message: 'Timesheet entry deleted.', variant: 'green' })
+      setDeleteTarget(null)
+      loadRows()
+    }
+    setDeleting(false)
   }
 
   function openAdd() {
@@ -429,10 +453,17 @@ export function TimesheetsClient({
                           )}
                           <button
                             onClick={() => openEdit(r)}
-                            className="text-slate-400 hover:text-[#3D4A5C] transition-colors"
+                            className="text-slate-400 hover:text-[#3D4A5C] transition-colors mr-3"
                             aria-label="Edit entry"
                           >
                             <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(r)}
+                            className="text-slate-400 hover:text-red-600 transition-colors"
+                            aria-label="Delete entry"
+                          >
+                            <Trash2 size={14} />
                           </button>
                         </td>
                       </tr>
@@ -452,13 +483,39 @@ export function TimesheetsClient({
       <Modal open={!!editRow} onClose={() => setEditRow(null)} title="Edit Timesheet Entry">
         {editRow && (
           <div className="space-y-4">
-            <p className="text-sm text-slate-500">
-              {editRow.staff_members
-                ? `${editRow.staff_members.first_name} ${editRow.staff_members.last_name}`
-                : 'Staff member'}
-              {' · '}
-              {locationMap[editRow.location_id] ?? '—'}
-            </p>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Staff</label>
+              <select
+                value={editStaffId}
+                onChange={e => setEditStaffId(e.target.value)}
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
+              >
+                {/* staffList only has active staff — if this entry belongs to
+                    someone since deactivated/removed, keep them selectable so
+                    saving without touching this field doesn't silently
+                    reassign the entry to whoever the first option happens to be. */}
+                {!staffMap[editRow.staff_id] && editRow.staff_members && (
+                  <option value={editRow.staff_id}>
+                    {editRow.staff_members.last_name}, {editRow.staff_members.first_name} (inactive)
+                  </option>
+                )}
+                {staffList.map(s => (
+                  <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Location</label>
+              <select
+                value={editLocationId}
+                onChange={e => setEditLocationId(e.target.value)}
+                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
+              >
+                {locations.map(l => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
               <input
@@ -550,6 +607,28 @@ export function TimesheetsClient({
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Timesheet Entry">
+        {deleteTarget && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Delete this entry for{' '}
+              <span className="font-medium text-slate-900">
+                {deleteTarget.staff_members
+                  ? `${deleteTarget.staff_members.first_name} ${deleteTarget.staff_members.last_name}`
+                  : 'this staff member'}
+              </span>{' '}
+              on {formatDate(deleteTarget.checked_in_at)}? This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+              <Button variant="danger" size="sm" onClick={handleDeleteEntry} disabled={deleting}>
+                {deleting ? 'Deleting…' : 'Delete Entry'}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
