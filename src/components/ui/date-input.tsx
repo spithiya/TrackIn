@@ -74,11 +74,16 @@ interface DateInputProps {
 export function DateInput({ value, onChange, className, placeholder = 'Date' }: DateInputProps) {
   const [text, setText] = useState(value ? formatLabel(value) : '')
   const [open, setOpen] = useState(false)
+  const [activePicker, setActivePicker] = useState<'month' | 'year' | null>(null)
   const today = new Date()
   const parsedValue = useMemo(() => parseISO(value), [value])
   const [viewYear, setViewYear] = useState(parsedValue?.y ?? today.getFullYear())
   const [viewMonth, setViewMonth] = useState(parsedValue?.m ?? today.getMonth())
   const containerRef = useRef<HTMLDivElement>(null)
+  const monthPickerRef = useRef<HTMLDivElement>(null)
+  const yearPickerRef = useRef<HTMLDivElement>(null)
+  const monthListRef = useRef<HTMLDivElement>(null)
+  const yearListRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setText(value ? formatLabel(value) : '')
@@ -88,8 +93,15 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      // composedPath() is a snapshot taken when the event was dispatched, so
+      // it's still accurate even if the clicked element (e.g. a year option)
+      // gets unmounted synchronously by its own click handler before this
+      // listener runs — e.target.isConnected / contains() would wrongly
+      // read as "outside" in that case since the node is already detached.
+      const path = e.composedPath()
+      if (containerRef.current && !path.includes(containerRef.current)) {
         setOpen(false)
+        setActivePicker(null)
         setText(value ? formatLabel(value) : '')
       }
     }
@@ -97,10 +109,41 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [value])
 
+  // Closes the month/year sub-dropdown on an outside click without closing
+  // the whole calendar popover — clicking a day/arrow while one is open
+  // closes it via their own handlers below.
+  useEffect(() => {
+    if (!activePicker) return
+    function handleClick(e: MouseEvent) {
+      const ref = activePicker === 'month' ? monthPickerRef : yearPickerRef
+      const path = e.composedPath()
+      if (ref.current && !path.includes(ref.current)) {
+        setActivePicker(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [activePicker])
+
+  // Scrolls the current selection into view once when a sub-dropdown opens —
+  // not on every change, so it doesn't fight a user who's mid-scroll.
+  useEffect(() => {
+    if (activePicker === 'year' && yearListRef.current) {
+      const idx = YEAR_OPTIONS.indexOf(viewYear)
+      const el = yearListRef.current.children[idx] as HTMLElement | undefined
+      el?.scrollIntoView({ block: 'center' })
+    } else if (activePicker === 'month' && monthListRef.current) {
+      const el = monthListRef.current.children[viewMonth] as HTMLElement | undefined
+      el?.scrollIntoView({ block: 'center' })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePicker])
+
   function openPopover() {
     const p = parseISO(value)
     setViewYear(p?.y ?? today.getFullYear())
     setViewMonth(p?.m ?? today.getMonth())
+    setActivePicker(null)
     setOpen(true)
   }
 
@@ -109,6 +152,7 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
     onChange(iso)
     setText(formatLabel(iso))
     setOpen(false)
+    setActivePicker(null)
   }
 
   function goToday() {
@@ -118,12 +162,14 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
     setViewYear(today.getFullYear())
     setViewMonth(today.getMonth())
     setOpen(false)
+    setActivePicker(null)
   }
 
   function clear() {
     onChange('')
     setText('')
     setOpen(false)
+    setActivePicker(null)
   }
 
   function commitTyped() {
@@ -135,14 +181,17 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
       setText(value ? formatLabel(value) : '')
     }
     setOpen(false)
+    setActivePicker(null)
   }
 
   function prevMonth() {
+    setActivePicker(null)
     if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) }
     else setViewMonth(m => m - 1)
   }
 
   function nextMonth() {
+    setActivePicker(null)
     if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) }
     else setViewMonth(m => m + 1)
   }
@@ -199,24 +248,64 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
               <ChevronLeft size={16} />
             </button>
             <div className="flex items-center gap-1">
-              <select
-                value={viewMonth}
-                onChange={e => setViewMonth(Number(e.target.value))}
-                className="text-sm font-medium text-slate-900 bg-transparent hover:bg-slate-100 rounded px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-[#3D4A5C] cursor-pointer"
-              >
-                {MONTH_LABELS.map((label, i) => (
-                  <option key={label} value={i}>{label}</option>
-                ))}
-              </select>
-              <select
-                value={viewYear}
-                onChange={e => setViewYear(Number(e.target.value))}
-                className="text-sm font-medium text-slate-900 bg-transparent hover:bg-slate-100 rounded px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-[#3D4A5C] cursor-pointer"
-              >
-                {YEAR_OPTIONS.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+              <div className="relative" ref={monthPickerRef}>
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); setActivePicker(p => p === 'month' ? null : 'month') }}
+                  className="text-sm font-medium text-slate-900 hover:bg-slate-100 rounded px-1.5 py-0.5 transition-colors"
+                >
+                  {MONTH_LABELS[viewMonth]}
+                </button>
+                {activePicker === 'month' && (
+                  <div
+                    ref={monthListRef}
+                    className="absolute z-40 mt-1 left-0 w-32 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1"
+                  >
+                    {MONTH_LABELS.map((label, i) => (
+                      <button
+                        type="button"
+                        key={label}
+                        onMouseDown={e => { e.preventDefault(); setViewMonth(i); setActivePicker(null) }}
+                        className={cn(
+                          'w-full text-left px-3 py-1.5 text-sm transition-colors',
+                          i === viewMonth ? 'bg-[#3D4A5C] text-white font-medium' : 'text-slate-700 hover:bg-slate-100'
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="relative" ref={yearPickerRef}>
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); setActivePicker(p => p === 'year' ? null : 'year') }}
+                  className="text-sm font-medium text-slate-900 hover:bg-slate-100 rounded px-1.5 py-0.5 transition-colors"
+                >
+                  {viewYear}
+                </button>
+                {activePicker === 'year' && (
+                  <div
+                    ref={yearListRef}
+                    className="absolute z-40 mt-1 left-0 w-20 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg py-1"
+                  >
+                    {YEAR_OPTIONS.map(y => (
+                      <button
+                        type="button"
+                        key={y}
+                        onMouseDown={e => { e.preventDefault(); setViewYear(y); setActivePicker(null) }}
+                        className={cn(
+                          'w-full text-left px-3 py-1.5 text-sm transition-colors',
+                          y === viewYear ? 'bg-[#3D4A5C] text-white font-medium' : 'text-slate-700 hover:bg-slate-100'
+                        )}
+                      >
+                        {y}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               type="button"
