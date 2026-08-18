@@ -14,7 +14,6 @@ interface ParentContactInput {
 interface AddStudentInput {
   first_name: string
   last_name: string
-  dob: string
   subjects: 'math' | 'reading' | 'both'
   location_id: string
   notes: string
@@ -34,7 +33,6 @@ export async function addStudent(input: AddStudentInput): Promise<{ error?: stri
       org_id: orgId,
       first_name: input.first_name.trim(),
       last_name: input.last_name.trim(),
-      dob: input.dob || null,
       subjects: input.subjects,
       location_id: input.location_id,
       notes: input.notes.trim() || null,
