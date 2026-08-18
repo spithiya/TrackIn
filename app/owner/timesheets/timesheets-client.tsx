@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,12 @@ type StaffCheckin = {
   location_id: string
   edited_at: string | null
   staff_members: { first_name: string; last_name: string; role_title: string | null } | null
+}
+
+type StatsRow = {
+  staff_id: string
+  duration_minutes: number | null
+  staff_members: { first_name: string; last_name: string } | null
 }
 
 type Location = { id: string; name: string }
@@ -52,6 +58,7 @@ export function TimesheetsClient({
 }) {
   const [rows, setRows] = useState<StaffCheckin[]>([])
   const [loading, setLoading] = useState(true)
+  const [statsRows, setStatsRows] = useState<StatsRow[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -121,6 +128,58 @@ export function TimesheetsClient({
 
   useEffect(() => { loadRows() }, [loadRows])
 
+  // Separate from loadRows (which caps at 100 for table display) so the
+  // hours summary below stays accurate no matter how many entries match
+  // the current filters.
+  const loadStats = useCallback(async () => {
+    const supabase = createClient()
+    let query = supabase
+      .from('staff_checkins')
+      .select('staff_id, duration_minutes, staff_members(first_name, last_name)')
+      .eq('org_id', orgId)
+      .not('duration_minutes', 'is', null)
+
+    if (staffId) query = query.eq('staff_id', staffId)
+    if (locationId) {
+      query = query.eq('location_id', locationId)
+    } else if (globalLocationIds.length > 0) {
+      query = query.in('location_id', globalLocationIds)
+    }
+    if (from) query = query.gte('checked_in_at', from)
+    if (to) {
+      const toDate = new Date(to)
+      toDate.setDate(toDate.getDate() + 1)
+      query = query.lt('checked_in_at', toDate.toISOString())
+    }
+
+    const { data } = await query
+    setStatsRows((data ?? []) as unknown as StatsRow[])
+  }, [orgId, staffId, locationId, globalLocationIds.join(','), from, to])
+
+  useEffect(() => { loadStats() }, [loadStats])
+
+  const stats = useMemo(() => {
+    let totalMinutes = 0
+    const byStaff = new Map<string, { name: string; minutes: number }>()
+    for (const r of statsRows) {
+      if (r.duration_minutes == null) continue
+      totalMinutes += r.duration_minutes
+      const existing = byStaff.get(r.staff_id)
+      if (existing) {
+        existing.minutes += r.duration_minutes
+      } else {
+        byStaff.set(r.staff_id, {
+          name: r.staff_members ? `${r.staff_members.last_name}, ${r.staff_members.first_name}` : 'Unknown',
+          minutes: r.duration_minutes,
+        })
+      }
+    }
+    const perStaff = Array.from(byStaff.entries())
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => b.minutes - a.minutes)
+    return { totalMinutes, perStaff }
+  }, [statsRows])
+
   function openEdit(row: StaffCheckin) {
     setEditRow(row)
     setEditStaffId(row.staff_id)
@@ -156,6 +215,7 @@ export function TimesheetsClient({
       setToast({ message: 'Timesheet entry updated.', variant: 'green' })
       setEditRow(null)
       loadRows()
+      loadStats()
     }
     setSavingEdit(false)
   }
@@ -171,6 +231,7 @@ export function TimesheetsClient({
       setToast({ message: 'Timesheet entry deleted.', variant: 'green' })
       setDeleteTarget(null)
       loadRows()
+      loadStats()
     }
     setDeleting(false)
   }
@@ -209,6 +270,7 @@ export function TimesheetsClient({
       setToast({ message: 'Timesheet entry added.', variant: 'green' })
       setAddOpen(false)
       loadRows()
+      loadStats()
     }
     setSavingAdd(false)
   }
@@ -396,6 +458,34 @@ export function TimesheetsClient({
           </Button>
         )}
       </div>
+
+      {stats.totalMinutes > 0 && (
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex flex-wrap items-start gap-8">
+              <div>
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                  Total Hours{from || to ? ' (Filtered)' : ''}
+                </p>
+                <p className="text-2xl font-semibold text-[#252E3D] font-mono">{formatDuration(stats.totalMinutes)}</p>
+              </div>
+              {!staffId && stats.perStaff.length > 0 && (
+                <div className="flex-1 min-w-[240px]">
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">By Staff</p>
+                  <div className="flex flex-wrap gap-2">
+                    {stats.perStaff.map(s => (
+                      <div key={s.id} className="flex items-center gap-1.5 text-sm bg-[#ECEEF1] rounded-lg px-3 py-1.5">
+                        <span className="text-slate-600">{s.name}</span>
+                        <span className="font-mono font-medium text-slate-900">{formatDuration(s.minutes)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-0">
