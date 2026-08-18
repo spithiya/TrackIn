@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
+import { TimeInput } from '@/components/ui/time-input'
 import type { Tables } from '@/lib/supabase/types'
 import { addLocation, updateLocation, deleteLocation } from './actions'
 
@@ -241,22 +242,10 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Opens at *">
-              <input
-                required
-                type="time"
-                value={form.opens_at}
-                onChange={e => set('opens_at', e.target.value)}
-                className={inputCls}
-              />
+              <TimeInput value={form.opens_at} onChange={v => set('opens_at', v)} />
             </Field>
             <Field label="Closes at *">
-              <input
-                required
-                type="time"
-                value={form.closes_at}
-                onChange={e => set('closes_at', e.target.value)}
-                className={inputCls}
-              />
+              <TimeInput value={form.closes_at} onChange={v => set('closes_at', v)} />
             </Field>
           </div>
 

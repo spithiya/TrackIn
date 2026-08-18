@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
+import { DateTimeInput } from '@/components/ui/datetime-input'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
 import { Download, ChevronDown, FileText, FileSpreadsheet, File, Pencil, Plus, Trash2 } from 'lucide-react'
 
@@ -608,21 +609,11 @@ export function TimesheetsClient({
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
-              <input
-                type="datetime-local"
-                value={editIn}
-                onChange={e => setEditIn(e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-              />
+              <DateTimeInput value={editIn} onChange={setEditIn} />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Clock Out</label>
-              <input
-                type="datetime-local"
-                value={editOut}
-                onChange={e => setEditOut(e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-              />
+              <DateTimeInput value={editOut} onChange={setEditOut} />
               <p className="text-xs text-slate-400 mt-1">Leave blank if still clocked in.</p>
             </div>
             <div className="flex justify-end gap-2 pt-2">
@@ -669,21 +660,11 @@ export function TimesheetsClient({
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
-            <input
-              type="datetime-local"
-              value={addIn}
-              onChange={e => setAddIn(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-            />
+            <DateTimeInput value={addIn} onChange={setAddIn} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Clock Out</label>
-            <input
-              type="datetime-local"
-              value={addOut}
-              onChange={e => setAddOut(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-            />
+            <DateTimeInput value={addOut} onChange={setAddOut} />
             <p className="text-xs text-slate-400 mt-1">Leave blank to add an active (still clocked in) shift.</p>
           </div>
           <div className="flex justify-end gap-2 pt-2">
