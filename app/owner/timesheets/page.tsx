@@ -8,7 +8,7 @@ export default async function OwnerTimesheetsPage() {
   const supabase = await createClient()
 
   const [{ data: locations }, { data: staffMembers }, globalLocationIds] = await Promise.all([
-    supabase.from('locations').select('id, name').eq('org_id', access.orgId),
+    supabase.from('locations').select('id, name, opens_at, closes_at').eq('org_id', access.orgId),
     supabase
       .from('staff_members')
       .select('id, first_name, last_name, location_id')

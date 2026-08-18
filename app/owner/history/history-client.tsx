@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { DateInput } from '@/components/ui/date-input'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
@@ -159,19 +160,9 @@ export function HistoryClient({
           ))}
         </select>
         <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={from}
-            onChange={e => setFrom(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-          />
+          <DateInput value={from} onChange={setFrom} className="w-36" />
           <span className="text-slate-400 text-sm">to</span>
-          <input
-            type="date"
-            value={to}
-            onChange={e => setTo(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-          />
+          <DateInput value={to} onChange={setTo} className="w-36" />
         </div>
         {(locationId || from || to || selectedStudent) && (
           <Button

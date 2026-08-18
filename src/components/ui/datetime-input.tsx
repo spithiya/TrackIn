@@ -1,5 +1,6 @@
 'use client'
 
+import { DateInput } from './date-input'
 import { TimeInput } from './time-input'
 import { cn } from '@/lib/utils'
 
@@ -7,12 +8,15 @@ interface DateTimeInputProps {
   value: string // "YYYY-MM-DDTHH:mm" local, or "" for empty
   onChange: (value: string) => void
   className?: string
+  // Restricts the time dropdown's suggestions to this window — see TimeInput.
+  minTime?: string
+  maxTime?: string
 }
 
-// Pairs a native date picker (fine as-is) with the custom TimeInput below,
-// composed back into the same "YYYY-MM-DDTHH:mm" local string shape a plain
-// <input type="datetime-local"> would produce.
-export function DateTimeInput({ value, onChange, className }: DateTimeInputProps) {
+// Pairs DateInput with TimeInput, composed back into the same
+// "YYYY-MM-DDTHH:mm" local string shape a plain <input type="datetime-local">
+// would produce.
+export function DateTimeInput({ value, onChange, className, minTime, maxTime }: DateTimeInputProps) {
   const [datePart, timePart] = value ? value.split('T') : ['', '']
 
   function setDatePart(d: string) {
@@ -27,13 +31,14 @@ export function DateTimeInput({ value, onChange, className }: DateTimeInputProps
 
   return (
     <div className={cn('flex gap-2', className)}>
-      <input
-        type="date"
-        value={datePart}
-        onChange={e => setDatePart(e.target.value)}
-        className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
+      <DateInput value={datePart} onChange={setDatePart} className="flex-1 min-w-0" />
+      <TimeInput
+        value={timePart}
+        onChange={setTimePart}
+        className="flex-1 min-w-0"
+        minTime={minTime}
+        maxTime={maxTime}
       />
-      <TimeInput value={timePart} onChange={setTimePart} className="flex-1 min-w-0" />
     </div>
   )
 }

@@ -42,15 +42,24 @@ function parseTimeInput(raw: string): string | null {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
+function minutesOf(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
+}
+
 interface TimeInputProps {
   value: string // 24-hour "HH:mm", or "" for empty
   onChange: (value: string) => void
   className?: string
   placeholder?: string
   disabled?: boolean
+  // Restricts the dropdown's suggestion list to this window (inclusive) —
+  // typed/free-text entry can still go outside it for the rare exception.
+  minTime?: string
+  maxTime?: string
 }
 
-export function TimeInput({ value, onChange, className, placeholder = 'Time', disabled }: TimeInputProps) {
+export function TimeInput({ value, onChange, className, placeholder = 'Time', disabled, minTime, maxTime }: TimeInputProps) {
   const [text, setText] = useState(value ? formatLabel(value) : '')
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(-1)
@@ -72,11 +81,21 @@ export function TimeInput({ value, onChange, className, placeholder = 'Time', di
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [value])
 
+  const baseSlots = useMemo(() => {
+    if (!minTime && !maxTime) return ALL_SLOTS
+    const lo = minTime ? minutesOf(minTime) : 0
+    const hi = maxTime ? minutesOf(maxTime) : 23 * 60 + 45
+    return ALL_SLOTS.filter(slot => {
+      const m = minutesOf(slot)
+      return m >= lo && m <= hi
+    })
+  }, [minTime, maxTime])
+
   const filtered = useMemo(() => {
     const key = text.toLowerCase().replace(/[:\s]/g, '')
-    if (!key) return ALL_SLOTS
-    return ALL_SLOTS.filter(slot => formatLabel(slot).toLowerCase().replace(/[:\s]/g, '').startsWith(key))
-  }, [text])
+    if (!key) return baseSlots
+    return baseSlots.filter(slot => formatLabel(slot).toLowerCase().replace(/[:\s]/g, '').startsWith(key))
+  }, [text, baseSlots])
 
   useEffect(() => {
     if (!open || !listRef.current) return

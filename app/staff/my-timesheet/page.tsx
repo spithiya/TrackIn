@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { DateInput } from '@/components/ui/date-input'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
 import type { Tables } from '@/lib/supabase/types'
 
@@ -49,19 +50,9 @@ export default function StaffMyTimesheetPage() {
       <h1 className="text-2xl font-semibold text-[#0F2040] mb-6">My Timesheet</h1>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <input
-          type="date"
-          value={from}
-          onChange={e => setFrom(e.target.value)}
-          className="text-sm border border-[#BECDE8] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3A6B]"
-        />
+        <DateInput value={from} onChange={setFrom} className="w-36" />
         <span className="text-gray-400 text-sm">to</span>
-        <input
-          type="date"
-          value={to}
-          onChange={e => setTo(e.target.value)}
-          className="text-sm border border-[#BECDE8] rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3A6B]"
-        />
+        <DateInput value={to} onChange={setTo} className="w-36" />
         {(from || to) && (
           <Button size="sm" variant="ghost" onClick={() => { setFrom(''); setTo('') }} className="text-gray-500">
             Clear

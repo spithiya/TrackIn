@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { addStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Plus, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
@@ -135,10 +136,9 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
 
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">Date of Birth</label>
-              <Input
-                type="date"
+              <DateInput
                 value={fields.dob}
-                onChange={e => setField('dob', e.target.value)}
+                onChange={v => setField('dob', v)}
               />
             </div>
 

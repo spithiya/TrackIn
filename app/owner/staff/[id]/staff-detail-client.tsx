@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { updateStaff, deleteStaff, updateStaffPermissions } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SubjectTags } from '@/components/students/subject-tags'
@@ -158,7 +159,7 @@ export function StaffDetailClient({
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Date of Birth</label>
-                <Input type="date" value={draft.dob ?? ''} onChange={e => setDraft(p => ({ ...p, dob: e.target.value || null }))} />
+                <DateInput value={draft.dob ?? ''} onChange={v => setDraft(p => ({ ...p, dob: v || null }))} />
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">Subjects</label>

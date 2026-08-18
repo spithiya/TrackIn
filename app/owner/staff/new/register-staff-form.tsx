@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
@@ -150,7 +151,7 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Date of Birth</label>
-                <Input type="date" value={fields.dob} onChange={e => set('dob', e.target.value)} />
+                <DateInput value={fields.dob} onChange={v => set('dob', v)} />
               </div>
             </div>
 

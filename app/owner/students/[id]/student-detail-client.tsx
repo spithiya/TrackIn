@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { updateStudent, toggleStudentActive, addContact, deleteContact, setPrimaryContact, deleteStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SubjectTags } from '@/components/students/subject-tags'
@@ -229,10 +230,9 @@ export function StudentDetailClient({
               </div>
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Date of Birth</label>
-                <Input
-                  type="date"
+                <DateInput
                   value={studentDraft.dob ?? ''}
-                  onChange={e => setStudentDraft(p => ({ ...p, dob: e.target.value || null }))}
+                  onChange={v => setStudentDraft(p => ({ ...p, dob: v || null }))}
                 />
               </div>
               <div className="space-y-2">

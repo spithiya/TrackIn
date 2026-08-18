@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
 import { DateTimeInput } from '@/components/ui/datetime-input'
+import { DateInput } from '@/components/ui/date-input'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
 import { Download, ChevronDown, FileText, FileSpreadsheet, File, Pencil, Plus, Trash2 } from 'lucide-react'
 
@@ -27,7 +28,28 @@ type StatsRow = {
   staff_members: { first_name: string; last_name: string } | null
 }
 
-type Location = { id: string; name: string }
+type Location = { id: string; name: string; opens_at: string; closes_at: string }
+
+// The time picker's dropdown suggestions for a shift at this location are
+// limited to an hour before opening through an hour after closing — staff
+// aren't realistically clocking in outside that window, and it keeps the
+// list short. Typing an exact time still works for the rare exception.
+function getTimeWindow(location: Location | undefined): { minTime?: string; maxTime?: string } {
+  if (!location) return {}
+  const toMinutes = (hhmm: string) => {
+    const [h, m] = hhmm.split(':').map(Number)
+    return h * 60 + m
+  }
+  const clamp = (mins: number) => Math.max(0, Math.min(23 * 60 + 45, mins))
+  const format = (mins: number) => {
+    const c = clamp(mins)
+    return `${String(Math.floor(c / 60)).padStart(2, '0')}:${String(c % 60).padStart(2, '0')}`
+  }
+  return {
+    minTime: format(toMinutes(location.opens_at) - 60),
+    maxTime: format(toMinutes(location.closes_at) + 60),
+  }
+}
 type StaffMember = { id: string; first_name: string; last_name: string; location_id: string }
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
@@ -88,6 +110,15 @@ export function TimesheetsClient({
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
   const staffMap = Object.fromEntries(staffList.map(s => [s.id, s]))
+
+  const editWindow = useMemo(
+    () => getTimeWindow(locations.find(l => l.id === editLocationId)),
+    [locations, editLocationId]
+  )
+  const addWindow = useMemo(
+    () => getTimeWindow(locations.find(l => l.id === addLocationId)),
+    [locations, addLocationId]
+  )
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -434,19 +465,9 @@ export function TimesheetsClient({
           ))}
         </select>
         <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={from}
-            onChange={e => setFrom(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-          />
+          <DateInput value={from} onChange={setFrom} className="w-36" />
           <span className="text-slate-400 text-sm">to</span>
-          <input
-            type="date"
-            value={to}
-            onChange={e => setTo(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-          />
+          <DateInput value={to} onChange={setTo} className="w-36" />
         </div>
         {(staffId || locationId || from || to) && (
           <Button
@@ -609,11 +630,11 @@ export function TimesheetsClient({
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
-              <DateTimeInput value={editIn} onChange={setEditIn} />
+              <DateTimeInput value={editIn} onChange={setEditIn} minTime={editWindow.minTime} maxTime={editWindow.maxTime} />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Clock Out</label>
-              <DateTimeInput value={editOut} onChange={setEditOut} />
+              <DateTimeInput value={editOut} onChange={setEditOut} minTime={editWindow.minTime} maxTime={editWindow.maxTime} />
               <p className="text-xs text-slate-400 mt-1">Leave blank if still clocked in.</p>
             </div>
             <div className="flex justify-end gap-2 pt-2">
@@ -660,11 +681,11 @@ export function TimesheetsClient({
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
-            <DateTimeInput value={addIn} onChange={setAddIn} />
+            <DateTimeInput value={addIn} onChange={setAddIn} minTime={addWindow.minTime} maxTime={addWindow.maxTime} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Clock Out</label>
-            <DateTimeInput value={addOut} onChange={setAddOut} />
+            <DateTimeInput value={addOut} onChange={setAddOut} minTime={addWindow.minTime} maxTime={addWindow.maxTime} />
             <p className="text-xs text-slate-400 mt-1">Leave blank to add an active (still clocked in) shift.</p>
           </div>
           <div className="flex justify-end gap-2 pt-2">
