@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, deriveTaggedEmail, isDuplicateEmailError } from '@/lib/account-settings'
+import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError } from '@/lib/account-settings'
 import { requireOwnerForAction } from '@/lib/permissions'
 
 export async function updateProfileInfo(input: {
@@ -98,7 +98,10 @@ export async function updateAccountSecurity(input: {
     .update(updates)
     .eq('id', user.id)
 
-  if (profileError) return { error: profileError.message }
+  if (profileError) {
+    if (isUsernameConflictError(profileError)) return { error: 'That username is already taken.' }
+    return { error: profileError.message }
+  }
   return {}
 }
 
@@ -127,6 +130,46 @@ export async function updateKioskPassword(
 
   const { error } = await service.auth.admin.updateUserById(kioskProfileId, { password: newPassword })
   if (error) return { error: error.message }
+  return {}
+}
+
+// Kiosk usernames default to "kiosk" + 8 random digits, which nobody
+// remembers — the owner can rename it to something memorable. No email
+// step involved, same as the password: this login isn't tied to a person
+// who could "forget" it.
+export async function updateKioskUsername(
+  kioskProfileId: string,
+  newUsername: string
+): Promise<{ error?: string }> {
+  const access = await requireOwnerForAction()
+  if (access.error) return { error: access.error }
+
+  const username = newUsername.trim()
+  if (!USERNAME_RE.test(username)) {
+    return { error: 'Username must be 3–20 characters and contain only letters, numbers, _ or -.' }
+  }
+
+  const service = createServiceClient()
+
+  const { data: kiosk } = await service
+    .from('profiles')
+    .select('id, org_id, role')
+    .eq('id', kioskProfileId)
+    .single()
+
+  if (!kiosk || kiosk.role !== 'kiosk' || kiosk.org_id !== access.orgId) {
+    return { error: 'Kiosk account not found.' }
+  }
+
+  if (await isUsernameTaken(username, kioskProfileId)) {
+    return { error: 'That username is already taken.' }
+  }
+
+  const { error } = await service.from('profiles').update({ username }).eq('id', kioskProfileId)
+  if (error) {
+    if (isUsernameConflictError(error)) return { error: 'That username is already taken.' }
+    return { error: error.message }
+  }
   return {}
 }
 

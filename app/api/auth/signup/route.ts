@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
-import { generateKioskUsername, deriveTaggedEmail, isDuplicateEmailError } from '@/lib/account-settings'
+import { generateKioskUsername, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError } from '@/lib/account-settings'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 const KIOSK_DEFAULT_PASSWORD = '12345678'
@@ -98,6 +98,9 @@ export async function POST(request: Request) {
 
     if (profileError) {
       await service.auth.admin.deleteUser(userId)
+      if (isUsernameConflictError(profileError)) {
+        return NextResponse.json({ error: 'Username is already taken.' }, { status: 409 })
+      }
       return NextResponse.json({ error: 'Failed to create profile.' }, { status: 500 })
     }
 

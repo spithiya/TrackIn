@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateProfileInfo, updateAccountSecurity, updateKioskPassword, deleteMyAccount } from './actions'
+import { updateProfileInfo, updateAccountSecurity, updateKioskPassword, updateKioskUsername, deleteMyAccount } from './actions'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +36,12 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
   const [kioskConfirmPassword, setKioskConfirmPassword] = useState('')
   const [savingKioskPassword, setSavingKioskPassword] = useState(false)
   const [kioskPasswordError, setKioskPasswordError] = useState<string | null>(null)
+
+  // Kiosk username change
+  const [kioskUsernameTarget, setKioskUsernameTarget] = useState<KioskAccount | null>(null)
+  const [kioskNewUsername, setKioskNewUsername] = useState('')
+  const [savingKioskUsername, setSavingKioskUsername] = useState(false)
+  const [kioskUsernameError, setKioskUsernameError] = useState<string | null>(null)
 
   // Profile info
   const [fullName, setFullName] = useState(profile.full_name)
@@ -111,6 +117,28 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
     } else {
       setToast({ message: 'Kiosk password updated.', variant: 'green' })
       setKioskTarget(null)
+    }
+  }
+
+  function openKioskUsername(account: KioskAccount) {
+    setKioskUsernameTarget(account)
+    setKioskNewUsername(account.username)
+    setKioskUsernameError(null)
+  }
+
+  async function handleSaveKioskUsername(e: React.FormEvent) {
+    e.preventDefault()
+    if (!kioskUsernameTarget) return
+    setSavingKioskUsername(true)
+    setKioskUsernameError(null)
+    const result = await updateKioskUsername(kioskUsernameTarget.id, kioskNewUsername)
+    setSavingKioskUsername(false)
+    if (result.error) {
+      setKioskUsernameError(result.error)
+    } else {
+      setToast({ message: 'Kiosk username updated.', variant: 'green' })
+      setKioskUsernameTarget(null)
+      router.refresh()
     }
   }
 
@@ -217,9 +245,14 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
                       {account.locationName ? account.locationName : 'Not linked to a location yet'}
                     </p>
                   </div>
-                  <Button type="button" variant="secondary" size="sm" onClick={() => openKioskPassword(account)}>
-                    Change Password
-                  </Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button type="button" variant="secondary" size="sm" onClick={() => openKioskUsername(account)}>
+                      Edit Username
+                    </Button>
+                    <Button type="button" variant="secondary" size="sm" onClick={() => openKioskPassword(account)}>
+                      Change Password
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -269,6 +302,28 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
             <Button type="button" variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
             <Button type="submit" variant="danger" disabled={deleting || deleteConfirmText !== 'DELETE' || !deletePassword}>
               {deleting ? 'Deleting…' : 'Permanently Delete Account'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={!!kioskUsernameTarget} onClose={() => setKioskUsernameTarget(null)} title="Edit Kiosk Username">
+        <form onSubmit={handleSaveKioskUsername} className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Currently <span className="font-mono">{kioskUsernameTarget?.username}</span>. Pick something easier to remember.
+          </p>
+          {kioskUsernameError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{kioskUsernameError}</p>
+          )}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">Username *</label>
+            <Input required value={kioskNewUsername} onChange={e => setKioskNewUsername(e.target.value)} onClear={() => setKioskNewUsername('')} />
+            <p className="text-xs text-slate-400">3–20 characters. Letters, numbers, _ and - only.</p>
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="secondary" onClick={() => setKioskUsernameTarget(null)} disabled={savingKioskUsername}>Cancel</Button>
+            <Button type="submit" disabled={savingKioskUsername || !kioskNewUsername.trim()}>
+              {savingKioskUsername ? 'Saving…' : 'Save Username'}
             </Button>
           </div>
         </form>

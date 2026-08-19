@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken } from '@/lib/account-settings'
+import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, isUsernameConflictError } from '@/lib/account-settings'
 
 export async function updateProfileInfo(input: {
   first_name: string
@@ -85,7 +85,10 @@ export async function updateAccountSecurity(input: {
     .update({ username, email })
     .eq('id', user.id)
 
-  if (profileError) return { error: profileError.message }
+  if (profileError) {
+    if (isUsernameConflictError(profileError)) return { error: 'That username is already taken.' }
+    return { error: profileError.message }
+  }
 
   // staff_members.email is a separate copy shown on the owner's staff
   // detail page — keep it in sync too.

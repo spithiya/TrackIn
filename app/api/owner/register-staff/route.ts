@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { isUsernameConflictError } from '@/lib/account-settings'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 
@@ -76,6 +77,9 @@ export async function POST(request: Request) {
 
     if (profileError) {
       await service.auth.admin.deleteUser(staffUserId)
+      if (isUsernameConflictError(profileError)) {
+        return NextResponse.json({ error: 'That username is already taken.' }, { status: 409 })
+      }
       return NextResponse.json({ error: 'Failed to create staff profile.' }, { status: 500 })
     }
 

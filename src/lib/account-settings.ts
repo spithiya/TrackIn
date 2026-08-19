@@ -49,3 +49,12 @@ export function isDuplicateEmailError(error: { code?: string; message?: string }
   if (error.code === 'email_exists') return true
   return /already.*(registered|exists)/i.test(error.message ?? '')
 }
+
+// Catches the case where two requests race past the app-level
+// isUsernameTaken() check at the same instant — the database's unique
+// index (profiles_username_lower_idx) is the real backstop, but its raw
+// error shouldn't reach the user as-is.
+export function isUsernameConflictError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return error.code === '23505' && /profiles_username_lower_idx/.test(error.message ?? '')
+}
