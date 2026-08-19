@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, MapPin, ArrowUp } from 'lucide-react'
+import { Search, X, CheckCircle2, Clock, BookOpen, LogIn, LogOut, ArrowUp } from 'lucide-react'
 import { usePostHog } from 'posthog-js/react'
 import { TimerPill } from '@/components/students/timer-pill'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Button } from '@/components/ui/button'
+import { Toast } from '@/components/ui/toast'
 import { TIME_LIMITS, KIOSK_RESET_DELAY_MS } from '@/lib/constants'
 import { formatTime, fullName } from '@/lib/utils'
 import type { Tables } from '@/lib/supabase/types'
@@ -31,12 +32,17 @@ export function KioskClient({
 }) {
   const [state, setState] = useState<KioskState>({ step: 'idle' })
   const [query, setQuery] = useState('')
-  const [focused, setFocused] = useState(false)
   const [allStudents] = useState<Student[]>(initialStudents)
   const [activeCheckins, setActiveCheckins] = useState<Map<string, ActiveCheckin>>(new Map())
+  const [showWelcome, setShowWelcome] = useState(true)
   const posthog = usePostHog()
   const listRef = useRef<HTMLDivElement>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowWelcome(false), 3000)
+    return () => clearTimeout(t)
+  }, [])
 
   const refreshCheckedIn = useCallback(async () => {
     const res = await fetch(`/api/kiosk/${locationId}/active`)
@@ -122,7 +128,6 @@ export function KioskClient({
   const reset = useCallback(() => {
     setState({ step: 'idle' })
     setQuery('')
-    setFocused(false)
   }, [])
 
   useEffect(() => {
@@ -268,29 +273,22 @@ export function KioskClient({
 
   // ── Idle / search ──
   return (
-    <div className={`flex-1 flex flex-col items-center p-8 ${focused ? 'pt-8' : 'justify-center'}`}>
+    <div className="flex-1 flex flex-col items-center p-8 pt-8">
+      {showWelcome && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4">
+          <Toast
+            message={locationName ? `Welcome to ${locationName}!` : 'Welcome!'}
+            onDismiss={() => setShowWelcome(false)}
+          />
+        </div>
+      )}
+
       <div className="w-full max-w-sm flex flex-col gap-4">
-
-        {!focused && (
-          <div className="text-center mb-2">
-            {locationName && (
-              <div className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-200/60 px-3 py-1 rounded-full mb-4">
-                <MapPin size={13} />
-                {locationName}
-              </div>
-            )}
-            <h2 className="text-4xl font-bold text-[#1a1209] mb-2">Welcome!</h2>
-            <p className="text-gray-500 text-lg">Type your name to check in or out.</p>
-          </div>
-        )}
-
-        {focused && (
-          <p className="text-base font-semibold text-[#1a1209]">
-            {query.trim()
-              ? `${displayedStudents.length} result${displayedStudents.length !== 1 ? 's' : ''} for "${query.trim()}"`
-              : `All students · ${allStudents.length}`}
-          </p>
-        )}
+        <p className="text-base font-semibold text-[#1a1209]">
+          {query.trim()
+            ? `${displayedStudents.length} result${displayedStudents.length !== 1 ? 's' : ''} for "${query.trim()}"`
+            : `All students · ${allStudents.length}`}
+        </p>
 
         {/* Search bar */}
         <div className="relative">
@@ -299,7 +297,6 @@ export function KioskClient({
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
-            onFocus={() => setFocused(true)}
             placeholder="Search your name…"
             className="w-full pl-11 pr-10 py-4 text-lg rounded-xl border border-gray-200 bg-white text-[#1a1209] placeholder:text-[#9A8F7E] focus:outline-none focus:ring-2 focus:ring-[#2D2D3A] focus:border-transparent shadow-sm"
           />
@@ -314,51 +311,55 @@ export function KioskClient({
         </div>
 
         {/* Student list */}
-        {focused && (
-          <div
-            ref={listRef}
-            onScroll={e => setShowBackToTop(e.currentTarget.scrollTop > 100)}
-            className="overflow-y-auto max-h-[calc(100vh-260px)] flex flex-col gap-1 pr-0.5"
-          >
-            {displayedStudents.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">
-                <p>No students found for &ldquo;<span className="text-[#1a1209]">{query}</span>&rdquo;</p>
-                <p className="text-sm mt-1">Try a different spelling or ask a staff member.</p>
-              </div>
-            ) : (
-              displayedStudents.map(student => (
-                <button
-                  key={student.id}
-                  onClick={() => selectStudent(student)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-100 hover:border-[#2D2D3A] hover:bg-[#F2F2F4] transition-all text-left group"
-                >
-                  <div>
-                    <p className="text-base font-semibold text-[#1a1209] group-hover:text-[#1E1E28] transition-colors">
-                      {fullName(student.first_name, student.last_name)}
-                    </p>
-                    <div className="mt-0.5">
-                      <SubjectTags subjects={student.subjects} />
-                    </div>
+        <div
+          ref={listRef}
+          onScroll={e => setShowBackToTop(e.currentTarget.scrollTop > 100)}
+          className="overflow-y-auto max-h-[calc(100vh-260px)] flex flex-col gap-1 pr-0.5"
+        >
+          {displayedStudents.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              {query.trim() ? (
+                <>
+                  <p>No students found for &ldquo;<span className="text-[#1a1209]">{query}</span>&rdquo;</p>
+                  <p className="text-sm mt-1">Try a different spelling or ask a staff member.</p>
+                </>
+              ) : (
+                <p>No students registered at this location yet.</p>
+              )}
+            </div>
+          ) : (
+            displayedStudents.map(student => (
+              <button
+                key={student.id}
+                onClick={() => selectStudent(student)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-100 hover:border-[#2D2D3A] hover:bg-[#F2F2F4] transition-all text-left group"
+              >
+                <div>
+                  <p className="text-base font-semibold text-[#1a1209] group-hover:text-[#1E1E28] transition-colors">
+                    {fullName(student.first_name, student.last_name)}
+                  </p>
+                  <div className="mt-0.5">
+                    <SubjectTags subjects={student.subjects} />
                   </div>
-                  <div className="flex items-center gap-2 ml-4 shrink-0">
-                    {activeCheckins.has(student.id) ? (
-                      <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                        In
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-                        Out
-                      </span>
-                    )}
-                    <span className="text-gray-300 group-hover:text-[#2D2D3A] text-xl transition-colors">›</span>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        )}
+                </div>
+                <div className="flex items-center gap-2 ml-4 shrink-0">
+                  {activeCheckins.has(student.id) ? (
+                    <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                      In
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                      Out
+                    </span>
+                  )}
+                  <span className="text-gray-300 group-hover:text-[#2D2D3A] text-xl transition-colors">›</span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
 
         {showBackToTop && (
           <button

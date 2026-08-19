@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { getKioskContext } from '@/lib/kiosk'
 
 export async function GET(
   request: Request,
@@ -15,6 +16,12 @@ export async function GET(
   }
 
   const { locationId } = await params
+
+  const ctx = await getKioskContext()
+  if (!ctx || ctx.locationId !== locationId) {
+    return NextResponse.json({ error: 'Not authorized for this location.' }, { status: 403 })
+  }
+
   const supabase = createServiceClient()
 
   const { data, error } = await supabase

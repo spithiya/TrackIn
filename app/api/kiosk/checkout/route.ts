@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { getKioskContext } from '@/lib/kiosk'
 
 export async function POST(request: Request) {
   const { allowed, retryAfterMs } = checkRateLimit(`kiosk-checkout:${getIp(request)}`, 20, 60_000)
@@ -14,6 +15,11 @@ export async function POST(request: Request) {
   const { locationId, checkinId } = await request.json()
   if (!locationId || !checkinId) {
     return NextResponse.json({ error: 'Missing locationId or checkinId.' }, { status: 400 })
+  }
+
+  const ctx = await getKioskContext()
+  if (!ctx || ctx.locationId !== locationId) {
+    return NextResponse.json({ error: 'Not authorized for this location.' }, { status: 403 })
   }
 
   const supabase = createServiceClient()

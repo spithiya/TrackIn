@@ -105,31 +105,34 @@ export type Database = {
         Row: {
           id: string
           org_id: string
-          role: 'owner' | 'staff'
+          role: 'owner' | 'staff' | 'kiosk'
           full_name: string
           email: string
           username: string | null
           phone: string | null
+          location_id: string | null
           created_at: string
         }
         Insert: {
           id: string
           org_id: string
-          role: 'owner' | 'staff'
+          role: 'owner' | 'staff' | 'kiosk'
           full_name: string
           email: string
           username?: string | null
           phone?: string | null
+          location_id?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           org_id?: string
-          role?: 'owner' | 'staff'
+          role?: 'owner' | 'staff' | 'kiosk'
           full_name?: string
           email?: string
           username?: string | null
           phone?: string | null
+          location_id?: string | null
           created_at?: string
         }
         Relationships: []

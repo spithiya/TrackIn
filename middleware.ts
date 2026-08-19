@@ -24,13 +24,11 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  if (pathname.startsWith('/kiosk')) return supabaseResponse
-
-  if (pathname.startsWith('/owner') && !user) {
+  if ((pathname.startsWith('/owner') || pathname.startsWith('/kiosk')) && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  // Role enforcement happens in the owner layout (server component) to avoid Edge DB calls
+  // Role enforcement happens in the owner/kiosk layouts (server components) to avoid Edge DB calls
 
   return supabaseResponse
 }

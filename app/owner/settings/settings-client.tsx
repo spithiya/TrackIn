@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateProfileInfo, updateAccountSecurity, deleteMyAccount } from './actions'
+import { updateProfileInfo, updateAccountSecurity, updateKioskPassword, deleteMyAccount } from './actions'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,11 +18,24 @@ type Profile = {
   phone: string | null
 }
 
+type KioskAccount = {
+  id: string
+  username: string
+  locationName: string | null
+}
+
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
-export function SettingsClient({ profile }: { profile: Profile }) {
+export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; kioskAccounts: KioskAccount[] }) {
   const router = useRouter()
   const [toast, setToast] = useState<ToastState>(null)
+
+  // Kiosk password change
+  const [kioskTarget, setKioskTarget] = useState<KioskAccount | null>(null)
+  const [kioskNewPassword, setKioskNewPassword] = useState('')
+  const [kioskConfirmPassword, setKioskConfirmPassword] = useState('')
+  const [savingKioskPassword, setSavingKioskPassword] = useState(false)
+  const [kioskPasswordError, setKioskPasswordError] = useState<string | null>(null)
 
   // Profile info
   const [fullName, setFullName] = useState(profile.full_name)
@@ -73,6 +86,32 @@ export function SettingsClient({ profile }: { profile: Profile }) {
       setCurrentPassword('')
     }
     setSavingAccount(false)
+  }
+
+  function openKioskPassword(account: KioskAccount) {
+    setKioskTarget(account)
+    setKioskNewPassword('')
+    setKioskConfirmPassword('')
+    setKioskPasswordError(null)
+  }
+
+  async function handleSaveKioskPassword(e: React.FormEvent) {
+    e.preventDefault()
+    if (!kioskTarget) return
+    if (kioskNewPassword !== kioskConfirmPassword) {
+      setKioskPasswordError('Passwords do not match.')
+      return
+    }
+    setSavingKioskPassword(true)
+    setKioskPasswordError(null)
+    const result = await updateKioskPassword(kioskTarget.id, kioskNewPassword)
+    setSavingKioskPassword(false)
+    if (result.error) {
+      setKioskPasswordError(result.error)
+    } else {
+      setToast({ message: 'Kiosk password updated.', variant: 'green' })
+      setKioskTarget(null)
+    }
   }
 
   async function handleDeleteAccount(e: React.FormEvent) {
@@ -158,6 +197,36 @@ export function SettingsClient({ profile }: { profile: Profile }) {
         </Card>
       </form>
 
+      <Card>
+        <CardHeader><CardTitle>Kiosk Login</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-slate-500">
+            Your kiosk uses its own login, separate from yours, so it can be left
+            signed in on a shared device without exposing your account. The default
+            password is <span className="font-mono">12345678</span> until you change it.
+          </p>
+          {!kioskAccounts.length ? (
+            <p className="text-sm text-slate-400">No kiosk account yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {kioskAccounts.map(account => (
+                <div key={account.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 font-mono">{account.username}</p>
+                    <p className="text-xs text-slate-400">
+                      {account.locationName ? account.locationName : 'Not linked to a location yet'}
+                    </p>
+                  </div>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => openKioskPassword(account)}>
+                    Change Password
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card className="border-red-200">
         <CardHeader><CardTitle className="text-red-700">Danger Zone</CardTitle></CardHeader>
         <CardContent className="space-y-3">
@@ -200,6 +269,31 @@ export function SettingsClient({ profile }: { profile: Profile }) {
             <Button type="button" variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
             <Button type="submit" variant="danger" disabled={deleting || deleteConfirmText !== 'DELETE' || !deletePassword}>
               {deleting ? 'Deleting…' : 'Permanently Delete Account'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={!!kioskTarget} onClose={() => setKioskTarget(null)} title="Change Kiosk Password">
+        <form onSubmit={handleSaveKioskPassword} className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Set a new password for <span className="font-mono">{kioskTarget?.username}</span>.
+          </p>
+          {kioskPasswordError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{kioskPasswordError}</p>
+          )}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">New Password *</label>
+            <PasswordInput value={kioskNewPassword} onChange={setKioskNewPassword} autoComplete="new-password" />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">Confirm New Password *</label>
+            <PasswordInput value={kioskConfirmPassword} onChange={setKioskConfirmPassword} autoComplete="new-password" placeholder="Repeat new password" />
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="secondary" onClick={() => setKioskTarget(null)} disabled={savingKioskPassword}>Cancel</Button>
+            <Button type="submit" disabled={savingKioskPassword || !kioskNewPassword}>
+              {savingKioskPassword ? 'Saving…' : 'Save Password'}
             </Button>
           </div>
         </form>

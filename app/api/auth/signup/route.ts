@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { generateKioskUsername } from '@/lib/account-settings'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
+const KIOSK_DEFAULT_PASSWORD = '12345678'
 
 export async function POST(request: Request) {
   const { allowed, retryAfterMs } = checkRateLimit(`signup:${getIp(request)}`, 3, 60 * 60 * 1000)
@@ -78,6 +80,38 @@ export async function POST(request: Request) {
     if (profileError) {
       await service.auth.admin.deleteUser(userId)
       return NextResponse.json({ error: 'Failed to create profile.' }, { status: 500 })
+    }
+
+    // Every owner account gets a kiosk login for its (eventual, single)
+    // location. It has no location_id yet — addLocation() binds it once
+    // the owner creates their location.
+    const kioskUsername = await generateKioskUsername()
+    const kioskEmail = `${kioskUsername}@kiosk.trackin.internal`
+
+    const { data: kioskAuth, error: kioskAuthError } = await service.auth.admin.createUser({
+      email: kioskEmail,
+      password: KIOSK_DEFAULT_PASSWORD,
+      email_confirm: true,
+    })
+
+    if (kioskAuthError || !kioskAuth.user) {
+      await service.auth.admin.deleteUser(userId)
+      return NextResponse.json({ error: 'Failed to create kiosk account.' }, { status: 500 })
+    }
+
+    const { error: kioskProfileError } = await service.from('profiles').insert({
+      id: kioskAuth.user.id,
+      org_id: org.id,
+      role: 'kiosk',
+      full_name: 'Kiosk',
+      email: kioskEmail,
+      username: kioskUsername,
+    })
+
+    if (kioskProfileError) {
+      await service.auth.admin.deleteUser(kioskAuth.user.id)
+      await service.auth.admin.deleteUser(userId)
+      return NextResponse.json({ error: 'Failed to create kiosk account.' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, role: 'owner' })

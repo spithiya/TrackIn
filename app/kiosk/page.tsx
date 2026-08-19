@@ -1,19 +1,21 @@
-import { createServiceClient } from '@/lib/supabase/server'
-import { LocationPicker } from './location-picker'
+import { redirect } from 'next/navigation'
+import { requireKioskSession } from '@/lib/kiosk'
 
-// Force per-request rendering: without this, Next.js statically prerenders
-// this page at build time (nothing here calls cookies()/headers() to imply
-// otherwise), baking in whatever locations existed then and requiring a
-// working Supabase connection during every build.
+// Force per-request rendering: role/session checks need cookies(), so this
+// page can never be safely prerendered at build time.
 export const dynamic = 'force-dynamic'
 
 export default async function KioskPage() {
-  const supabase = createServiceClient()
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('*')
-    .eq('is_active', true)
-    .order('name')
+  const ctx = await requireKioskSession()
 
-  return <LocationPicker locations={locations ?? []} />
+  if (ctx.locationId) redirect(`/kiosk/${ctx.locationId}`)
+
+  return (
+    <div className="flex-1 flex items-center justify-center p-8">
+      <p className="text-gray-500 text-lg text-center max-w-sm">
+        This kiosk isn&apos;t linked to a location yet. Ask the owner to add
+        your location in the owner portal, then reload this page.
+      </p>
+    </div>
+  )
 }

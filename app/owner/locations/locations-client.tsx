@@ -98,11 +98,18 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-[#252E3D]">Locations</h1>
-        <Button size="sm" onClick={openAdd}>
-          <Plus size={15} className="mr-1.5" />
-          Add Location
-        </Button>
+        {locations.length === 0 && (
+          <Button size="sm" onClick={openAdd}>
+            <Plus size={15} className="mr-1.5" />
+            Add Location
+          </Button>
+        )}
       </div>
+      {locations.length > 0 && (
+        <p className="text-sm text-slate-400">
+          Only one location can be linked to an owner account. To run another location, create a separate owner account for it.
+        </p>
+      )}
 
       {!locations.length ? (
         <Card>

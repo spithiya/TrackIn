@@ -73,11 +73,17 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, location_id')
       .eq('id', data.user.id)
       .single()
 
-    window.location.href = profile?.role === 'owner' ? '/owner/dashboard' : '/staff/dashboard'
+    if (profile?.role === 'owner') {
+      window.location.href = '/owner/dashboard'
+    } else if (profile?.role === 'kiosk') {
+      window.location.href = profile.location_id ? `/kiosk/${profile.location_id}` : '/kiosk'
+    } else {
+      window.location.href = '/staff/dashboard'
+    }
   }
 
   return (

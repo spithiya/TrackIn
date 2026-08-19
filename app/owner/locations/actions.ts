@@ -27,7 +27,18 @@ export async function addLocation(input: LocationInput): Promise<{ error?: strin
   if (!orgId) return { error: 'Not authenticated.' }
 
   const service = createServiceClient()
-  const { error } = await service.from('locations').insert({
+
+  // Only one location can be linked to an owner account. An owner running
+  // more than one location needs a separate owner account per location.
+  const { count } = await service
+    .from('locations')
+    .select('*', { count: 'exact', head: true })
+    .eq('org_id', orgId)
+  if ((count ?? 0) >= 1) {
+    return { error: 'Only one location can be linked to an owner account. To run another location, create a separate owner account for it.' }
+  }
+
+  const { data: newLocation, error } = await service.from('locations').insert({
     org_id: orgId,
     name: input.name.trim(),
     address_street: input.address_street.trim(),
@@ -39,8 +50,20 @@ export async function addLocation(input: LocationInput): Promise<{ error?: strin
     closes_at: input.closes_at,
     notes: input.notes.trim() || null,
     is_active: true,
-  })
-  return error ? { error: error.message } : {}
+  }).select('id').single()
+
+  if (error) return { error: error.message }
+
+  // Bind this org's kiosk account (created empty at signup) to the
+  // location that just gave it something to belong to.
+  await service
+    .from('profiles')
+    .update({ location_id: newLocation.id })
+    .eq('org_id', orgId)
+    .eq('role', 'kiosk')
+    .is('location_id', null)
+
+  return {}
 }
 
 export async function deleteLocation(locationId: string): Promise<{ error?: string }> {

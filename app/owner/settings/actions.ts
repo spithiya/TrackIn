@@ -2,6 +2,7 @@
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken } from '@/lib/account-settings'
+import { requireOwnerForAction } from '@/lib/permissions'
 
 export async function updateProfileInfo(input: {
   full_name: string
@@ -74,6 +75,34 @@ export async function updateAccountSecurity(input: {
     .eq('id', user.id)
 
   if (profileError) return { error: profileError.message }
+  return {}
+}
+
+// Kiosk logins aren't "forgotten" by anyone in particular — the owner
+// just sets a new password directly, with no email step involved.
+export async function updateKioskPassword(
+  kioskProfileId: string,
+  newPassword: string
+): Promise<{ error?: string }> {
+  const access = await requireOwnerForAction()
+  if (access.error) return { error: access.error }
+
+  if (newPassword.length < 8) return { error: 'Password must be at least 8 characters.' }
+
+  const service = createServiceClient()
+
+  const { data: kiosk } = await service
+    .from('profiles')
+    .select('id, org_id, role')
+    .eq('id', kioskProfileId)
+    .single()
+
+  if (!kiosk || kiosk.role !== 'kiosk' || kiosk.org_id !== access.orgId) {
+    return { error: 'Kiosk account not found.' }
+  }
+
+  const { error } = await service.auth.admin.updateUserById(kioskProfileId, { password: newPassword })
+  if (error) return { error: error.message }
   return {}
 }
 
