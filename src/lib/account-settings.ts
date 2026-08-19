@@ -34,3 +34,18 @@ export async function generateKioskUsername(): Promise<string> {
 
   throw new Error('Could not generate a unique kiosk username.')
 }
+
+// Lets one real email be reused across multiple owner accounts (one per
+// location). "tag" is always the account's own username, which is already
+// globally unique, so the derived address can't collide with anyone else's.
+export function deriveTaggedEmail(realEmail: string, tag: string): string | null {
+  const at = realEmail.indexOf('@')
+  if (at <= 0) return null
+  return `${realEmail.slice(0, at)}+${tag}${realEmail.slice(at)}`
+}
+
+export function isDuplicateEmailError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  if (error.code === 'email_exists') return true
+  return /already.*(registered|exists)/i.test(error.message ?? '')
+}

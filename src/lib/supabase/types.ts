@@ -108,6 +108,7 @@ export type Database = {
           role: 'owner' | 'staff' | 'kiosk'
           full_name: string
           email: string
+          auth_email: string | null
           username: string | null
           phone: string | null
           location_id: string | null
@@ -119,6 +120,7 @@ export type Database = {
           role: 'owner' | 'staff' | 'kiosk'
           full_name: string
           email: string
+          auth_email?: string | null
           username?: string | null
           phone?: string | null
           location_id?: string | null
@@ -130,6 +132,7 @@ export type Database = {
           role?: 'owner' | 'staff' | 'kiosk'
           full_name?: string
           email?: string
+          auth_email?: string | null
           username?: string | null
           phone?: string | null
           location_id?: string | null

@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken } from '@/lib/account-settings'
+import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, deriveTaggedEmail, isDuplicateEmailError } from '@/lib/account-settings'
 import { requireOwnerForAction } from '@/lib/permissions'
 
 export async function updateProfileInfo(input: {
@@ -53,11 +53,32 @@ export async function updateAccountSecurity(input: {
 
   const service = createServiceClient()
 
-  if (email !== user.email) {
-    const { error: emailError } = await service.auth.admin.updateUserById(user.id, {
+  // Compare against the stored display email, not user.email — for an
+  // owner sharing a real email across locations, user.email is the
+  // plus-tagged Auth login identifier, which would never match the plain
+  // address shown in this form even when nothing actually changed.
+  const { data: currentProfile } = await service.from('profiles').select('email').eq('id', user.id).single()
+  const currentDisplayEmail = currentProfile?.email ?? user.email
+
+  let authEmail: string | null = null
+  if (email !== currentDisplayEmail) {
+    let { error: emailError } = await service.auth.admin.updateUserById(user.id, {
       email,
       email_confirm: true,
     })
+    authEmail = email
+
+    if (emailError && isDuplicateEmailError(emailError)) {
+      const tagged = deriveTaggedEmail(email, username)
+      if (tagged) {
+        authEmail = tagged
+        ;({ error: emailError } = await service.auth.admin.updateUserById(user.id, {
+          email: tagged,
+          email_confirm: true,
+        }))
+      }
+    }
+
     if (emailError) return { error: emailError.message }
   }
 
@@ -69,9 +90,12 @@ export async function updateAccountSecurity(input: {
     if (pwError) return { error: pwError.message }
   }
 
+  const updates: { username: string; email: string; auth_email?: string | null } = { username, email }
+  if (authEmail !== null) updates.auth_email = authEmail !== email ? authEmail : null
+
   const { error: profileError } = await service
     .from('profiles')
-    .update({ username, email })
+    .update(updates)
     .eq('id', user.id)
 
   if (profileError) return { error: profileError.message }

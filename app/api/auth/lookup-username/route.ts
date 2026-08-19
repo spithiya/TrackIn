@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   const { data } = await service
     .from('profiles')
-    .select('email')
+    .select('email, auth_email')
     .ilike('username', username)
     .maybeSingle()
 
@@ -29,5 +29,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No account found with that username.' }, { status: 404 })
   }
 
-  return NextResponse.json({ email: data.email })
+  // auth_email is the actual Supabase Auth login identifier when it
+  // differs from the real, human-facing email (see owner accounts that
+  // share an email across locations) — fall back to email otherwise.
+  return NextResponse.json({ email: data.auth_email ?? data.email })
 }

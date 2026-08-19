@@ -36,31 +36,34 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
     setLoading(true)
     setError(null)
 
-    // Resolve username → email if the identifier isn't an email address
-    let resolvedEmail = identifier.trim()
-    if (!resolvedEmail.includes('@')) {
-      const res = await fetch('/api/auth/lookup-username', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: resolvedEmail }),
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        setError(json.error ?? 'No account found with that username.')
-        setLoading(false)
-        return
-      }
-      resolvedEmail = json.email
+    const username = identifier.trim()
+    if (username.includes('@')) {
+      setError('Please sign in with your username, not your email address.')
+      setLoading(false)
+      return
+    }
+
+    // Resolve username → the actual Supabase Auth login email
+    const res = await fetch('/api/auth/lookup-username', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      setError(json.error ?? 'No account found with that username.')
+      setLoading(false)
+      return
     }
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email: resolvedEmail,
+      email: json.email,
       password,
     })
 
     if (signInError) {
       setPassword('')
-      setError('Incorrect email/username or password.')
+      setError('Incorrect username or password.')
       setLoading(false)
       return
     }
@@ -107,12 +110,12 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
         )}
 
-        <Field label="Email or Username" required>
+        <Field label="Username" required>
           <input
             type="text"
             value={identifier}
             onChange={e => setIdentifier(e.target.value)}
-            placeholder="you@example.com or username"
+            placeholder="your_username"
             required
             autoComplete="username"
             className={inputCls}
@@ -144,6 +147,12 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
           className="block text-sm text-[#0D65F2] hover:text-blue-700 underline underline-offset-2 transition-colors"
         >
           Don&apos;t have an account?
+        </Link>
+        <Link
+          href="/auth/forgot-username"
+          className="block text-sm text-[#0D65F2] hover:text-blue-700 underline underline-offset-2 transition-colors"
+        >
+          Forgot username?
         </Link>
         <Link
           href="/auth/forgot-password"

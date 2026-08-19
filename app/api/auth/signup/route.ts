@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
-import { generateKioskUsername } from '@/lib/account-settings'
+import { generateKioskUsername, deriveTaggedEmail, isDuplicateEmailError } from '@/lib/account-settings'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 const KIOSK_DEFAULT_PASSWORD = '12345678'
@@ -43,12 +43,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Username is already taken.' }, { status: 409 })
   }
 
-  // Create the Supabase auth user
-  const { data: authData, error: authError } = await service.auth.admin.createUser({
-    email,
+  // Create the Supabase auth user. An owner running multiple locations
+  // reuses the same real email across accounts — Supabase itself still
+  // requires a unique email per account, so when that email's already
+  // taken, fall back to a plus-tagged variant (tagged by this account's
+  // own username, which is already unique) purely for Supabase's sake.
+  // The real email stays what's shown everywhere in the app.
+  let authEmail = email
+  let { data: authData, error: authError } = await service.auth.admin.createUser({
+    email: authEmail,
     password,
     email_confirm: true,
   })
+
+  if (authError && isDuplicateEmailError(authError)) {
+    const tagged = deriveTaggedEmail(email, username)
+    if (tagged) {
+      authEmail = tagged
+      ;({ data: authData, error: authError } = await service.auth.admin.createUser({
+        email: authEmail,
+        password,
+        email_confirm: true,
+      }))
+    }
+  }
 
   if (authError || !authData.user) {
     return NextResponse.json({ error: authError?.message ?? 'Failed to create account.' }, { status: 400 })
@@ -75,6 +93,7 @@ export async function POST(request: Request) {
       full_name: username,
       email,
       username,
+      auth_email: authEmail !== email ? authEmail : null,
     })
 
     if (profileError) {
