@@ -7,13 +7,24 @@ import { Button } from '@/components/ui/button'
 import { DateInput } from '@/components/ui/date-input'
 import { SubjectTags } from '@/components/students/subject-tags'
 import { Badge } from '@/components/ui/badge'
-import { formatDate, formatTime, formatDuration } from '@/lib/utils'
+import { formatTime, formatDuration } from '@/lib/utils'
 import { Download, Search, X } from 'lucide-react'
 import type { Views } from '@/lib/supabase/types'
 
 type Visit = Views<'visit_history'>
 type Location = { id: string; name: string }
 type StudentOption = { id: string; first_name: string; last_name: string }
+
+// Visit History's own date format — includes the day of the week, unlike
+// the shared formatDate() used elsewhere (timesheets, dashboard, etc.).
+function formatDateWithWeekday(date: string | Date) {
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
 export function HistoryClient({
   orgId,
@@ -204,7 +215,7 @@ export function HistoryClient({
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {v.student_first_name} {v.student_last_name}
                       </td>
-                      <td className="px-4 py-3 text-slate-500">{formatDate(v.checked_in_at)}</td>
+                      <td className="px-4 py-3 text-slate-500">{formatDateWithWeekday(v.checked_in_at)}</td>
                       <td className="px-4 py-3 text-slate-500 font-mono">{formatTime(v.checked_in_at)}</td>
                       <td className="px-4 py-3 text-slate-500 font-mono">{formatTime(v.checked_out_at)}</td>
                       <td className="px-4 py-3 text-slate-500 font-mono">{formatDuration(v.duration_minutes)}</td>
