@@ -12,7 +12,6 @@ import { Download, Search, X } from 'lucide-react'
 import type { Views } from '@/lib/supabase/types'
 
 type Visit = Views<'visit_history'>
-type Location = { id: string; name: string }
 type StudentOption = { id: string; first_name: string; last_name: string }
 
 // Visit History's own date format — includes the day of the week, unlike
@@ -28,16 +27,11 @@ function formatDateWithWeekday(date: string | Date) {
 
 export function HistoryClient({
   orgId,
-  locations,
-  globalLocationIds = [],
 }: {
   orgId: string
-  locations: Location[]
-  globalLocationIds?: string[]
 }) {
   const [visits, setVisits] = useState<Visit[]>([])
   const [loading, setLoading] = useState(true)
-  const [locationId, setLocationId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
@@ -77,11 +71,6 @@ export function HistoryClient({
       .order('checked_in_at', { ascending: false })
       .limit(100)
 
-    if (locationId) {
-      query = query.eq('location_id', locationId)
-    } else if (globalLocationIds.length > 0) {
-      query = query.in('location_id', globalLocationIds)
-    }
     if (selectedStudent) query = query.eq('student_id', selectedStudent.id)
     if (from) query = query.gte('checked_in_at', from)
     if (to) {
@@ -93,13 +82,12 @@ export function HistoryClient({
     const { data } = await query
     setVisits(data ?? [])
     setLoading(false)
-  }, [orgId, locationId, selectedStudent, globalLocationIds.join(','), from, to])
+  }, [orgId, selectedStudent, from, to])
 
   useEffect(() => { fetch() }, [fetch])
 
   function exportCsv() {
     const params = new URLSearchParams()
-    if (locationId) params.set('locationId', locationId)
     if (selectedStudent) params.set('studentId', selectedStudent.id)
     window.open(`/api/export/csv?${params}`, '_blank')
   }
@@ -160,26 +148,16 @@ export function HistoryClient({
             )}
           </div>
         )}
-        <select
-          value={locationId}
-          onChange={e => setLocationId(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-        >
-          <option value="">All locations</option>
-          {locations.map(l => (
-            <option key={l.id} value={l.id}>{l.name}</option>
-          ))}
-        </select>
         <div className="flex items-center gap-2">
           <DateInput value={from} onChange={setFrom} className="w-36" />
           <span className="text-slate-400 text-sm">to</span>
           <DateInput value={to} onChange={setTo} className="w-36" />
         </div>
-        {(locationId || from || to || selectedStudent) && (
+        {(from || to || selectedStudent) && (
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => { setLocationId(''); setFrom(''); setTo(''); setSelectedStudent(null); setStudentQuery('') }}
+            onClick={() => { setFrom(''); setTo(''); setSelectedStudent(null); setStudentQuery('') }}
             className="text-slate-500"
           >
             Clear

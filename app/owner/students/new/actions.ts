@@ -45,10 +45,12 @@ export async function addStudent(input: AddStudentInput): Promise<{ error?: stri
     return { error: studentError?.message ?? 'Failed to create student.' }
   }
 
-  const namedContacts = input.contacts.filter(c => c.full_name.trim())
-  if (namedContacts.length > 0) {
+  // A contact only needs a phone to be worth saving — name is optional
+  // (see the form's own validation, which only requires a phone).
+  const filledContacts = input.contacts.filter(c => c.full_name.trim() || c.phone.trim())
+  if (filledContacts.length > 0) {
     const { error: contactsError } = await service.from('parent_contacts').insert(
-      namedContacts.map(c => ({
+      filledContacts.map(c => ({
         student_id: student.id,
         org_id: orgId,
         full_name: c.full_name.trim() || null,

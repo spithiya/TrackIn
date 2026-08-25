@@ -71,13 +71,11 @@ export function TimesheetsClient({
   ownerId,
   locations,
   staffList,
-  globalLocationIds = [],
 }: {
   orgId: string
   ownerId: string
   locations: Location[]
   staffList: StaffMember[]
-  globalLocationIds?: string[]
 }) {
   const [rows, setRows] = useState<StaffCheckin[]>([])
   const [loading, setLoading] = useState(true)
@@ -86,7 +84,6 @@ export function TimesheetsClient({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const [staffId, setStaffId] = useState('')
-  const [locationId, setLocationId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
@@ -141,11 +138,6 @@ export function TimesheetsClient({
       .limit(100)
 
     if (staffId) query = query.eq('staff_id', staffId)
-    if (locationId) {
-      query = query.eq('location_id', locationId)
-    } else if (globalLocationIds.length > 0) {
-      query = query.in('location_id', globalLocationIds)
-    }
     if (from) query = query.gte('checked_in_at', from)
     if (to) {
       const toDate = new Date(to)
@@ -156,7 +148,7 @@ export function TimesheetsClient({
     const { data } = await query
     setRows((data ?? []) as unknown as StaffCheckin[])
     setLoading(false)
-  }, [orgId, staffId, locationId, globalLocationIds.join(','), from, to])
+  }, [orgId, staffId, from, to])
 
   useEffect(() => { loadRows() }, [loadRows])
 
@@ -172,11 +164,6 @@ export function TimesheetsClient({
       .not('duration_minutes', 'is', null)
 
     if (staffId) query = query.eq('staff_id', staffId)
-    if (locationId) {
-      query = query.eq('location_id', locationId)
-    } else if (globalLocationIds.length > 0) {
-      query = query.in('location_id', globalLocationIds)
-    }
     if (from) query = query.gte('checked_in_at', from)
     if (to) {
       const toDate = new Date(to)
@@ -186,7 +173,7 @@ export function TimesheetsClient({
 
     const { data } = await query
     setStatsRows((data ?? []) as unknown as StatsRow[])
-  }, [orgId, staffId, locationId, globalLocationIds.join(','), from, to])
+  }, [orgId, staffId, from, to])
 
   useEffect(() => { loadStats() }, [loadStats])
 
@@ -454,26 +441,16 @@ export function TimesheetsClient({
             <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
           ))}
         </select>
-        <select
-          value={locationId}
-          onChange={e => setLocationId(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-        >
-          <option value="">All locations</option>
-          {locations.map(l => (
-            <option key={l.id} value={l.id}>{l.name}</option>
-          ))}
-        </select>
         <div className="flex items-center gap-2">
           <DateInput value={from} onChange={setFrom} className="w-36" />
           <span className="text-slate-400 text-sm">to</span>
           <DateInput value={to} onChange={setTo} className="w-36" />
         </div>
-        {(staffId || locationId || from || to) && (
+        {(staffId || from || to) && (
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => { setStaffId(''); setLocationId(''); setFrom(''); setTo('') }}
+            onClick={() => { setStaffId(''); setFrom(''); setTo('') }}
             className="text-slate-500"
           >
             Clear

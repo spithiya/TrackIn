@@ -16,20 +16,48 @@ const BORDER_BY_STATUS = {
   red: 'border-l-red-500',
 } as const
 
-function StudentTile({ s }: { s: Views<'active_students'> }) {
+// The wall display has a comfortable capacity before tiles need to shrink.
+// Past that, tiles progressively drop less-essential detail and tighten up
+// so more students still fit on screen without scrolling.
+type Density = 'spacious' | 'compact' | 'dense'
+
+function getDensity(count: number): Density {
+  if (count <= 25) return 'spacious'
+  if (count <= 32) return 'compact'
+  return 'dense'
+}
+
+const GRID_MIN_WIDTH: Record<Density, string> = {
+  spacious: '230px',
+  compact: '190px',
+  dense: '155px',
+}
+
+function StudentTile({ s, density }: { s: Views<'active_students'>; density: Density }) {
   const { status } = useTimerStatus(s.checked_in_at, s.subjects_snapshot)
+  const hasContact = s.primary_contact_name || s.primary_contact_phone
 
   return (
-    <div className={cn('rounded-lg border border-slate-200 border-l-4 bg-white p-3', BORDER_BY_STATUS[status])}>
+    <div
+      className={cn(
+        'rounded-lg border border-slate-200 border-l-4 bg-white',
+        BORDER_BY_STATUS[status],
+        density === 'spacious' ? 'p-3' : density === 'compact' ? 'p-2.5' : 'p-2'
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-slate-900 truncate">
+        <p className={cn('font-semibold text-slate-900 truncate', density === 'dense' ? 'text-xs' : 'text-sm')}>
           {fullName(s.student_first_name, s.student_last_name)}
         </p>
         <TimerPill checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} className="text-xs px-2 py-0.5 shrink-0" />
       </div>
-      <div className="mt-1.5"><SubjectTags subjects={s.subjects_snapshot} /></div>
-      <TimerFillBar checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} className="w-full mt-2" />
-      {(s.primary_contact_name || s.primary_contact_phone) && (
+      <div className={density === 'dense' ? 'mt-1' : 'mt-1.5'}>
+        <SubjectTags subjects={s.subjects_snapshot} />
+      </div>
+      {density !== 'dense' && (
+        <TimerFillBar checkedInAt={s.checked_in_at} subjects={s.subjects_snapshot} className="w-full mt-2" />
+      )}
+      {density === 'spacious' && hasContact && (
         <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1 truncate">
           <Phone size={10} className="shrink-0" />
           <span className="truncate">
@@ -42,8 +70,9 @@ function StudentTile({ s }: { s: Views<'active_students'> }) {
   )
 }
 
-export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locationIds?: string[] }) {
-  const { students, loading: loadingStudents } = useActiveStudents(orgId, locationIds)
+export function LiveClient({ orgId }: { orgId: string }) {
+  const { students, loading: loadingStudents } = useActiveStudents(orgId)
+  const density = getDensity(students.length)
 
   return (
     <div className="space-y-4">
@@ -75,9 +104,12 @@ export function LiveClient({ orgId, locationIds = [] }: { orgId: string; locatio
           ) : students.length === 0 ? (
             <p className="text-sm text-slate-400 py-8 text-center">No students checked in.</p>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-2.5">
+            <div
+              className={cn('grid', density === 'dense' ? 'gap-1.5' : density === 'compact' ? 'gap-2' : 'gap-2.5')}
+              style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${GRID_MIN_WIDTH[density]}, 1fr))` }}
+            >
               {students.map(s => (
-                <StudentTile key={s.id} s={s} />
+                <StudentTile key={s.id} s={s} density={density} />
               ))}
             </div>
           )}

@@ -25,7 +25,7 @@ export function DashboardClient({
 
       <div className="grid grid-cols-2 gap-4 mb-8">
         <MetricCard
-          label="Students In Now"
+          label="Your Students Checked In"
           value={students.length}
           variant={students.length > 0 ? 'green' : 'default'}
         />
@@ -39,7 +39,7 @@ export function DashboardClient({
       {/* Active Students */}
       <div className="mb-8">
         <h2 className="text-sm font-semibold text-[#0F2040] uppercase tracking-wider mb-3">
-          Active Students
+          Students Assigned To You
         </h2>
         {loadingStudents ? (
           <div className="bg-white rounded-xl border border-[#BECDE8] p-6 text-sm text-gray-400 text-center">
@@ -47,7 +47,7 @@ export function DashboardClient({
           </div>
         ) : students.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#BECDE8] p-6 text-sm text-gray-400 text-center">
-            No students currently checked in.
+            None of your assigned students are checked in right now.
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-[#BECDE8] overflow-hidden">

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateStaff, deleteStaff, updateStaffPermissions } from './actions'
+import { updateStaff, deleteStaff, updateStaffPermissions, updateStaffLogin } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,14 +29,19 @@ const PERMISSION_FIELDS = [
 export function StaffDetailClient({
   member: initialMember,
   locations,
+  initialUsername,
 }: {
   member: StaffMember
   locations: Location[]
+  initialUsername: string | null
 }) {
   const router = useRouter()
   const [member, setMember] = useState(initialMember)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(member)
+  const [savedUsername, setSavedUsername] = useState(initialUsername ?? '')
+  const [username, setUsername] = useState(savedUsername)
+  const [newPassword, setNewPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -75,20 +81,28 @@ export function StaffDetailClient({
     setSaving(true)
     setError(null)
     const extraIds = (draft.location_ids ?? []).filter(id => id !== draft.location_id)
-    const result = await updateStaff(member.id, {
-      first_name: draft.first_name.trim(),
-      last_name: draft.last_name.trim(),
-      dob: draft.dob,
-      phone: draft.phone?.trim() || null,
-      email: draft.email?.trim() || null,
-      role_title: draft.role_title?.trim() || null,
-      subjects: draft.subjects,
-      location_id: draft.location_id,
-      location_ids: extraIds.length > 0 ? extraIds : null,
-    })
+    const [result, loginResult] = await Promise.all([
+      updateStaff(member.id, {
+        first_name: draft.first_name.trim(),
+        last_name: draft.last_name.trim(),
+        dob: draft.dob,
+        phone: draft.phone?.trim() || null,
+        email: draft.email?.trim() || null,
+        role_title: draft.role_title?.trim() || null,
+        subjects: draft.subjects,
+        location_id: draft.location_id,
+        location_ids: extraIds.length > 0 ? extraIds : null,
+      }),
+      member.profile_id
+        ? updateStaffLogin(member.id, { username: username.trim(), newPassword: newPassword.trim() || undefined })
+        : Promise.resolve<{ error?: string }>({}),
+    ])
     setSaving(false)
     if (result.error) { setError(result.error); return }
+    if (loginResult.error) { setError(loginResult.error); return }
     setMember({ ...member, ...draft })
+    setSavedUsername(username.trim())
+    setNewPassword('')
     setEditing(false)
     setToast({ message: 'Changes saved.', variant: 'green' })
   }
@@ -122,7 +136,7 @@ export function StaffDetailClient({
             <CardTitle>Staff Information</CardTitle>
             {!editing && (
               <button
-                onClick={() => { setDraft(member); setEditing(true) }}
+                onClick={() => { setDraft(member); setUsername(savedUsername); setNewPassword(''); setEditing(true) }}
                 className="flex items-center gap-1.5 text-sm text-[#3D4A5C] hover:text-[#252E3D] font-medium transition-colors"
               >
                 <Pencil size={14} /> Edit
@@ -218,12 +232,27 @@ export function StaffDetailClient({
                   </div>
                 </div>
               )}
+              {member.profile_id && (
+                <div className="space-y-3 pt-3 border-t border-slate-100">
+                  <p className="text-sm font-medium text-slate-700">Login Info</p>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">Username</label>
+                    <Input value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">
+                      New Password <span className="text-slate-400 font-normal">(leave blank to keep current)</span>
+                    </label>
+                    <PasswordInput value={newPassword} onChange={setNewPassword} autoComplete="new-password" />
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2 pt-1">
                 <Button size="sm" onClick={save} disabled={saving}>
                   <Check size={14} className="mr-1" />
                   {saving ? 'Saving…' : 'Save'}
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => setEditing(false)}>
+                <Button size="sm" variant="secondary" onClick={() => { setUsername(savedUsername); setNewPassword(''); setEditing(false) }}>
                   <X size={14} className="mr-1" /> Cancel
                 </Button>
               </div>
@@ -250,6 +279,10 @@ export function StaffDetailClient({
                     .filter(Boolean)
                     .join(', ') || '—'}
                 </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-slate-500">Username</dt>
+                <dd className="text-slate-700 font-mono">{savedUsername || '—'}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-slate-500">Phone</dt>

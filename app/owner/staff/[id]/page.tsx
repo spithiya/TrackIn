@@ -23,5 +23,11 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ id
 
   if (!member) notFound()
 
-  return <StaffDetailClient member={member} locations={locations ?? []} />
+  let username: string | null = null
+  if (member.profile_id) {
+    const { data: profile } = await supabase.from('profiles').select('username').eq('id', member.profile_id).single()
+    username = profile?.username ?? null
+  }
+
+  return <StaffDetailClient member={member} locations={locations ?? []} initialUsername={username} />
 }

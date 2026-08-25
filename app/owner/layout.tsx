@@ -1,20 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { getLocationFilter } from '@/lib/location-filter'
 import { requireAnyAccess } from '@/lib/permissions'
-import { LocationFilterDropdown } from '@/components/layout/location-filter-dropdown'
 import { MobileSidebarProvider, MobileSidebarFrame, SidebarToggleButton } from '@/components/layout/mobile-sidebar'
 import { OwnerNav } from './owner-nav'
 import { SignOutButton } from './sign-out-button'
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
   const access = await requireAnyAccess()
-  const supabase = await createClient()
   const portalLabel = access.role === 'owner' ? 'Owner Portal' : 'Elevated Access'
-
-  const [{ data: locations }, selectedIds] = await Promise.all([
-    supabase.from('locations').select('id, name').eq('org_id', access.orgId).order('name'),
-    getLocationFilter(),
-  ])
 
   return (
     <MobileSidebarProvider>
@@ -35,9 +26,6 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
               <SidebarToggleButton className="text-[#3D4A5C]" />
               <span className="text-sm font-medium text-[#3D4A5C] truncate">{portalLabel}</span>
             </div>
-            {locations && locations.length > 0 && (
-              <LocationFilterDropdown locations={locations} selectedIds={selectedIds} />
-            )}
           </header>
           <main className="flex-1 p-4 lg:p-6 bg-[#F5F6F8]">{children}</main>
           <footer className="px-6 py-2.5 border-t border-[#CDD2D9] bg-white text-xs text-gray-400 text-center">
