@@ -456,7 +456,7 @@ export type Database = {
           checkin_id: string
           to_phone: string
           message: string
-          twilio_sid: string | null
+          telnyx_message_id: string | null
           status: string
           created_at: string
         }
@@ -466,7 +466,7 @@ export type Database = {
           checkin_id: string
           to_phone: string
           message: string
-          twilio_sid?: string | null
+          telnyx_message_id?: string | null
           status: string
           created_at?: string
         }
@@ -476,7 +476,7 @@ export type Database = {
           checkin_id?: string
           to_phone?: string
           message?: string
-          twilio_sid?: string | null
+          telnyx_message_id?: string | null
           status?: string
           created_at?: string
         }

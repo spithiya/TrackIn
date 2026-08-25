@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
 import { getKioskContext } from '@/lib/kiosk'
+import { notifyPickupReady } from '@/lib/checkout-notify'
 
 export async function POST(request: Request) {
   const { allowed, retryAfterMs } = checkRateLimit(`kiosk-checkout:${getIp(request)}`, 20, 60_000)
@@ -41,5 +42,14 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase.rpc('checkout_student', { checkin_id: checkinId })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Best-effort — a failed text shouldn't turn an already-successful
+  // checkout into an error for the person standing at the kiosk.
+  try {
+    await notifyPickupReady(checkinId)
+  } catch (err) {
+    console.error('notifyPickupReady threw:', err)
+  }
+
   return NextResponse.json({ success: true, ...data })
 }

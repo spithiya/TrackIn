@@ -145,6 +145,12 @@ export default function StaffCheckinPage() {
     } else {
       setToast({ message: `${fullName(checkoutTarget.student_first_name, checkoutTarget.student_last_name)} checked out.`, variant: 'green' })
       refetch()
+      // Best-effort pickup-ready text — doesn't block or affect the checkout itself.
+      fetch('/api/checkout/notify-pickup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checkinId: checkoutTarget.id }),
+      }).catch(() => {})
     }
     setCheckoutTarget(null)
     setSessionNote('')
