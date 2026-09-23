@@ -5,6 +5,7 @@ import './globals.css'
 import { BackgroundWaves } from './background-waves'
 import { PHProvider } from './posthog-provider'
 import { PostHogPageView } from './posthog-pageview'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Suspense>
           {children}
         </PHProvider>
+        <Analytics />
       </body>
     </html>
   )
