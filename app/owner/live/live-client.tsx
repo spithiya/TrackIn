@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useTimerStatus } from '@/hooks/use-timer-status'
 import { TimerPill } from '@/components/students/timer-pill'
@@ -70,9 +71,19 @@ function StudentTile({ s, density }: { s: Views<'active_students'>; density: Den
   )
 }
 
+// Realtime pushes check-ins/check-outs as they happen; this periodic
+// refetch is a safety net for a dropped websocket (e.g. a wall display
+// left open overnight) so the board never silently goes stale.
+const REFRESH_INTERVAL_MS = 30_000
+
 export function LiveClient({ orgId }: { orgId: string }) {
-  const { students, loading: loadingStudents } = useActiveStudents(orgId)
+  const { students, loading: loadingStudents, refetch } = useActiveStudents(orgId)
   const density = getDensity(students.length)
+
+  useEffect(() => {
+    const interval = setInterval(refetch, REFRESH_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [refetch])
 
   return (
     <div className="space-y-4">

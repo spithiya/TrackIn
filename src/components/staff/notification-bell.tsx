@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToOrgTable } from '@/lib/supabase/realtime'
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useSessionAlertWatcher } from '@/hooks/use-session-alert-watcher'
 import { formatTime, formatDate, generateId } from '@/lib/utils'
@@ -44,16 +45,7 @@ export function NotificationBell({
 
   useEffect(() => {
     if (!orgId) return
-    const supabase = createClient()
-    const channel = supabase
-      .channel(`session_alerts:${channelId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'session_alerts', filter: `org_id=eq.${orgId}` },
-        () => loadAlerts()
-      )
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    return subscribeToOrgTable(`session_alerts:${channelId}`, 'session_alerts', orgId, loadAlerts)
   }, [orgId, loadAlerts, channelId])
 
   useEffect(() => {

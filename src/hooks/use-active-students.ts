@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { subscribeToOrgTable } from '@/lib/supabase/realtime'
 import { generateId } from '@/lib/utils'
 import type { Views } from '@/lib/supabase/types'
 
@@ -31,18 +32,7 @@ export function useActiveStudents(orgId: string | null, locationIds: string[] = 
 
   useEffect(() => {
     if (!orgId) return
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel(`active_students:${instanceId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'student_checkins', filter: `org_id=eq.${orgId}` },
-        () => fetchStudents()
-      )
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
+    return subscribeToOrgTable(`active_students:${instanceId}`, 'student_checkins', orgId, fetchStudents)
   }, [orgId, fetchStudents, instanceId])
 
   return { students, loading, refetch: fetchStudents }
