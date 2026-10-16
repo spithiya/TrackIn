@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { Field, PasswordInput, inputCls } from '../auth-ui'
+import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
 
 // Only the identifier (username/email) is remembered here — never the
 // password. That's stored and auto-filled securely by the browser's own
@@ -142,12 +143,14 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
       </form>
 
       <div className="mt-6 space-y-3 text-center">
-        <Link
-          href="/auth/signup"
-          className="block text-sm text-[#0D65F2] hover:text-blue-700 underline underline-offset-2 transition-colors"
-        >
-          Don&apos;t have an account?
-        </Link>
+        {OWNER_SIGNUP_ENABLED && (
+          <Link
+            href="/auth/signup"
+            className="block text-sm text-[#0D65F2] hover:text-blue-700 underline underline-offset-2 transition-colors"
+          >
+            Don&apos;t have an account?
+          </Link>
+        )}
         <Link
           href="/auth/forgot-username"
           className="block text-sm text-[#0D65F2] hover:text-blue-700 underline underline-offset-2 transition-colors"

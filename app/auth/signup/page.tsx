@@ -1,8 +1,12 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { SignupForm } from './signup-form'
+import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
 
 export default function SignupPage() {
+  if (!OWNER_SIGNUP_ENABLED) redirect('/auth/login')
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-md p-8 w-full max-w-sm">

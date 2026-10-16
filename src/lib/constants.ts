@@ -27,3 +27,7 @@ export const CHECKIN_METHODS = {
   kiosk: 'Self (kiosk)',
   staff: 'Staff',
 } as const
+
+// Public owner self-signup. Off while owner accounts are created manually
+// after payment — flip back to true to re-enable /auth/signup.
+export const OWNER_SIGNUP_ENABLED = false

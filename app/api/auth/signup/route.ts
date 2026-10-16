@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
+import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
 import { generateKioskUsername, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError } from '@/lib/account-settings'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 const KIOSK_DEFAULT_PASSWORD = '12345678'
 
 export async function POST(request: Request) {
+  if (!OWNER_SIGNUP_ENABLED) {
+    return NextResponse.json({ error: 'Sign-up is currently closed.' }, { status: 403 })
+  }
+
   const { allowed, retryAfterMs } = checkRateLimit(`signup:${getIp(request)}`, 3, 60 * 60 * 1000)
   if (!allowed) {
     return NextResponse.json(
