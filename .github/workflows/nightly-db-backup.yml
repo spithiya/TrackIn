@@ -1,0 +1,87 @@
+# Nightly Supabase database backup, kept as an encrypted GitHub Actions
+# artifact for 90 days.
+#
+# The backup holds student/parent data and auth records, and artifacts on a
+# public repo are downloadable by anyone signed in to GitHub — so it's
+# encrypted with BACKUP_PASSPHRASE before upload and only ever stored as
+# ciphertext.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     Session pooler connection string (IPv4 — GitHub
+#                       runners can't reach the IPv6-only direct connection)
+#   BACKUP_PASSPHRASE   Passphrase used to encrypt the backup
+#
+# To decrypt and restore, see the steps in the repo owner's notes:
+#   gpg -d trackin-db-YYYY-MM-DD.tar.gz.gpg > backup.tar.gz && tar -xzf backup.tar.gz
+
+name: Nightly database backup
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 08:00 UTC = 3am EST / 4am EDT
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check secrets are configured
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::SUPABASE_DB_URL and BACKUP_PASSPHRASE repo secrets must both be set."
+            exit 1
+          fi
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Dump roles, schema and data
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          mkdir backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --data-only --use-copy
+
+          # Sanity summary for the (public) log: file sizes and which tables
+          # have data blocks — table names only, never row contents.
+          ls -la backup
+          echo "Tables with data:"
+          grep -E '^COPY ' backup/data.sql | sed -E 's/^COPY ([^ ]+).*/  \1/' || true
+          test -s backup/data.sql
+
+      - name: Encrypt backup
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          name="trackin-db-$(date -u +%Y-%m-%d)"
+          tar -czf "$name.tar.gz" -C backup .
+          printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-fd 0 --symmetric --cipher-algo AES256 \
+            -o "$name.tar.gz.gpg" "$name.tar.gz"
+          # Remove every plaintext copy before anything is uploaded.
+          rm -rf backup "$name.tar.gz"
+          echo "BACKUP_NAME=$name" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_NAME }}
+          path: ${{ env.BACKUP_NAME }}.tar.gz.gpg
+          retention-days: 90
+          if-no-files-found: error
+          compression-level: 0 # already compressed + encrypted
