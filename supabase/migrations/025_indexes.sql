@@ -43,6 +43,35 @@ create index if not exists student_checkins_checked_out_at_idx
 create index if not exists student_checkins_assigned_staff_id_idx
   on student_checkins using btree (assigned_staff_id);
 
+-- Foreign keys the performance advisor flagged as unindexed. org_id is
+-- filtered on by every RLS policy, so these keep one org's queries from
+-- scanning every org's rows. The location_id foreign keys are left out on
+-- purpose (one location per org, so they're no narrower than org_id), as
+-- are audit columns like edited_by that only matter on rare deletes.
+create index if not exists students_org_id_idx
+  on students using btree (org_id);
+create index if not exists staff_members_org_id_idx
+  on staff_members using btree (org_id);
+create index if not exists profiles_org_id_idx
+  on profiles using btree (org_id);
+create index if not exists parent_contacts_org_id_idx
+  on parent_contacts using btree (org_id);
+create index if not exists session_alerts_org_id_idx
+  on session_alerts using btree (org_id);
+create index if not exists staff_notifications_org_id_idx
+  on staff_notifications using btree (org_id);
+create index if not exists sms_log_org_id_idx
+  on sms_log using btree (org_id);
+
+-- A student's visit history; a staff member's timesheet; and which staff
+-- member a login belongs to (every staff page, staff clock-out).
+create index if not exists student_checkins_student_id_idx
+  on student_checkins using btree (student_id);
+create index if not exists staff_checkins_staff_id_idx
+  on staff_checkins using btree (staff_id);
+create index if not exists staff_members_profile_id_idx
+  on staff_members using btree (profile_id);
+
 -- students
 create index if not exists students_is_active_idx
   on students using btree (is_active);
