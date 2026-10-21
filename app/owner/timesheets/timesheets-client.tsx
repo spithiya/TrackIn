@@ -114,6 +114,8 @@ export function TimesheetsClient({
   const [deleting, setDeleting] = useState(false)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
+  // An owner account has exactly one location; new entries always go there.
+  const orgLocation = locations[0]
   const staffMap = Object.fromEntries(staffList.map(s => [s.id, s]))
 
   const editWindow = useMemo(
@@ -267,7 +269,7 @@ export function TimesheetsClient({
 
   function openAdd() {
     setAddStaffId('')
-    setAddLocationId('')
+    setAddLocationId(orgLocation?.id ?? '')
     setAddIn('')
     setAddOut('')
     setAddOpen(true)
@@ -607,15 +609,7 @@ export function TimesheetsClient({
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Location</label>
-              <select
-                value={editLocationId}
-                onChange={e => setEditLocationId(e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-              >
-                {locations.map(l => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
-              </select>
+              <p className="text-sm text-slate-700">{locationMap[editLocationId] ?? '—'}</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
@@ -642,11 +636,7 @@ export function TimesheetsClient({
             <label className="block text-xs font-medium text-slate-500 mb-1">Staff</label>
             <select
               value={addStaffId}
-              onChange={e => {
-                setAddStaffId(e.target.value)
-                const member = staffMap[e.target.value]
-                if (member) setAddLocationId(member.location_id)
-              }}
+              onChange={e => setAddStaffId(e.target.value)}
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
             >
               <option value="">Select staff…</option>
@@ -657,16 +647,11 @@ export function TimesheetsClient({
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Location</label>
-            <select
-              value={addLocationId}
-              onChange={e => setAddLocationId(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-            >
-              <option value="">Select location…</option>
-              {locations.map(l => (
-                <option key={l.id} value={l.id}>{l.name}</option>
-              ))}
-            </select>
+            {orgLocation ? (
+              <p className="text-sm text-slate-700">{orgLocation.name}</p>
+            ) : (
+              <p className="text-sm text-amber-600">No location found. Add your location first, under Locations.</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Clock In</label>
