@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
-import { DateTimeInput } from '@/components/ui/datetime-input'
+import { DateTimeInput, isCompleteDateTime } from '@/components/ui/datetime-input'
 import { DateInput } from '@/components/ui/date-input'
 import { formatDate, formatTime, formatDuration } from '@/lib/utils'
 import { Download, ChevronDown, FileText, FileSpreadsheet, File, Pencil, Plus, Trash2 } from 'lucide-react'
@@ -59,6 +59,14 @@ function toDatetimeLocal(iso: string | null): string {
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function dateTimeError(clockIn: string, clockOut: string): string | null {
+  if (!isCompleteDateTime(clockIn)) return 'Please enter a clock-in time.'
+  if (clockOut && !isCompleteDateTime(clockOut)) {
+    return 'Please enter a clock-out time, or clear the clock-out date if they are still clocked in.'
+  }
+  return null
 }
 
 function fromDatetimeLocal(value: string): string | null {
@@ -209,6 +217,8 @@ export function TimesheetsClient({
 
   async function handleSaveEdit() {
     if (!editRow || !editIn || !editStaffId || !editLocationId) return
+    const timeError = dateTimeError(editIn, editOut)
+    if (timeError) { setToast({ message: timeError, variant: 'red' }); return }
     const checkedInAt = fromDatetimeLocal(editIn)!
     const checkedOutAt = fromDatetimeLocal(editOut)
     if (checkedOutAt && checkedOutAt <= checkedInAt) {
@@ -265,6 +275,8 @@ export function TimesheetsClient({
 
   async function handleSaveAdd() {
     if (!addStaffId || !addLocationId || !addIn) return
+    const timeError = dateTimeError(addIn, addOut)
+    if (timeError) { setToast({ message: timeError, variant: 'red' }); return }
     const checkedInAt = fromDatetimeLocal(addIn)!
     const checkedOutAt = fromDatetimeLocal(addOut)
     if (checkedOutAt && checkedOutAt <= checkedInAt) {

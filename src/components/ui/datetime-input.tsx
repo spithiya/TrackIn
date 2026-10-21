@@ -5,12 +5,18 @@ import { TimeInput } from './time-input'
 import { cn } from '@/lib/utils'
 
 interface DateTimeInputProps {
-  value: string // "YYYY-MM-DDTHH:mm" local, or "" for empty
+  value: string // "YYYY-MM-DDTHH:mm" local, "YYYY-MM-DDT" if only the date is set, or "" for empty
   onChange: (value: string) => void
   className?: string
   // Restricts the time dropdown's suggestions to this window — see TimeInput.
   minTime?: string
   maxTime?: string
+}
+
+// True once both halves are filled in — picking a date alone leaves the time
+// blank ("YYYY-MM-DDT") rather than guessing one.
+export function isCompleteDateTime(value: string) {
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)
 }
 
 // Pairs DateInput with TimeInput, composed back into the same
@@ -21,7 +27,7 @@ export function DateTimeInput({ value, onChange, className, minTime, maxTime }: 
 
   function setDatePart(d: string) {
     if (!d) { onChange(''); return }
-    onChange(`${d}T${timePart || '09:00'}`)
+    onChange(`${d}T${timePart ?? ''}`)
   }
 
   function setTimePart(t: string) {

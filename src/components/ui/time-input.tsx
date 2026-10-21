@@ -73,13 +73,17 @@ export function TimeInput({ value, onChange, className, placeholder = 'Time', di
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-        setText(value ? formatLabel(value) : '')
+        // Clicking away (e.g. straight onto a Save button) keeps what was
+        // typed, same as Enter/Tab — only text that isn't a valid time reverts.
+        // Untouched inputs just close, so they never overwrite a sibling's edit.
+        if (text !== (value ? formatLabel(value) : '')) commitTyped()
+        else setOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [value])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, text])
 
   const baseSlots = useMemo(() => {
     if (!minTime && !maxTime) return ALL_SLOTS

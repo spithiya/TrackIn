@@ -100,14 +100,20 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
       // read as "outside" in that case since the node is already detached.
       const path = e.composedPath()
       if (containerRef.current && !path.includes(containerRef.current)) {
-        setOpen(false)
-        setActivePicker(null)
-        setText(value ? formatLabel(value) : '')
+        // Clicking away keeps a typed date, same as Enter — only text that
+        // isn't a valid date reverts. Untouched inputs just close.
+        if (text !== (value ? formatLabel(value) : '')) {
+          commitTyped()
+        } else {
+          setOpen(false)
+          setActivePicker(null)
+        }
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [value])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, text])
 
   // Closes the month/year sub-dropdown on an outside click without closing
   // the whole calendar popover — clicking a day/arrow while one is open
@@ -219,6 +225,7 @@ export function DateInput({ value, onChange, className, placeholder = 'Date' }: 
           onFocus={openPopover}
           onKeyDown={e => {
             if (e.key === 'Enter') { e.preventDefault(); commitTyped() }
+            else if (e.key === 'Tab') commitTyped()
             else if (e.key === 'Escape') {
               setText(value ? formatLabel(value) : '')
               setOpen(false)
