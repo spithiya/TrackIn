@@ -89,7 +89,7 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
   }
 
   return (
-    <div className="max-w-lg space-y-5">
+    <div className="space-y-5">
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 w-80">
           <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
@@ -98,6 +98,10 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
 
       <h1 className="text-2xl font-semibold text-[#0F2040]">Settings</h1>
 
+      {/* Two columns on wide screens (stacked on narrow ones): profile and
+          kiosk on the left, account & security on the right. */}
+      <div className="grid gap-5 lg:grid-cols-2 items-start">
+      <div className="space-y-5">
       <form onSubmit={handleSaveProfile}>
         <Card>
           <CardHeader><CardTitle>Profile Info</CardTitle></CardHeader>
@@ -126,31 +130,35 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
         </Card>
       </form>
 
+      </div>
+
       <form onSubmit={handleSaveAccount}>
         <Card>
           <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <RequiredNote />
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Username *</label>
-              <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Email *</label>
-              <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                New Password <span className="text-gray-400 font-normal">(leave blank to keep current)</span>
-              </label>
-              <PasswordInput value={newPassword} onChange={setNewPassword} />
-            </div>
-            {newPassword && (
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">Confirm New Password *</label>
-                <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+                <label className="block text-sm font-medium text-gray-700">Username *</label>
+                <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
               </div>
-            )}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Email *</label>
+                <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">New Password</label>
+                <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Leave blank to keep current" />
+              </div>
+              {newPassword && (
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">Confirm New Password *</label>
+                  <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+                </div>
+              )}
+            </div>
             <div className="pt-2 border-t border-gray-100 space-y-1">
               <label className="block text-sm font-medium text-gray-700">Current Password *</label>
               <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
@@ -163,10 +171,11 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
           </CardContent>
         </Card>
       </form>
+      </div>
 
       <Card className="border-red-200">
         <CardHeader><CardTitle className="text-red-700">Danger Zone</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-gray-500">
             Permanently delete your account. This cannot be undone.
           </p>

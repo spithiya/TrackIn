@@ -102,7 +102,7 @@ export function AddStudentForm({ hasLocation, basePath = '/owner' }: { hasLocati
   }
 
   return (
-    <div className="max-w-lg space-y-5">
+    <div className="space-y-5">
       <div className="flex items-center gap-3">
         <Link href={`${basePath}/students`} className="text-slate-400 hover:text-slate-600 transition-colors">
           <ArrowLeft size={20} />
@@ -115,6 +115,8 @@ export function AddStudentForm({ hasLocation, basePath = '/owner' }: { hasLocati
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
         )}
 
+        {/* Side by side on wide screens, stacked on narrow ones */}
+        <div className="grid gap-5 lg:grid-cols-2 items-start">
         {/* Student Info */}
         <Card>
           <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
@@ -284,6 +286,7 @@ export function AddStudentForm({ hasLocation, basePath = '/owner' }: { hasLocati
             ))}
           </CardContent>
         </Card>
+        </div>
 
         <div className="flex gap-3">
           <Button type="submit" disabled={loading || !hasLocation}>

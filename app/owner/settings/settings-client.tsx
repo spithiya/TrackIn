@@ -159,7 +159,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
   }
 
   return (
-    <div className="max-w-lg space-y-5">
+    <div className="space-y-5">
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 w-80">
           <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
@@ -168,6 +168,10 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
 
       <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
 
+      {/* Two columns on wide screens (stacked on narrow ones): profile and
+          kiosk on the left, account & security on the right. */}
+      <div className="grid gap-5 lg:grid-cols-2 items-start">
+      <div className="space-y-5">
       <form onSubmit={handleSaveProfile}>
         <Card>
           <CardHeader><CardTitle>Profile Info</CardTitle></CardHeader>
@@ -184,44 +188,6 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
             <div className="flex justify-end">
               <Button type="submit" disabled={savingProfile}>
                 {savingProfile ? 'Saving…' : 'Save Profile'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </form>
-
-      <form onSubmit={handleSaveAccount}>
-        <Card>
-          <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <RequiredNote />
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Username *</label>
-              <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Email *</label>
-              <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">
-                New Password <span className="text-slate-400 font-normal">(leave blank to keep current)</span>
-              </label>
-              <PasswordInput value={newPassword} onChange={setNewPassword} />
-            </div>
-            {newPassword && (
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-slate-700">Confirm New Password *</label>
-                <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
-              </div>
-            )}
-            <div className="pt-2 border-t border-slate-100 space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Current Password *</label>
-              <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingAccount}>
-                {savingAccount ? 'Saving…' : 'Save Account Settings'}
               </Button>
             </div>
           </CardContent>
@@ -262,10 +228,52 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
           )}
         </CardContent>
       </Card>
+      </div>
+
+      <form onSubmit={handleSaveAccount}>
+        <Card>
+          <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <RequiredNote />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-slate-700">Username *</label>
+                <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-slate-700">Email *</label>
+                <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-slate-700">New Password</label>
+                <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Leave blank to keep current" />
+              </div>
+              {newPassword && (
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-slate-700">Confirm New Password *</label>
+                  <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+                </div>
+              )}
+            </div>
+            <div className="pt-2 border-t border-slate-100 space-y-1">
+              <label className="block text-sm font-medium text-slate-700">Current Password *</label>
+              <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={savingAccount}>
+                {savingAccount ? 'Saving…' : 'Save Account Settings'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form>
+      </div>
 
       <Card className="border-red-200">
         <CardHeader><CardTitle className="text-red-700">Danger Zone</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-500">
             Permanently delete your account. This cannot be undone.
           </p>
