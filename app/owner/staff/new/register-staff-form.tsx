@@ -8,8 +8,8 @@ import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
+import { RequiredNote } from '@/components/ui/required-note'
 
-type Location = { id: string; name: string }
 
 function PasswordInput({
   value,
@@ -44,7 +44,7 @@ function PasswordInput({
   )
 }
 
-export function RegisterStaffForm({ locations }: { locations: Location[] }) {
+export function RegisterStaffForm({ hasLocation }: { hasLocation: boolean }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +59,6 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
     role_title: '',
     dob: '',
     subjects: 'math' as 'math' | 'reading' | 'both',
-    location_id: locations[0]?.id ?? '',
   })
 
   function set(key: keyof typeof fields, value: string) {
@@ -68,7 +67,6 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!fields.location_id) { setError('Please select a location.'); return }
     setLoading(true)
     setError(null)
 
@@ -85,7 +83,6 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
         role_title: fields.role_title,
         dob: fields.dob,
         subjects: fields.subjects,
-        location_id: fields.location_id,
       }),
     })
 
@@ -112,6 +109,7 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
         <CardHeader><CardTitle>Staff Information</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <RequiredNote />
             {error && (
               <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
             )}
@@ -172,19 +170,12 @@ export function RegisterStaffForm({ locations }: { locations: Location[] }) {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Location *</label>
-              {locations.length === 0 ? (
-                <p className="text-sm text-amber-600">No locations found. Add a location first.</p>
-              ) : (
-                <select required value={fields.location_id} onChange={e => set('location_id', e.target.value)} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]">
-                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                </select>
-              )}
-            </div>
+            {!hasLocation && (
+              <p className="text-sm text-amber-600">No location found. Add your location first, under Locations.</p>
+            )}
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={loading || locations.length === 0}>
+              <Button type="submit" disabled={loading || !hasLocation}>
                 {loading ? 'Creating account…' : 'Register Staff'}
               </Button>
               <Link href="/owner/staff">

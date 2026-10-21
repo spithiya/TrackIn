@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Field, PasswordInput, inputCls } from '../auth-ui'
+import { RequiredNote } from '@/components/ui/required-note'
 
 export function SignupForm() {
   const [email, setEmail] = useState('')
@@ -70,6 +71,7 @@ export function SignupForm() {
       <h1 className="text-4xl font-light text-gray-600 mb-6">Create account</h1>
 
       <form onSubmit={handleSignUp} className="space-y-5">
+        <RequiredNote className="-mt-2" />
         {error && (
           <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
         )}

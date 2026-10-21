@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/modal'
 import { TimeInput } from '@/components/ui/time-input'
 import type { Tables } from '@/lib/supabase/types'
 import { addLocation, updateLocation, deleteLocation } from './actions'
+import { RequiredNote } from '@/components/ui/required-note'
 
 type Location = Tables<'locations'>
 
@@ -84,7 +85,7 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
     startTransition(async () => {
       const result = editing
         ? await updateLocation(editing.id, form)
-        : await addLocation(form)
+        : await addLocation(form, Intl.DateTimeFormat().resolvedOptions().timeZone)
       if (result.error) {
         setError(result.error)
       } else {
@@ -199,6 +200,7 @@ export function LocationsClient({ locations }: { locations: Location[] }) {
         className="max-w-lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          <RequiredNote />
           <Field label="Location name *">
             <div className="relative">
               <input required value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Main Campus" className={`${inputCls} ${form.name ? 'pr-8' : ''}`} />

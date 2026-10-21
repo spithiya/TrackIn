@@ -7,6 +7,7 @@ import { CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { Field, PasswordInput, inputCls } from '../auth-ui'
 import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
+import { RequiredNote } from '@/components/ui/required-note'
 
 // Only the identifier (username/email) is remembered here — never the
 // password. That's stored and auto-filled securely by the browser's own
@@ -120,6 +121,7 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
       <h1 className="text-4xl font-light text-gray-600 mb-6">Sign in</h1>
 
       <form onSubmit={handleSignIn} className="space-y-5">
+        <RequiredNote className="-mt-2" />
         {urlMessage === 'password_changed' && (
           <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
             <CheckCircle2 size={15} className="text-blue-600 shrink-0" />

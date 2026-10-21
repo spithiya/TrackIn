@@ -66,6 +66,7 @@ export type Database = {
           notes: string | null
           opens_at: string
           closes_at: string
+          timezone: string
           is_active: boolean
           created_at: string
         }
@@ -81,6 +82,7 @@ export type Database = {
           notes?: string | null
           opens_at: string
           closes_at: string
+          timezone?: string
           is_active?: boolean
           created_at?: string
         }
@@ -96,6 +98,7 @@ export type Database = {
           notes?: string | null
           opens_at?: string
           closes_at?: string
+          timezone?: string
           is_active?: boolean
           created_at?: string
         }

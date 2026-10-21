@@ -10,22 +10,20 @@ import { ArrowLeft, Download, Upload, Link as LinkIcon, CheckCircle2, AlertCircl
 import { buildImportRows, parseCsv, type ImportRow } from '@/lib/import-students'
 import { bulkImportStudents } from './actions'
 
-type Location = { id: string; name: string }
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
 export function ImportStudentsClient({
-  locations,
+  hasLocation,
   existingNames,
   basePath = '/owner',
 }: {
-  locations: Location[]
+  hasLocation: boolean
   existingNames: string[]
   basePath?: string
 }) {
   const router = useRouter()
   const existingNameSet = useMemo(() => new Set(existingNames), [existingNames])
 
-  const [locationId, setLocationId] = useState(locations.length === 1 ? locations[0].id : '')
   const [rows, setRows] = useState<ImportRow[]>([])
   const [headerError, setHeaderError] = useState<string | null>(null)
   const [source, setSource] = useState<string | null>(null)
@@ -122,10 +120,9 @@ export function ImportStudentsClient({
   const duplicateCount = readyRows.filter(r => r.duplicate).length
 
   async function handleImport() {
-    if (!locationId || readyRows.length === 0) return
+    if (!hasLocation || readyRows.length === 0) return
     setImporting(true)
     const result = await bulkImportStudents(
-      locationId,
       readyRows.map(r => ({
         firstName: r.firstName,
         lastName: r.lastName,
@@ -157,33 +154,16 @@ export function ImportStudentsClient({
         <h1 className="text-2xl font-semibold text-slate-900">Import Students</h1>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle>1. Location</CardTitle></CardHeader>
-        <CardContent>
-          <p className="text-sm text-slate-500 mb-3">
-            Every student in this import will be registered at the location you choose here.
-          </p>
-          {locations.length === 0 ? (
-            <p className="text-sm text-amber-600">No locations found. Add a location first.</p>
-          ) : (
-            <select
-              value={locationId}
-              onChange={e => setLocationId(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-            >
-              <option value="">Select a location…</option>
-              {locations.map(l => (
-                <option key={l.id} value={l.id}>{l.name}</option>
-              ))}
-            </select>
-          )}
-        </CardContent>
-      </Card>
+      {!hasLocation && (
+        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          No location found. Add your location first, under Locations, before importing students.
+        </p>
+      )}
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>2. Spreadsheet</CardTitle>
+            <CardTitle>1. Spreadsheet</CardTitle>
             <button
               type="button"
               onClick={downloadTemplate}
@@ -258,7 +238,7 @@ export function ImportStudentsClient({
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>3. Review — {source}</CardTitle>
+              <CardTitle>2. Review — {source}</CardTitle>
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1 text-green-700">
                   <CheckCircle2 size={13} /> {readyRows.length} ready
@@ -318,7 +298,7 @@ export function ImportStudentsClient({
           <Button
             size="lg"
             onClick={handleImport}
-            disabled={!locationId || readyRows.length === 0 || importing}
+            disabled={!hasLocation || readyRows.length === 0 || importing}
           >
             <Upload size={15} className="mr-1.5" />
             {importing ? 'Importing…' : `Import ${readyRows.length} Student${readyRows.length === 1 ? '' : 's'}`}

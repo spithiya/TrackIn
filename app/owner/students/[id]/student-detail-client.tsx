@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { Toast } from '@/components/ui/toast'
 import { createClient } from '@/lib/supabase/client'
 import type { Tables } from '@/lib/supabase/types'
+import { RequiredNote } from '@/components/ui/required-note'
 
 type Student = Tables<'students'>
 type Contact = Tables<'parent_contacts'>
@@ -415,6 +416,7 @@ export function StudentDetailClient({
           {addingContact && (
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">New Contact</p>
+              <RequiredNote />
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">Full Name *</label>
                 <Input

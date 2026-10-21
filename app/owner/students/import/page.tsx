@@ -6,10 +6,10 @@ export default async function ImportStudentsPage() {
   const access = await requireAccess('manage_students')
   const supabase = await createClient()
 
-  const [{ data: locations }, { data: existingStudents }] = await Promise.all([
+  const [{ count: locationCount }, { data: existingStudents }] = await Promise.all([
     supabase
       .from('locations')
-      .select('id, name')
+      .select('id', { count: 'exact', head: true })
       .eq('org_id', access.orgId)
       .eq('is_active', true),
     supabase
@@ -25,7 +25,7 @@ export default async function ImportStudentsPage() {
 
   return (
     <ImportStudentsClient
-      locations={locations ?? []}
+      hasLocation={(locationCount ?? 0) > 0}
       existingNames={existingNames}
     />
   )

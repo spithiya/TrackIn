@@ -15,26 +15,59 @@ interface AddStudentInput {
   first_name: string
   last_name: string
   subjects: 'math' | 'reading' | 'both'
-  location_id: string
   notes: string
   contacts: ParentContactInput[]
+  // Set once the user has confirmed they really do mean to add a second
+  // student with the same name as an existing one.
+  allowDuplicate?: boolean
 }
 
-export async function addStudent(input: AddStudentInput): Promise<{ error?: string }> {
+export type DuplicateStudent = { id: string; is_active: boolean }
+
+// ilike treats % and _ as wildcards — escape them so names match literally.
+function escapeLike(value: string) {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
+export async function addStudent(
+  input: AddStudentInput
+): Promise<{ error?: string; duplicates?: DuplicateStudent[] }> {
   const access = await requirePermissionForAction('manage_students')
   if (!access.orgId) return { error: access.error }
   const orgId = access.orgId
 
   const service = createServiceClient()
+  const firstName = input.first_name.trim()
+  const lastName = input.last_name.trim()
+
+  // An owner account has exactly one location, so every student belongs to it.
+  const { data: location } = await service
+    .from('locations')
+    .select('id')
+    .eq('org_id', orgId)
+    .eq('is_active', true)
+    .limit(1)
+    .maybeSingle()
+  if (!location) return { error: 'Add your location first (under Locations) before adding students.' }
+
+  if (!input.allowDuplicate) {
+    const { data: matches } = await service
+      .from('students')
+      .select('id, is_active')
+      .eq('org_id', orgId)
+      .ilike('first_name', escapeLike(firstName))
+      .ilike('last_name', escapeLike(lastName))
+    if (matches && matches.length > 0) return { duplicates: matches }
+  }
 
   const { data: student, error: studentError } = await service
     .from('students')
     .insert({
       org_id: orgId,
-      first_name: input.first_name.trim(),
-      last_name: input.last_name.trim(),
+      first_name: firstName,
+      last_name: lastName,
       subjects: input.subjects,
-      location_id: input.location_id,
+      location_id: location.id,
       notes: input.notes.trim() || null,
       is_active: true,
     })

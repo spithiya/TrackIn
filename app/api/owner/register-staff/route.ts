@@ -22,10 +22,10 @@ export async function POST(request: Request) {
 
   const {
     first_name, last_name, email, username, password,
-    phone, role_title, dob, subjects, location_id,
+    phone, role_title, dob, subjects,
   } = await request.json()
 
-  if (!first_name || !last_name || !email || !username || !password || !subjects || !location_id) {
+  if (!first_name || !last_name || !email || !username || !password || !subjects) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
   if (!USERNAME_RE.test(username)) {
@@ -39,6 +39,18 @@ export async function POST(request: Request) {
   }
 
   const service = createServiceClient()
+
+  // An owner account has exactly one location, so every staff member belongs to it.
+  const { data: location } = await service
+    .from('locations')
+    .select('id')
+    .eq('org_id', ownerProfile.org_id)
+    .eq('is_active', true)
+    .limit(1)
+    .maybeSingle()
+  if (!location) {
+    return NextResponse.json({ error: 'Add your location first (under Locations) before registering staff.' }, { status: 400 })
+  }
 
   // Check username uniqueness
   const { data: existingUsername } = await service
@@ -94,7 +106,7 @@ export async function POST(request: Request) {
       role_title: role_title?.trim() || null,
       dob: dob || null,
       subjects,
-      location_id,
+      location_id: location.id,
       is_active: true,
     })
 

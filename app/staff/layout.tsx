@@ -53,7 +53,10 @@ export default async function StaffLayout({ children }: { children: React.ReactN
               <SidebarToggleButton className="text-[#1B3A6B]" />
               <span className="text-sm font-medium text-[#1B3A6B] truncate">Staff Portal</span>
             </div>
-            <NotificationBell orgId={profile.org_id} staffId={member?.id ?? null} locationIds={locationIds} />
+            <div className="flex items-center gap-2">
+              <NotificationBell orgId={profile.org_id} staffId={member?.id ?? null} locationIds={locationIds} />
+              <SignOutButton variant="header" />
+            </div>
           </header>
           <main className="flex-1 p-4 lg:p-6 bg-[#F4F7FF]">{children}</main>
           <footer className="px-6 py-2.5 border-t border-[#BECDE8] bg-white text-xs text-gray-400 text-center">

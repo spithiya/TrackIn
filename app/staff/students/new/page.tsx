@@ -6,11 +6,11 @@ export default async function StaffAddStudentPage() {
   const access = await requireAccess('manage_students')
   const supabase = await createClient()
 
-  const { data: locations } = await supabase
+  const { count } = await supabase
     .from('locations')
-    .select('id, name')
+    .select('id', { count: 'exact', head: true })
     .eq('org_id', access.orgId)
     .eq('is_active', true)
 
-  return <AddStudentForm locations={locations ?? []} basePath="/staff" />
+  return <AddStudentForm hasLocation={(count ?? 0) > 0} basePath="/staff" />
 }

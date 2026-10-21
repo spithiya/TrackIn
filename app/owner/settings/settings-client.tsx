@@ -10,6 +10,7 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
+import { RequiredNote } from '@/components/ui/required-note'
 
 type Profile = {
   full_name: string
@@ -171,6 +172,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
         <Card>
           <CardHeader><CardTitle>Profile Info</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <RequiredNote />
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">Full Name *</label>
               <Input required value={fullName} onChange={e => setFullName(e.target.value)} onClear={() => setFullName('')} />
@@ -192,6 +194,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
         <Card>
           <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <RequiredNote />
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">Username *</label>
               <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
@@ -280,6 +283,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
 
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete Account">
         <form onSubmit={handleDeleteAccount} className="space-y-4">
+          <RequiredNote />
           <p className="text-sm text-slate-600">
             This permanently deletes your login. For safety, this only works if your
             organization has no staff or students on record yet — otherwise, you&apos;ll
@@ -309,6 +313,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
 
       <Modal open={!!kioskUsernameTarget} onClose={() => setKioskUsernameTarget(null)} title="Edit Kiosk Username">
         <form onSubmit={handleSaveKioskUsername} className="space-y-4">
+          <RequiredNote />
           <p className="text-sm text-slate-600">
             Currently <span className="font-mono">{kioskUsernameTarget?.username}</span>. Pick something easier to remember.
           </p>
@@ -331,6 +336,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
 
       <Modal open={!!kioskTarget} onClose={() => setKioskTarget(null)} title="Change Kiosk Password">
         <form onSubmit={handleSaveKioskPassword} className="space-y-4">
+          <RequiredNote />
           <p className="text-sm text-slate-600">
             Set a new password for <span className="font-mono">{kioskTarget?.username}</span>.
           </p>

@@ -11,7 +11,6 @@ interface ImportStudentInput {
 }
 
 export async function bulkImportStudents(
-  locationId: string,
   students: ImportStudentInput[]
 ): Promise<{ error?: string; imported?: number }> {
   const access = await requirePermissionForAction('manage_students')
@@ -21,13 +20,15 @@ export async function bulkImportStudents(
 
   const service = createServiceClient()
 
+  // An owner account has exactly one location, so every student belongs to it.
   const { data: location } = await service
     .from('locations')
     .select('id')
-    .eq('id', locationId)
     .eq('org_id', orgId)
+    .eq('is_active', true)
+    .limit(1)
     .maybeSingle()
-  if (!location) return { error: 'Invalid location.' }
+  if (!location) return { error: 'Add your location first (under Locations) before importing students.' }
 
   const CHUNK = 500
   let imported = 0
@@ -42,7 +43,7 @@ export async function bulkImportStudents(
         first_name: s.firstName,
         last_name: s.lastName,
         subjects: s.subjects,
-        location_id: locationId,
+        location_id: location.id,
         is_active: true,
       })))
       .select('id')

@@ -26,6 +26,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
               <SidebarToggleButton className="text-[#3D4A5C]" />
               <span className="text-sm font-medium text-[#3D4A5C] truncate">{portalLabel}</span>
             </div>
+            <SignOutButton variant="header" />
           </header>
           <main className="flex-1 p-4 lg:p-6 bg-[#F5F6F8]">{children}</main>
           <footer className="px-6 py-2.5 border-t border-[#CDD2D9] bg-white text-xs text-gray-400 text-center">

@@ -22,7 +22,18 @@ interface LocationInput {
   notes: string
 }
 
-export async function addLocation(input: LocationInput): Promise<{ error?: string }> {
+function isValidTimeZone(tz: string) {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz })
+    return true
+  } catch {
+    return false
+  }
+}
+
+// timeZone is the owner's browser time zone, so the location's closing time
+// (used by the automatic end-of-day checkout) means local time.
+export async function addLocation(input: LocationInput, timeZone?: string): Promise<{ error?: string }> {
   const orgId = await getAuthOrgId()
   if (!orgId) return { error: 'Not authenticated.' }
 
@@ -49,6 +60,7 @@ export async function addLocation(input: LocationInput): Promise<{ error?: strin
     opens_at: input.opens_at,
     closes_at: input.closes_at,
     notes: input.notes.trim() || null,
+    ...(timeZone && isValidTimeZone(timeZone) ? { timezone: timeZone } : {}),
     is_active: true,
   }).select('id').single()
 

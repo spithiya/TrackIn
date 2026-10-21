@@ -10,6 +10,7 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
+import { RequiredNote } from '@/components/ui/required-note'
 
 type Profile = { email: string; username: string | null }
 type Member = { first_name: string; last_name: string; phone: string | null }
@@ -101,6 +102,7 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
         <Card>
           <CardHeader><CardTitle>Profile Info</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <RequiredNote />
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700">First Name *</label>
@@ -128,6 +130,7 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
         <Card>
           <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <RequiredNote />
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">Username *</label>
               <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
@@ -181,6 +184,7 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
 
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete Account">
         <form onSubmit={handleDeleteAccount} className="space-y-4">
+          <RequiredNote />
           <p className="text-sm text-gray-600">
             This permanently deletes your login — you won&apos;t be able to sign in
             afterward. Your historical timesheet and check-in records are kept for

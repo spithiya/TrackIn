@@ -2,14 +2,15 @@
 
 import { useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { addStudent } from './actions'
+import { addStudent, type DuplicateStudent } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { ArrowLeft, Plus, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
+import { RequiredNote } from '@/components/ui/required-note'
 
-type Location = { id: string; name: string }
 type Relationship = 'Mother' | 'Father' | 'Guardian' | 'Other'
 
 interface ParentContact {
@@ -26,7 +27,7 @@ function emptyContact(isPrimary = false): ParentContact {
   return { full_name: '', relationship: 'Guardian', phone: '', email: '', is_primary: isPrimary }
 }
 
-export function AddStudentForm({ locations, basePath = '/owner' }: { locations: Location[]; basePath?: string }) {
+export function AddStudentForm({ hasLocation, basePath = '/owner' }: { hasLocation: boolean; basePath?: string }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -38,11 +39,11 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
     first_name: searchParams.get('first') ?? '',
     last_name: searchParams.get('last') ?? '',
     subjects: 'math' as 'math' | 'reading' | 'both',
-    location_id: locations[0]?.id ?? '',
     notes: '',
   }))
 
   const [contacts, setContacts] = useState<ParentContact[]>([emptyContact(true)])
+  const [duplicates, setDuplicates] = useState<DuplicateStudent[] | null>(null)
 
   function setField(key: keyof typeof fields, value: string) {
     setFields(prev => ({ ...prev, [key]: value }))
@@ -71,24 +72,33 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
     })
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!fields.location_id) { setError('Please select a location.'); return }
-
+  async function save(allowDuplicate: boolean) {
     const filledContacts = contacts.filter(c => c.full_name.trim() || c.phone.trim())
-    const hasPhone = filledContacts.some(c => c.phone.trim())
-    if (!hasPhone) { setError('Please add a parent or guardian phone number.'); return }
-
     setLoading(true)
     setError(null)
 
-    const result = await addStudent({ ...fields, contacts: filledContacts })
+    const result = await addStudent({ ...fields, contacts: filledContacts, allowDuplicate })
     if (result?.error) {
       setError(result.error)
+      setLoading(false)
+    } else if (result?.duplicates) {
+      setDuplicates(result.duplicates)
       setLoading(false)
     } else {
       router.push(`${basePath}/students`)
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const hasPhone = contacts.some(c => c.phone.trim())
+    if (!hasPhone) { setError('Please add a parent or guardian phone number.'); return }
+    await save(false)
+  }
+
+  async function confirmDuplicate() {
+    setDuplicates(null)
+    await save(true)
   }
 
   return (
@@ -109,6 +119,7 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
         <Card>
           <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <RequiredNote />
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-slate-700">First Name *</label>
@@ -153,23 +164,9 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Location *</label>
-              {locations.length === 0 ? (
-                <p className="text-sm text-amber-600">No locations found. Add a location first.</p>
-              ) : (
-                <select
-                  required
-                  value={fields.location_id}
-                  onChange={e => setField('location_id', e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
-                >
-                  {locations.map(l => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
+            {!hasLocation && (
+              <p className="text-sm text-amber-600">No location found. Add your location first, under Locations.</p>
+            )}
 
             <div className="space-y-1">
               <label className="block text-sm font-medium text-slate-700">Notes</label>
@@ -207,6 +204,7 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
+            <RequiredNote />
             {contacts.map((contact, i) => (
               <div key={i} className="space-y-3 pb-5 border-b border-slate-100 last:border-0 last:pb-0">
                 <div className="flex items-center justify-between">
@@ -288,7 +286,7 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
         </Card>
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={loading || locations.length === 0}>
+          <Button type="submit" disabled={loading || !hasLocation}>
             {loading ? 'Saving…' : 'Add Student'}
           </Button>
           <Link href={`${basePath}/students`}>
@@ -296,6 +294,30 @@ export function AddStudentForm({ locations, basePath = '/owner' }: { locations: 
           </Link>
         </div>
       </form>
+
+      <Modal open={!!duplicates} onClose={() => setDuplicates(null)} title="Possible Duplicate Student">
+        {duplicates && (() => {
+          const name = `${fields.first_name.trim()} ${fields.last_name.trim()}`
+          const inactive = duplicates.filter(d => !d.is_active).length
+          return (
+            <div className="space-y-4">
+              <p className="text-slate-700">
+                {duplicates.length === 1 ? 'A student' : `${duplicates.length} students`} named{' '}
+                <span className="font-semibold">{name}</span>{' '}
+                {duplicates.length === 1 ? 'is' : 'are'} already in your student records
+                {inactive > 0 && (duplicates.length === 1 ? ' (marked inactive)' : ` (${inactive} marked inactive)`)}.
+              </p>
+              <p className="text-sm text-slate-500">
+                Are you sure you want to add another student with the same name? Only continue if this is a different student.
+              </p>
+              <div className="flex gap-3 justify-end pt-2">
+                <Button type="button" variant="secondary" size="md" onClick={() => setDuplicates(null)}>Cancel</Button>
+                <Button type="button" variant="primary" size="md" onClick={confirmDuplicate}>Yes, Add Anyway</Button>
+              </div>
+            </div>
+          )
+        })()}
+      </Modal>
     </div>
   )
 }
