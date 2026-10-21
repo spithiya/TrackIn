@@ -28,7 +28,7 @@ export function StaffNav({ permissions }: { permissions: Record<Permission, bool
   const elevated = ELEVATED_NAV.filter(item => permissions[item.perm])
 
   return (
-    <nav className="flex-1 px-3 py-4 space-y-0.5">
+    <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
       {nav.map(({ href, label, icon: Icon }) => {
         const active = pathname === href
         return (

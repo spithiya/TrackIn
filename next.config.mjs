@@ -6,6 +6,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: __dirname,
+  // The dev-only "N" badge defaults to bottom-left, where it would cover the
+  // pinned sidebar's Sign Out button. (It never appears in production.)
+  devIndicators: { position: 'bottom-right' },
   serverExternalPackages: ['@supabase/supabase-js', 'node-fetch'],
   async headers() {
     return [

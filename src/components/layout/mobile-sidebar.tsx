@@ -44,9 +44,10 @@ export function SidebarToggleButton({ className }: { className?: string }) {
   )
 }
 
-// Renders the sidebar as a permanent, static column on large screens
-// (lg: and up — unchanged from the original desktop-only layout), and as
-// a slide-in drawer with a dismissible backdrop below that breakpoint.
+// Renders the sidebar as a permanent column on large screens (lg: and up),
+// pinned to the viewport so it — and the Sign Out button at its bottom —
+// stays in view while long pages scroll. Below that breakpoint it's a
+// slide-in drawer with a dismissible backdrop.
 export function MobileSidebarFrame({ children, className }: { children: React.ReactNode; className?: string }) {
   const { open, close } = useSidebar()
   return (
@@ -60,7 +61,7 @@ export function MobileSidebarFrame({ children, className }: { children: React.Re
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-in-out lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:self-start lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
           className
         )}
