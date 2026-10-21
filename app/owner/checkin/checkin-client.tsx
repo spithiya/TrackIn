@@ -62,6 +62,10 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
   // Staff clock-in/out state
   const [staffBusy, setStaffBusy] = useState<string | null>(null)
 
+  // Bulk check-out/clock-out state
+  const [bulkTarget, setBulkTarget] = useState<'students' | 'staff' | null>(null)
+  const [bulkBusy, setBulkBusy] = useState(false)
+
   const supabase = createClient()
 
   const searchStudents = useCallback(async (q: string) => {
@@ -179,8 +183,39 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
     setStaffBusy(null)
   }
 
+  // Pickup-ready texts are deliberately skipped here: a bulk check-out is
+  // usually end-of-day cleanup, and most of those students have already left.
+  async function handleBulkCheckout() {
+    if (!bulkTarget) return
+    setBulkBusy(true)
+    const isStudents = bulkTarget === 'students'
+    const results = isStudents
+      ? await Promise.all(activeStudents.map(s => supabase.rpc('checkout_student', { checkin_id: s.id })))
+      : await Promise.all(activeStaff.map(s => supabase.rpc('checkout_staff', { checkin_id: s.id, by_owner: true })))
+    const failed = results.filter(r => r.error).length
+    const noun = isStudents ? 'students' : 'staff members'
+    const verb = isStudents ? 'Checked out' : 'Clocked out'
+    if (failed === 0) {
+      setToast({
+        message: results.length === 1 ? `${verb} the 1 ${isStudents ? 'student' : 'staff member'}.` : `${verb} all ${results.length} ${noun}.`,
+        variant: 'green',
+      })
+    } else {
+      results.forEach(r => r.error && console.error('bulk checkout error:', r.error))
+      setToast({
+        message: `${verb} ${results.length - failed} of ${results.length} ${noun}. ${failed} failed — please try again.`,
+        variant: failed === results.length ? 'red' : 'amber',
+      })
+    }
+    if (isStudents) refetchStudents()
+    else refetchStaff()
+    setBulkTarget(null)
+    setBulkBusy(false)
+  }
+
   function elapsedLabel(checkedInAt: string) {
-    const ms = now - new Date(checkedInAt).getTime()
+    // Clamped: a just-created check-in can be stamped slightly after `now`.
+    const ms = Math.max(0, now - new Date(checkedInAt).getTime())
     const h = Math.floor(ms / 3_600_000)
     const m = Math.floor((ms % 3_600_000) / 60_000)
     return h > 0 ? `${h}h ${m}m` : `${m}m`
@@ -322,7 +357,19 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
 
           {/* Active students */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-3">Currently Checked In</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-slate-700">Currently Checked In</h2>
+              {activeStudents.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setBulkTarget('students')}
+                  className="border-red-200 text-red-600 hover:bg-red-50"
+                >
+                  Check Out All
+                </Button>
+              )}
+            </div>
             {loadingStudents ? (
               <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm text-slate-400 text-center">Loading…</div>
             ) : activeStudents.length === 0 ? (
@@ -356,7 +403,19 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
       {/* ── Staff tab ── */}
       {tab === 'staff' && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">All Staff</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-700">All Staff</h2>
+            {activeStaff.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setBulkTarget('staff')}
+                className="border-red-200 text-red-600 hover:bg-red-50"
+              >
+                Clock Out All
+              </Button>
+            )}
+          </div>
           {staffMembers.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm text-slate-400 text-center">No staff members found.</div>
           ) : (
@@ -411,6 +470,45 @@ export function OwnerCheckinClient({ orgId, staffMembers }: Props) {
           )}
         </div>
       )}
+
+      {/* Bulk check-out / clock-out confirmation */}
+      <Modal
+        open={!!bulkTarget}
+        onClose={() => { if (!bulkBusy) setBulkTarget(null) }}
+        title={bulkTarget === 'staff' ? 'Clock Out All Staff?' : 'Check Out All Students?'}
+      >
+        {bulkTarget && (
+          <div className="space-y-4">
+            <p className="text-slate-700">
+              {bulkTarget === 'students' ? (
+                activeStudents.length === 1
+                  ? <>Are you sure? This will check out <span className="font-semibold">the 1 student</span> who is currently checked in.</>
+                  : <>Are you sure? This will check out <span className="font-semibold">all {activeStudents.length} students</span> who are currently checked in.</>
+              ) : (
+                activeStaff.length === 1
+                  ? <>Are you sure? This will clock out <span className="font-semibold">the 1 staff member</span> who is currently clocked in.</>
+                  : <>Are you sure? This will clock out <span className="font-semibold">all {activeStaff.length} staff members</span> who are currently clocked in.</>
+              )}
+            </p>
+            <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+              <Info size={15} className="text-red-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">
+                {bulkTarget === 'students'
+                  ? 'Every session ends at the current time. Pickup texts will not be sent to parents.'
+                  : 'Every shift ends at the current time, which affects their timesheets.'}
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <Button variant="secondary" size="md" onClick={() => setBulkTarget(null)} disabled={bulkBusy}>Cancel</Button>
+              <Button variant="danger" size="md" onClick={handleBulkCheckout} disabled={bulkBusy}>
+                {bulkBusy
+                  ? (bulkTarget === 'students' ? 'Checking out…' : 'Clocking out…')
+                  : (bulkTarget === 'students' ? 'Yes, Check Out All' : 'Yes, Clock Out All')}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Student check-in modal */}
       <Modal open={!!checkinStudent} onClose={() => setCheckinStudent(null)} title="Check In Student">

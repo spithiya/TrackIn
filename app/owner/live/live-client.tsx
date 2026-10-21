@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useActiveStudents } from '@/hooks/use-active-students'
 import { useTimerStatus } from '@/hooks/use-timer-status'
 import { TimerPill } from '@/components/students/timer-pill'
@@ -16,6 +16,10 @@ const BORDER_BY_STATUS = {
   yellow: 'border-l-amber-500',
   red: 'border-l-red-500',
 } as const
+
+// Overdue tiles flash in step with each other: every one starts its
+// animation at the same point in the cycle (see .overdue-flash in globals.css).
+const FLASH_PERIOD_MS = 2000
 
 // The wall display has a comfortable capacity before tiles need to shrink.
 // Past that, tiles progressively drop less-essential detail and tighten up
@@ -37,14 +41,18 @@ const GRID_MIN_WIDTH: Record<Density, string> = {
 function StudentTile({ s, density }: { s: Views<'active_students'>; density: Density }) {
   const { status } = useTimerStatus(s.checked_in_at, s.subjects_snapshot)
   const hasContact = s.primary_contact_name || s.primary_contact_phone
+  const overdue = status === 'red'
+  const flashDelay = useMemo(() => (overdue ? -(Date.now() % FLASH_PERIOD_MS) : 0), [overdue])
 
   return (
     <div
       className={cn(
         'rounded-lg border border-slate-200 border-l-4 bg-white',
         BORDER_BY_STATUS[status],
+        overdue && 'overdue-flash',
         density === 'spacious' ? 'p-3' : density === 'compact' ? 'p-2.5' : 'p-2'
       )}
+      style={overdue ? ({ '--flash-delay': `${flashDelay}ms` } as React.CSSProperties) : undefined}
     >
       <div className="flex items-start justify-between gap-2">
         <p className={cn('font-semibold text-slate-900 truncate', density === 'dense' ? 'text-xs' : 'text-sm')}>

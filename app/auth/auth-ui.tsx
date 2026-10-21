@@ -27,11 +27,13 @@ export function Field({
 }
 
 export function PasswordInput({
+  name,
   value,
   onChange,
   placeholder = '••••••••',
   autoComplete,
 }: {
+  name?: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
@@ -42,6 +44,7 @@ export function PasswordInput({
     <div className="relative">
       <input
         type={show ? 'text' : 'password'}
+        name={name}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}

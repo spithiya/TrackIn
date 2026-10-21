@@ -18,6 +18,7 @@ export function TimerPill({ checkedInAt, subjects, className }: TimerPillProps) 
 
   return (
     <span
+      data-overdue-flash
       className={cn(
         'inline-flex items-center rounded-full px-3 py-1 text-sm font-mono font-medium',
         getTimerClasses(status),

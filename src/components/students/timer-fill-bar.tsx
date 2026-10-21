@@ -34,6 +34,7 @@ export function TimerFillBar({ checkedInAt, subjects, className }: TimerFillBarP
 
   return (
     <div
+      data-overdue-flash
       className={cn('h-3 w-24 rounded-sm bg-black/10 overflow-hidden shrink-0', className)}
       role="progressbar"
       aria-valuenow={Math.round(fillPercent)}

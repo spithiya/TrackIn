@@ -29,3 +29,24 @@
     font-family: var(--font-mono), 'Courier New', monospace;
   }
 }
+
+/* Live Display: a tile whose session time is up flashes all of its red —
+   the left border, timer pill and fill bar — together, so it stands out
+   on a wall TV. --flash-delay keeps every overdue tile in the same phase. */
+@keyframes overdue-flash-border {
+  50% { border-left-color: rgb(239 68 68 / 0.25); }
+}
+
+@keyframes overdue-flash-fade {
+  50% { opacity: 0.25; }
+}
+
+.overdue-flash {
+  animation: overdue-flash-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: var(--flash-delay, 0ms);
+}
+
+.overdue-flash [data-overdue-flash] {
+  animation: overdue-flash-fade 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: var(--flash-delay, 0ms);
+}

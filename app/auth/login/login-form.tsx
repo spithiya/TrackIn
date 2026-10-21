@@ -10,8 +10,28 @@ import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
 
 // Only the identifier (username/email) is remembered here — never the
 // password. That's stored and auto-filled securely by the browser's own
-// password manager instead, via the autoComplete attributes below.
+// password manager instead, via the name/autoComplete attributes below
+// and offerToSavePassword().
 const REMEMBER_KEY = 'trackin_remembered_identifier'
+
+type PasswordCredentialCtor = new (data: { id: string; password: string }) => Credential
+
+// Chrome/Edge expose PasswordCredential, which asks the browser to show its
+// "Save password?" prompt directly instead of relying on it guessing that a
+// JS-driven sign-in happened. Safari and Firefox don't have it, but pick up
+// the sign-in from the form submission on their own.
+async function offerToSavePassword(username: string, password: string) {
+  const Ctor = (window as unknown as { PasswordCredential?: PasswordCredentialCtor }).PasswordCredential
+  if (!Ctor || !navigator.credentials) return
+  try {
+    await Promise.race([
+      navigator.credentials.store(new Ctor({ id: username, password })),
+      new Promise(resolve => setTimeout(resolve, 1000)),
+    ])
+  } catch {
+    // Saving is a convenience — never block sign-in on it.
+  }
+}
 
 export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMessage?: string }) {
   const [identifier, setIdentifier] = useState('')
@@ -37,7 +57,11 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
     setLoading(true)
     setError(null)
 
-    const username = identifier.trim()
+    // Read from the form itself rather than state: browser autofill can fill
+    // the inputs without React seeing a change event.
+    const form = new FormData(e.currentTarget as HTMLFormElement)
+    const username = String(form.get('username') ?? identifier).trim()
+    const pw = String(form.get('password') ?? password)
     if (username.includes('@')) {
       setError('Please sign in with your username, not your email address.')
       setLoading(false)
@@ -59,7 +83,7 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: json.email,
-      password,
+      password: pw,
     })
 
     if (signInError) {
@@ -70,7 +94,8 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
     }
 
     if (rememberMe) {
-      localStorage.setItem(REMEMBER_KEY, identifier.trim())
+      localStorage.setItem(REMEMBER_KEY, username)
+      await offerToSavePassword(username, pw)
     } else {
       localStorage.removeItem(REMEMBER_KEY)
     }
@@ -114,6 +139,7 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
         <Field label="Username" required>
           <input
             type="text"
+            name="username"
             value={identifier}
             onChange={e => setIdentifier(e.target.value)}
             placeholder="your_username"
@@ -124,7 +150,7 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
         </Field>
 
         <Field label="Password" required>
-          <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" />
+          <PasswordInput name="password" value={password} onChange={setPassword} autoComplete="current-password" />
         </Field>
 
         <label className="flex items-center gap-2 cursor-pointer select-none">
