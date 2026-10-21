@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
 import { RequiredNote } from '@/components/ui/required-note'
+import { Eye, EyeOff } from 'lucide-react'
 
 type Profile = {
   full_name: string
@@ -23,6 +24,7 @@ type KioskAccount = {
   id: string
   username: string
   locationName: string | null
+  defaultPassword: string | null
 }
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
@@ -30,6 +32,8 @@ type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; kioskAccounts: KioskAccount[] }) {
   const router = useRouter()
   const [toast, setToast] = useState<ToastState>(null)
+
+  const [revealedKioskId, setRevealedKioskId] = useState<string | null>(null)
 
   // Kiosk password change
   const [kioskTarget, setKioskTarget] = useState<KioskAccount | null>(null)
@@ -118,6 +122,7 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
     } else {
       setToast({ message: 'Kiosk password updated.', variant: 'green' })
       setKioskTarget(null)
+      router.refresh()
     }
   }
 
@@ -199,8 +204,9 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
         <CardContent className="space-y-4">
           <p className="text-sm text-slate-500">
             Your kiosk uses its own login, separate from yours, so it can be left
-            signed in on a shared device without exposing your account. The default
-            password is <span className="font-mono">12345678</span> until you change it.
+            signed in on a shared device without exposing your account. New kiosk
+            logins come with a randomly generated password, shown below until you
+            set your own with Change Password.
           </p>
           {!kioskAccounts.length ? (
             <p className="text-sm text-slate-400">No kiosk account yet.</p>
@@ -213,6 +219,22 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
                     <p className="text-xs text-slate-400">
                       {account.locationName ? account.locationName : 'Not linked to a location yet'}
                     </p>
+                    {account.defaultPassword && (
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                        Password:
+                        <span className="font-mono text-slate-700">
+                          {revealedKioskId === account.id ? account.defaultPassword : '••••-••••-••••'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setRevealedKioskId(id => (id === account.id ? null : account.id))}
+                          aria-label={revealedKioskId === account.id ? 'Hide password' : 'Show password'}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          {revealedKioskId === account.id ? <EyeOff size={13} /> : <Eye size={13} />}
+                        </button>
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <Button type="button" variant="secondary" size="sm" onClick={() => openKioskUsername(account)}>

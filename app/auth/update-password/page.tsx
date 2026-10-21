@@ -48,7 +48,11 @@ export default function UpdatePasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
 
     if (updateError) {
-      setError('Failed to update password. Please try again.')
+      // Supabase's leaked password protection rejects breached passwords
+      // with this code.
+      setError(updateError.code === 'weak_password'
+        ? 'This password has appeared in a known data breach. Please choose a different one.'
+        : 'Failed to update password. Please try again.')
       setSaving(false)
       return
     }

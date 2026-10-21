@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isUsernameConflictError } from '@/lib/account-settings'
+import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 
@@ -36,6 +37,9 @@ export async function POST(request: Request) {
   }
   if (password.length < 8) {
     return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
+  }
+  if (await isBreachedPassword(password)) {
+    return NextResponse.json({ error: BREACHED_PASSWORD_ERROR }, { status: 400 })
   }
 
   const service = createServiceClient()

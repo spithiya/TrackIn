@@ -3,6 +3,7 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError } from '@/lib/account-settings'
 import { requireOwnerForAction } from '@/lib/permissions'
+import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
 
 export async function updateProfileInfo(input: {
   full_name: string
@@ -51,6 +52,11 @@ export async function updateAccountSecurity(input: {
     return { error: 'That username is already taken.' }
   }
 
+  if (input.newPassword) {
+    if (input.newPassword.length < 8) return { error: 'New password must be at least 8 characters.' }
+    if (await isBreachedPassword(input.newPassword)) return { error: BREACHED_PASSWORD_ERROR }
+  }
+
   const service = createServiceClient()
 
   // Compare against the stored display email, not user.email — for an
@@ -83,7 +89,6 @@ export async function updateAccountSecurity(input: {
   }
 
   if (input.newPassword) {
-    if (input.newPassword.length < 8) return { error: 'New password must be at least 8 characters.' }
     const { error: pwError } = await service.auth.admin.updateUserById(user.id, {
       password: input.newPassword,
     })
@@ -115,6 +120,7 @@ export async function updateKioskPassword(
   if (access.error) return { error: access.error }
 
   if (newPassword.length < 8) return { error: 'Password must be at least 8 characters.' }
+  if (await isBreachedPassword(newPassword)) return { error: BREACHED_PASSWORD_ERROR }
 
   const service = createServiceClient()
 
@@ -130,6 +136,9 @@ export async function updateKioskPassword(
 
   const { error } = await service.auth.admin.updateUserById(kioskProfileId, { password: newPassword })
   if (error) return { error: error.message }
+
+  // The generated default no longer works, so stop showing it.
+  await service.from('kiosk_default_passwords').delete().eq('profile_id', kioskProfileId)
   return {}
 }
 

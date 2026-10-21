@@ -2,6 +2,7 @@
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, isUsernameConflictError } from '@/lib/account-settings'
+import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
 
 export async function updateProfileInfo(input: {
   first_name: string
@@ -62,6 +63,11 @@ export async function updateAccountSecurity(input: {
     return { error: 'That username is already taken.' }
   }
 
+  if (input.newPassword) {
+    if (input.newPassword.length < 8) return { error: 'New password must be at least 8 characters.' }
+    if (await isBreachedPassword(input.newPassword)) return { error: BREACHED_PASSWORD_ERROR }
+  }
+
   const service = createServiceClient()
 
   if (email !== user.email) {
@@ -73,7 +79,6 @@ export async function updateAccountSecurity(input: {
   }
 
   if (input.newPassword) {
-    if (input.newPassword.length < 8) return { error: 'New password must be at least 8 characters.' }
     const { error: pwError } = await service.auth.admin.updateUserById(user.id, {
       password: input.newPassword,
     })

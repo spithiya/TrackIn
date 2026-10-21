@@ -3,6 +3,7 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireOwnerForAction } from '@/lib/permissions'
 import { USERNAME_RE, isUsernameTaken, isUsernameConflictError } from '@/lib/account-settings'
+import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
 
 async function getAuthOrgId(): Promise<string | null> {
   const access = await requireOwnerForAction()
@@ -88,6 +89,11 @@ export async function updateStaffLogin(
     return { error: 'That username is already taken.' }
   }
 
+  if (input.newPassword) {
+    if (input.newPassword.length < 8) return { error: 'Password must be at least 8 characters.' }
+    if (await isBreachedPassword(input.newPassword)) return { error: BREACHED_PASSWORD_ERROR }
+  }
+
   const { error: profileError } = await service.from('profiles').update({ username }).eq('id', member.profile_id)
   if (profileError) {
     if (isUsernameConflictError(profileError)) return { error: 'That username is already taken.' }
@@ -95,7 +101,6 @@ export async function updateStaffLogin(
   }
 
   if (input.newPassword) {
-    if (input.newPassword.length < 8) return { error: 'Password must be at least 8 characters.' }
     const { error: pwError } = await service.auth.admin.updateUserById(member.profile_id, { password: input.newPassword })
     if (pwError) return { error: pwError.message }
   }

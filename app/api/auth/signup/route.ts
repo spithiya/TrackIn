@@ -3,9 +3,9 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
 import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
 import { generateKioskUsername, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError } from '@/lib/account-settings'
+import { isBreachedPassword, BREACHED_PASSWORD_ERROR, generateKioskPassword } from '@/lib/password-check'
 
 const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
-const KIOSK_DEFAULT_PASSWORD = '12345678'
 
 export async function POST(request: Request) {
   if (!OWNER_SIGNUP_ENABLED) {
@@ -33,6 +33,10 @@ export async function POST(request: Request) {
       { error: 'Username must be 3–20 characters and contain only letters, numbers, _ or -.' },
       { status: 400 }
     )
+  }
+
+  if (await isBreachedPassword(password)) {
+    return NextResponse.json({ error: BREACHED_PASSWORD_ERROR }, { status: 400 })
   }
 
   const service = createServiceClient()
@@ -111,13 +115,15 @@ export async function POST(request: Request) {
 
     // Every owner account gets a kiosk login for its (eventual, single)
     // location. It has no location_id yet — addLocation() binds it once
-    // the owner creates their location.
+    // the owner creates their location. Its password is random per account
+    // and shown to the owner in Settings until they set their own.
     const kioskUsername = await generateKioskUsername()
     const kioskEmail = `${kioskUsername}@kiosk.trackin.internal`
 
+    const kioskPassword = generateKioskPassword()
     const { data: kioskAuth, error: kioskAuthError } = await service.auth.admin.createUser({
       email: kioskEmail,
-      password: KIOSK_DEFAULT_PASSWORD,
+      password: kioskPassword,
       email_confirm: true,
     })
 
@@ -140,6 +146,13 @@ export async function POST(request: Request) {
       await service.auth.admin.deleteUser(userId)
       return NextResponse.json({ error: 'Failed to create kiosk account.' }, { status: 500 })
     }
+
+    // Not fatal if this fails: the owner can still set a password from
+    // Settings, they just won't see the generated one.
+    await service.from('kiosk_default_passwords').insert({
+      profile_id: kioskAuth.user.id,
+      password: kioskPassword,
+    })
 
     return NextResponse.json({ success: true, role: 'owner' })
   } catch {

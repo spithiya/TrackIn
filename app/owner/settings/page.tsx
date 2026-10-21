@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { SettingsClient } from './settings-client'
 import { requireOwner } from '@/lib/permissions'
 
@@ -34,11 +34,20 @@ export default async function OwnerSettingsPage() {
     )
   }
 
+  // Generated kiosk passwords are readable only with the service role, so
+  // staff can't see them; this page is owner-only (requireOwner above).
+  const kioskIds = (kioskProfiles ?? []).map(k => k.id)
+  const { data: defaults } = kioskIds.length
+    ? await createServiceClient().from('kiosk_default_passwords').select('profile_id, password').in('profile_id', kioskIds)
+    : { data: [] }
+  const defaultPasswords = new Map((defaults ?? []).map(d => [d.profile_id, d.password]))
+
   const locationNames = new Map((locations ?? []).map(l => [l.id, l.name]))
   const kioskAccounts = (kioskProfiles ?? []).map(k => ({
     id: k.id,
     username: k.username ?? '',
     locationName: k.location_id ? locationNames.get(k.location_id) ?? null : null,
+    defaultPassword: defaultPasswords.get(k.id) ?? null,
   }))
 
   return <SettingsClient profile={profile} kioskAccounts={kioskAccounts} />

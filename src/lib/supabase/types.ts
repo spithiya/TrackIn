@@ -485,6 +485,24 @@ export type Database = {
         }
         Relationships: []
       }
+      kiosk_default_passwords: {
+        Row: {
+          profile_id: string
+          password: string
+          created_at: string
+        }
+        Insert: {
+          profile_id: string
+          password: string
+          created_at?: string
+        }
+        Update: {
+          profile_id?: string
+          password?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       active_students: {
