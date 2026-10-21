@@ -1,17 +1,52 @@
--- Indexes suggested by Supabase's index advisor and created from the
--- dashboard on 2026-10-21. Recorded here so a rebuild from migrations
--- matches production. Names are Postgres's defaults for an unnamed
--- CREATE INDEX, so this is a no-op where they already exist.
+-- Every non-primary-key index in public, in one place. The non-unique
+-- ones were suggested by Supabase's index advisor and created from the
+-- dashboard on 2026-10-21; recorded here so a rebuild from migrations
+-- matches production. Names match what the dashboard created, so this is
+-- a no-op where they already exist.
+--
+-- Defined by earlier migrations (listed for reference, not recreated):
+--   profiles_username_lower_idx          unique (lower(username))       003
+--   profiles_kiosk_location_unique       unique (location_id) kiosks     015
+--   session_alerts_checkin_level_unique  unique (checkin_id, level)      006 (constraint)
 
--- Live display looks up each checked-in student's primary contact.
+-- locations
+create index if not exists locations_org_id_idx
+  on locations using btree (org_id);
+
+-- parent_contacts: Live display looks up each checked-in student's contact.
 create index if not exists parent_contacts_student_id_idx
   on parent_contacts using btree (student_id);
 
--- "Who's checked in right now" (checked_out_at is null): dashboard, live
--- display, check-in page and the auto-checkout cron job.
+-- staff_checkins
+create index if not exists staff_checkins_org_id_idx
+  on staff_checkins using btree (org_id);
+create index if not exists staff_checkins_checked_in_at_idx
+  on staff_checkins using btree (checked_in_at);
+create index if not exists staff_checkins_checked_out_at_idx
+  on staff_checkins using btree (checked_out_at);
+
+-- The advisor suggestion was applied three times, leaving two identical
+-- copies that only add write overhead.
+drop index if exists staff_checkins_checked_out_at_idx1;
+drop index if exists staff_checkins_checked_out_at_idx2;
+
+-- staff_members
+create index if not exists staff_members_first_name_idx
+  on staff_members using btree (first_name);
+
+-- student_checkins: "who's checked in right now" (checked_out_at is null)
+-- backs the dashboard, live display, check-in page and auto-checkout cron.
+create index if not exists student_checkins_org_id_idx
+  on student_checkins using btree (org_id);
 create index if not exists student_checkins_checked_out_at_idx
   on student_checkins using btree (checked_out_at);
-
--- Foreign key lookups when a staff member is deleted or filtered on.
 create index if not exists student_checkins_assigned_staff_id_idx
   on student_checkins using btree (assigned_staff_id);
+
+-- students
+create index if not exists students_is_active_idx
+  on students using btree (is_active);
+create index if not exists students_first_name_idx
+  on students using btree (first_name);
+create index if not exists students_last_name_idx
+  on students using btree (last_name);
