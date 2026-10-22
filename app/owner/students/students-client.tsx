@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { UserPlus, Upload, Search, X, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { UserPlus, Upload, Search, X, ChevronUp, ChevronDown, ChevronsUpDown, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubjectTags } from '@/components/students/subject-tags'
@@ -133,6 +133,7 @@ export function StudentsClient({
                       Location <SortIcon col="location" />
                     </th>
                     <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Status</th>
+                    <th className="w-12"><span className="sr-only">Edit</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -155,6 +156,19 @@ export function StudentsClient({
                         <Badge variant={s.is_active ? 'green' : 'gray'}>
                           {s.is_active ? 'Active' : 'Inactive'}
                         </Badge>
+                      </td>
+                      {/* The whole row opens the student too, but new owners don't
+                          know that — this gives them something visible to click. */}
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`${basePath}/students/${s.id}`}
+                          onClick={e => e.stopPropagation()}
+                          title="Edit or delete student"
+                          aria-label={`Edit or delete ${s.first_name} ${s.last_name}`}
+                          className="inline-flex items-center justify-center rounded-md p-1.5 text-slate-400 hover:text-[#3D4A5C] hover:bg-slate-200 transition-colors"
+                        >
+                          <Pencil size={15} />
+                        </Link>
                       </td>
                     </tr>
                   ))}

@@ -178,9 +178,22 @@ export function StudentDetailClient({
   return (
     <div className="max-w-lg space-y-5">
       <div className="flex items-center gap-3">
-        <Link href={`${basePath}/students`} className="text-slate-400 hover:text-slate-600 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
+        {/* While editing, back steps out of the edit form (like Cancel) rather
+            than leaving the student, so contacts are one click away after. */}
+        {editingStudent ? (
+          <button
+            type="button"
+            onClick={() => setEditingStudent(false)}
+            aria-label="Back to student"
+            className="text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <ArrowLeft size={20} />
+          </button>
+        ) : (
+          <Link href={`${basePath}/students`} aria-label="Back to student records" className="text-slate-400 hover:text-slate-600 transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
+        )}
         <h1 className="text-2xl font-semibold text-slate-900">
           {student.first_name} {student.last_name}
         </h1>
