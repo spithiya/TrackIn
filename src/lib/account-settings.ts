@@ -1,4 +1,5 @@
 import { createAnonClient, createServiceClient } from '@/lib/supabase/server'
+import { escapeLike } from '@/lib/utils'
 
 export const USERNAME_RE = /^[a-zA-Z0-9_-]{3,20}$/
 
@@ -13,7 +14,7 @@ export async function isUsernameTaken(username: string, excludeUserId: string): 
   const { data } = await service
     .from('profiles')
     .select('id')
-    .ilike('username', username)
+    .ilike('username', escapeLike(username))
     .neq('id', excludeUserId)
     .maybeSingle()
   return !!data
@@ -28,7 +29,7 @@ export async function generateKioskUsername(): Promise<string> {
   for (let attempt = 0; attempt < 20; attempt++) {
     const digits = String(Math.floor(Math.random() * 1e8)).padStart(8, '0')
     const username = `kiosk${digits}`
-    const { data } = await service.from('profiles').select('id').ilike('username', username).maybeSingle()
+    const { data } = await service.from('profiles').select('id').ilike('username', escapeLike(username)).maybeSingle()
     if (!data) return username
   }
 

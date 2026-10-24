@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { escapeLike } from '@/lib/utils'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
 import { sendUsernameReminderEmail } from '@/lib/email'
 
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
   const { data: profiles } = await service
     .from('profiles')
     .select('username')
-    .ilike('email', email.trim())
+    .ilike('email', escapeLike(email.trim()))
 
   const usernames = (profiles ?? [])
     .map(p => p.username)

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { escapeLike } from '@/lib/utils'
 import { isUsernameConflictError } from '@/lib/account-settings'
 import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
 
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
   const { data: existingUsername } = await service
     .from('profiles')
     .select('id')
-    .ilike('username', username)
+    .ilike('username', escapeLike(username))
     .maybeSingle()
 
   if (existingUsername) {

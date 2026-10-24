@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { escapeLike } from '@/lib/utils'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
 import { OWNER_SIGNUP_ENABLED } from '@/lib/constants'
 import { generateKioskUsername, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError } from '@/lib/account-settings'
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   const { data: existing } = await service
     .from('profiles')
     .select('id')
-    .ilike('username', username)
+    .ilike('username', escapeLike(username))
     .maybeSingle()
 
   if (existing) {

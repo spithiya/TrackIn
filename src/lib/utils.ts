@@ -5,6 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// ilike treats % and _ as wildcards — escape them so values match literally
+// (otherwise "jane_doe" would also match "jane-doe").
+export function escapeLike(value: string) {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
 export function initials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase()
 }

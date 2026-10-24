@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { escapeLike } from '@/lib/utils'
 import { checkRateLimit, getIp } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
   const { data } = await service
     .from('profiles')
     .select('email, auth_email')
-    .ilike('username', username)
+    .ilike('username', escapeLike(username))
     .maybeSingle()
 
   if (!data?.email) {

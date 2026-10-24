@@ -2,6 +2,7 @@
 
 import { createServiceClient } from '@/lib/supabase/server'
 import { requirePermissionForAction } from '@/lib/permissions'
+import { escapeLike } from '@/lib/utils'
 
 interface ParentContactInput {
   full_name: string
@@ -23,11 +24,6 @@ interface AddStudentInput {
 }
 
 export type DuplicateStudent = { id: string; is_active: boolean }
-
-// ilike treats % and _ as wildcards — escape them so names match literally.
-function escapeLike(value: string) {
-  return value.replace(/[\\%_]/g, '\\$&')
-}
 
 export async function addStudent(
   input: AddStudentInput
