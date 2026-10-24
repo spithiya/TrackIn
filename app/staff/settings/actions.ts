@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, isUsernameConflictError } from '@/lib/account-settings'
+import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, isUsernameConflictError, isDuplicateEmailError, DUPLICATE_EMAIL_ERROR } from '@/lib/account-settings'
 import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
 
 export async function updateProfileInfo(input: {
@@ -75,7 +75,7 @@ export async function updateAccountSecurity(input: {
       email,
       email_confirm: true,
     })
-    if (emailError) return { error: emailError.message }
+    if (emailError) return { error: isDuplicateEmailError(emailError) ? DUPLICATE_EMAIL_ERROR : emailError.message }
   }
 
   if (input.newPassword) {

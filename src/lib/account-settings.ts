@@ -44,11 +44,17 @@ export function deriveTaggedEmail(realEmail: string, tag: string): string | null
   return `${realEmail.slice(0, at)}+${tag}${realEmail.slice(at)}`
 }
 
-export function isDuplicateEmailError(error: { code?: string; message?: string } | null): boolean {
+export function isDuplicateEmailError(error: { code?: string; message?: string; status?: number } | null): boolean {
   if (!error) return false
   if (error.code === 'email_exists') return true
+  // Creating a user with a taken email gets a proper email_exists, but
+  // changing an existing user's email to a taken one comes back from
+  // Supabase Auth as a bare 500 with an empty body (message "{}").
+  if (error.status === 500 && (error.message ?? '').trim() === '{}') return true
   return /already.*(registered|exists)/i.test(error.message ?? '')
 }
+
+export const DUPLICATE_EMAIL_ERROR = 'That email is already used by another account.'
 
 // Catches the case where two requests race past the app-level
 // isUsernameTaken() check at the same instant — the database's unique
