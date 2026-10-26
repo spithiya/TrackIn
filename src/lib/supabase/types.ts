@@ -156,7 +156,7 @@ export type Database = {
           role_title: string | null
           location_id: string
           location_ids: string[] | null
-          subjects: 'math' | 'reading' | 'both'
+          subjects: 'math' | 'reading' | 'both' | null
           is_active: boolean
           created_at: string
           can_manage_students: boolean
@@ -176,7 +176,7 @@ export type Database = {
           role_title?: string | null
           location_id: string
           location_ids?: string[] | null
-          subjects: 'math' | 'reading' | 'both'
+          subjects?: 'math' | 'reading' | 'both' | null
           is_active?: boolean
           created_at?: string
           can_manage_students?: boolean
@@ -196,7 +196,7 @@ export type Database = {
           role_title?: string | null
           location_id?: string
           location_ids?: string[] | null
-          subjects?: 'math' | 'reading' | 'both'
+          subjects?: 'math' | 'reading' | 'both' | null
           is_active?: boolean
           created_at?: string
           can_manage_students?: boolean

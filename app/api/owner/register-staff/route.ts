@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     phone, role_title, dob, subjects,
   } = await request.json()
 
-  if (!first_name || !last_name || !email || !username || !password || !subjects) {
+  if (!first_name || !last_name || !email || !username || !password) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
   if (!USERNAME_RE.test(username)) {
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       phone: phone?.trim() || null,
       role_title: role_title?.trim() || null,
       dob: dob || null,
-      subjects,
+      subjects: subjects || null,
       location_id: location.id,
       is_active: true,
     })

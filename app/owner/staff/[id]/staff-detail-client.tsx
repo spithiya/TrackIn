@@ -177,11 +177,11 @@ export function StaffDetailClient({
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">Subjects</label>
-                <div className="flex gap-3">
-                  {(['math', 'reading', 'both'] as const).map(s => (
-                    <label key={s} className="flex items-center gap-2 cursor-pointer">
+                <div className="flex flex-wrap gap-3">
+                  {([null, 'math', 'reading', 'both'] as const).map(s => (
+                    <label key={s ?? 'none'} className="flex items-center gap-2 cursor-pointer">
                       <input type="radio" checked={draft.subjects === s} onChange={() => setDraft(p => ({ ...p, subjects: s }))} className="accent-blue-600" />
-                      <span className="text-sm">{s === 'both' ? 'Math + Reading' : s.charAt(0).toUpperCase() + s.slice(1)}</span>
+                      <span className="text-sm">{s === null ? 'Not specified' : s === 'both' ? 'Math + Reading' : s.charAt(0).toUpperCase() + s.slice(1)}</span>
                     </label>
                   ))}
                 </div>

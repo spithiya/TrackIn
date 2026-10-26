@@ -40,7 +40,7 @@ export async function updateStaff(
     phone: string | null
     email: string | null
     role_title: string | null
-    subjects: 'math' | 'reading' | 'both'
+    subjects: 'math' | 'reading' | 'both' | null
     location_id: string
     location_ids: string[] | null
   }
