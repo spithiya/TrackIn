@@ -50,7 +50,33 @@ function getTimeWindow(location: Location | undefined): { minTime?: string; maxT
     maxTime: format(toMinutes(location.closes_at) + 60),
   }
 }
-type StaffMember = { id: string; first_name: string; last_name: string; location_id: string }
+type StaffMember = { id: string; first_name: string; last_name: string; location_id: string; is_active: boolean }
+
+function formatWeekday(date: string) {
+  return new Date(date).toLocaleDateString('en-US', { weekday: 'long' })
+}
+
+// Deactivated staff stay selectable — their past shifts are still on
+// record and may need filtering or correcting — but grouped below the
+// active ones so they're not picked by accident.
+function StaffOptions({ staff }: { staff: StaffMember[] }) {
+  const active = staff.filter(s => s.is_active)
+  const inactive = staff.filter(s => !s.is_active)
+  return (
+    <>
+      {active.map(s => (
+        <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
+      ))}
+      {inactive.length > 0 && (
+        <optgroup label="Deactivated">
+          {inactive.map(s => (
+            <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
+          ))}
+        </optgroup>
+      )}
+    </>
+  )
+}
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
@@ -309,13 +335,13 @@ export function TimesheetsClient({
   }
 
   function getTableData() {
-    const headers = ['Staff', 'Role', 'Location', 'Date', 'Clock In', 'Clock Out', 'Duration']
+    const headers = ['Staff', 'Role', 'Day', 'Date', 'Clock In', 'Clock Out', 'Duration']
     const body = rows.map(r => {
       const staff = r.staff_members
       return [
         staff ? `${staff.last_name}, ${staff.first_name}` : '—',
         staff?.role_title ?? '—',
-        locationMap[r.location_id] ?? '—',
+        formatWeekday(r.checked_in_at),
         formatDate(r.checked_in_at),
         formatTime(r.checked_in_at),
         r.checked_out_at ? formatTime(r.checked_out_at) : '—',
@@ -451,9 +477,7 @@ export function TimesheetsClient({
           className="text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
         >
           <option value="">All staff</option>
-          {staffList.map(s => (
-            <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
-          ))}
+          <StaffOptions staff={staffList} />
         </select>
         <div className="flex items-center gap-2">
           <DateInput value={from} onChange={setFrom} className="w-36" />
@@ -514,7 +538,7 @@ export function TimesheetsClient({
                 <thead>
                   <tr className="border-b border-slate-200 bg-[#ECEEF1]">
                     <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Staff</th>
-                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Location</th>
+                    <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Day</th>
                     <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Date</th>
                     <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Clock In</th>
                     <th className="text-left px-4 py-3 text-[#3D4A5C] font-medium text-xs uppercase tracking-wide">Clock Out</th>
@@ -535,7 +559,7 @@ export function TimesheetsClient({
                             <p className="text-xs text-slate-400 mt-0.5">{staff.role_title}</p>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-slate-500">{locationMap[r.location_id] ?? '—'}</td>
+                        <td className="px-4 py-3 text-slate-500">{formatWeekday(r.checked_in_at)}</td>
                         <td className="px-4 py-3 text-slate-500">{formatDate(r.checked_in_at)}</td>
                         <td className="px-4 py-3 text-slate-500 font-mono">{formatTime(r.checked_in_at)}</td>
                         <td className="px-4 py-3 text-slate-500 font-mono">
@@ -593,18 +617,16 @@ export function TimesheetsClient({
                 onChange={e => setEditStaffId(e.target.value)}
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
               >
-                {/* staffList only has active staff — if this entry belongs to
-                    someone since deactivated/removed, keep them selectable so
-                    saving without touching this field doesn't silently
-                    reassign the entry to whoever the first option happens to be. */}
+                {/* Safety net for an entry whose staff member isn't in
+                    staffList at all — keep them selectable so saving without
+                    touching this field doesn't silently reassign the entry
+                    to whoever the first option happens to be. */}
                 {!staffMap[editRow.staff_id] && editRow.staff_members && (
                   <option value={editRow.staff_id}>
-                    {editRow.staff_members.last_name}, {editRow.staff_members.first_name} (inactive)
+                    {editRow.staff_members.last_name}, {editRow.staff_members.first_name}
                   </option>
                 )}
-                {staffList.map(s => (
-                  <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
-                ))}
+                <StaffOptions staff={staffList} />
               </select>
             </div>
             <div>
@@ -640,9 +662,7 @@ export function TimesheetsClient({
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#3D4A5C]"
             >
               <option value="">Select staff…</option>
-              {staffList.map(s => (
-                <option key={s.id} value={s.id}>{s.last_name}, {s.first_name}</option>
-              ))}
+              <StaffOptions staff={staffList} />
             </select>
           </div>
           <div>

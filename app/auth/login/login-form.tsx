@@ -89,7 +89,12 @@ export function LoginForm({ urlError, urlMessage }: { urlError?: string; urlMess
 
     if (signInError) {
       setPassword('')
-      setError('Incorrect username or password.')
+      // A deactivated staff login is banned in Supabase Auth. This only
+      // tells someone that a username they already know is deactivated —
+      // the username lookup above already reveals whether it exists.
+      setError(signInError.code === 'user_banned'
+        ? 'This account has been deactivated. Contact the owner if you think this is a mistake.'
+        : 'Incorrect username or password.')
       setLoading(false)
       return
     }

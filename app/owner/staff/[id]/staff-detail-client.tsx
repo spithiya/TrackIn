@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateStaff, deleteStaff, updateStaffPermissions, updateStaffLogin } from './actions'
+import { updateStaff, deleteStaff, updateStaffPermissions, updateStaffLogin, setStaffActive } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -10,7 +10,8 @@ import { DateInput } from '@/components/ui/date-input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SubjectTags } from '@/components/students/subject-tags'
-import { ArrowLeft, Pencil, Check, X } from 'lucide-react'
+import { ArrowLeft, Pencil, Check, X, UserX, UserCheck } from 'lucide-react'
+import { Modal } from '@/components/ui/modal'
 import Link from 'next/link'
 import { Toast } from '@/components/ui/toast'
 import type { Tables } from '@/lib/supabase/types'
@@ -30,10 +31,12 @@ export function StaffDetailClient({
   member: initialMember,
   locations,
   initialUsername,
+  hasHistory,
 }: {
   member: StaffMember
   locations: Location[]
   initialUsername: string | null
+  hasHistory: boolean
 }) {
   const router = useRouter()
   const [member, setMember] = useState(initialMember)
@@ -48,6 +51,8 @@ export function StaffDetailClient({
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastState>(null)
   const [savingPermissions, setSavingPermissions] = useState(false)
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  const [changingStatus, setChangingStatus] = useState(false)
 
   const locationMap = Object.fromEntries(locations.map(l => [l.id, l.name]))
 
@@ -107,6 +112,21 @@ export function StaffDetailClient({
     setToast({ message: 'Changes saved.', variant: 'green' })
   }
 
+  async function changeActive(active: boolean) {
+    setChangingStatus(true)
+    setError(null)
+    const result = await setStaffActive(member.id, active)
+    setChangingStatus(false)
+    setConfirmDeactivate(false)
+    if (result.error) { setToast({ message: result.error, variant: 'red' }); return }
+    setMember(m => ({ ...m, is_active: active }))
+    setToast({
+      message: active ? `${member.first_name} has been reactivated.` : `${member.first_name} has been deactivated.`,
+      variant: 'green',
+    })
+    router.refresh()
+  }
+
   async function handleDelete() {
     setDeleting(true)
     const result = await deleteStaff(member.id)
@@ -123,8 +143,20 @@ export function StaffDetailClient({
         <h1 className="text-2xl font-semibold text-slate-900">
           {member.first_name} {member.last_name}
         </h1>
-        <Badge variant="green">Active</Badge>
+        <Badge variant={member.is_active ? 'green' : 'gray'}>{member.is_active ? 'Active' : 'Deactivated'}</Badge>
       </div>
+
+      {!member.is_active && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">
+            This staff member is deactivated. They can&apos;t sign in, and their records are kept.
+          </p>
+          <Button size="sm" variant="secondary" onClick={() => changeActive(true)} disabled={changingStatus}>
+            <UserCheck size={14} className="mr-1.5" />
+            {changingStatus ? 'Reactivating…' : 'Reactivate'}
+          </Button>
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
@@ -296,33 +328,6 @@ export function StaffDetailClient({
                 <dt className="text-slate-500">Date of Birth</dt>
                 <dd className="text-slate-700">{member.dob ?? '—'}</dd>
               </div>
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
-                {!confirmDelete ? (
-                  <button
-                    onClick={() => setConfirmDelete(true)}
-                    className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    Delete staff member
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-600">Are you sure?</span>
-                    <button
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors disabled:opacity-50"
-                    >
-                      {deleting ? 'Deleting…' : 'Yes, delete'}
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(false)}
-                      className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
             </dl>
           )}
         </CardContent>
@@ -357,6 +362,82 @@ export function StaffDetailClient({
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Account Status</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {member.is_active ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-slate-500 flex-1 min-w-[200px]">
+                On leave, on vacation, or no longer working here? Deactivating blocks their
+                login but keeps their timesheets and history. You can reactivate them anytime.
+              </p>
+              <Button size="sm" variant="secondary" onClick={() => setConfirmDeactivate(true)}>
+                <UserX size={14} className="mr-1.5" /> Deactivate
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-slate-500 flex-1 min-w-[200px]">
+                Deactivated. Reactivate to let them sign in and clock in again.
+              </p>
+              <Button size="sm" variant="secondary" onClick={() => changeActive(true)} disabled={changingStatus}>
+                <UserCheck size={14} className="mr-1.5" /> {changingStatus ? 'Reactivating…' : 'Reactivate'}
+              </Button>
+            </div>
+          )}
+          {!hasHistory && (
+            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-slate-400 flex-1 min-w-[200px]">
+                No timesheet history yet, so this staff member can also be deleted entirely.
+              </p>
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Delete staff member
+                </button>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-600">Are you sure?</span>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="text-sm font-semibold text-red-600 hover:text-red-800 transition-colors disabled:opacity-50"
+                  >
+                    {deleting ? 'Deleting…' : 'Yes, delete'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Modal open={confirmDeactivate} onClose={() => setConfirmDeactivate(false)} title={`Deactivate ${member.first_name}?`}>
+        <div className="space-y-4">
+          <ul className="text-sm text-slate-600 space-y-1.5 list-disc pl-5">
+            <li>They won&apos;t be able to sign in.</li>
+            <li>If they&apos;re clocked in right now, they&apos;ll be clocked out.</li>
+            <li>They won&apos;t appear in check-in control or the staff list (find them under Deactivated).</li>
+            <li>Their timesheets and history are kept.</li>
+          </ul>
+          <p className="text-sm text-slate-500">You can reactivate them anytime.</p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" size="sm" onClick={() => setConfirmDeactivate(false)} disabled={changingStatus}>Cancel</Button>
+            <Button size="sm" onClick={() => changeActive(false)} disabled={changingStatus}>
+              {changingStatus ? 'Deactivating…' : 'Deactivate'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 w-80">

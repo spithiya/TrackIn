@@ -22,6 +22,7 @@ export function StaffClient({
   locations: Location[]
 }) {
   const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('active')
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
@@ -46,10 +47,11 @@ export function StaffClient({
     const q = query.toLowerCase()
     const results = staff.filter(
       s =>
-        !q ||
-        s.first_name.toLowerCase().includes(q) ||
-        s.last_name.toLowerCase().includes(q) ||
-        s.email?.toLowerCase().includes(q)
+        (statusFilter === 'all' || s.is_active === (statusFilter === 'active')) &&
+        (!q ||
+          s.first_name.toLowerCase().includes(q) ||
+          s.last_name.toLowerCase().includes(q) ||
+          s.email?.toLowerCase().includes(q))
     )
     return [...results].sort((a, b) => {
       let cmp = 0
@@ -57,7 +59,13 @@ export function StaffClient({
       if (sortKey === 'location') cmp = (locationMap[a.location_id] ?? '').localeCompare(locationMap[b.location_id] ?? '')
       return sortDir === 'asc' ? cmp : -cmp
     })
-  }, [staff, query, sortKey, sortDir, locationMap])
+  }, [staff, query, statusFilter, sortKey, sortDir, locationMap])
+
+  const counts = useMemo(() => {
+    const active = staff.filter(s => s.is_active).length
+    return { active, inactive: staff.length - active, all: staff.length }
+  }, [staff])
+  const scopeTotal = counts[statusFilter]
 
   return (
     <div className="space-y-5">
@@ -71,7 +79,8 @@ export function StaffClient({
         </Link>
       </div>
 
-      <div className="relative max-w-sm">
+      <div className="flex flex-wrap items-center gap-3">
+      <div className="relative flex-1 min-w-48 max-w-sm">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         <input
           autoFocus
@@ -86,12 +95,36 @@ export function StaffClient({
           </button>
         )}
       </div>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5" role="tablist" aria-label="Filter by status">
+        {([
+          ['active', 'Active'],
+          ['inactive', 'Deactivated'],
+          ['all', 'All'],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            role="tab"
+            aria-selected={statusFilter === value}
+            onClick={() => setStatusFilter(value)}
+            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              statusFilter === value ? 'bg-[#3D4A5C] text-white' : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            {label} <span className={statusFilter === value ? 'text-white/70' : 'text-slate-400'}>{counts[value]}</span>
+          </button>
+        ))}
+      </div>
+      </div>
 
       <Card>
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <p className="text-sm text-slate-400 py-12 text-center">
-              {staff.length === 0 ? 'No staff registered yet.' : 'No staff match your search.'}
+              {staff.length === 0
+                ? 'No staff registered yet.'
+                : scopeTotal === 0
+                  ? statusFilter === 'inactive' ? 'No deactivated staff.' : 'No active staff.'
+                  : 'No staff match your search.'}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -131,7 +164,7 @@ export function StaffClient({
                       <td className="px-4 py-3 text-slate-500">{locationMap[s.location_id] ?? '—'}</td>
                       <td className="px-4 py-3">
                         <Badge variant={s.is_active ? 'green' : 'gray'}>
-                          {s.is_active ? 'Active' : 'Inactive'}
+                          {s.is_active ? 'Active' : 'Deactivated'}
                         </Badge>
                       </td>
                     </tr>
@@ -143,7 +176,7 @@ export function StaffClient({
         </CardContent>
       </Card>
 
-      <p className="text-xs text-slate-400">{filtered.length} of {staff.length} staff members</p>
+      <p className="text-xs text-slate-400">{filtered.length} of {scopeTotal} {statusFilter === 'inactive' ? 'deactivated ' : statusFilter === 'active' ? 'active ' : ''}staff members</p>
     </div>
   )
 }

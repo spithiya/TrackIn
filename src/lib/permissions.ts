@@ -32,19 +32,23 @@ export async function getAccessContext(): Promise<AccessContext | null> {
 
   const { data: member } = await supabase
     .from('staff_members')
-    .select('can_manage_students, can_view_history, can_view_analytics, can_control_checkin')
+    .select('is_active, can_manage_students, can_view_history, can_view_analytics, can_control_checkin')
     .eq('profile_id', user.id)
     .maybeSingle()
+
+  // A deactivated staff member's login is banned, but a session opened
+  // before that keeps working until its token expires — grant nothing.
+  const enabled = member?.is_active ?? false
 
   return {
     userId: user.id,
     orgId: profile.org_id,
     role: 'staff',
     permissions: {
-      manage_students: member?.can_manage_students ?? false,
-      view_history: member?.can_view_history ?? false,
-      view_analytics: member?.can_view_analytics ?? false,
-      control_checkin: member?.can_control_checkin ?? false,
+      manage_students: enabled && (member?.can_manage_students ?? false),
+      view_history: enabled && (member?.can_view_history ?? false),
+      view_analytics: enabled && (member?.can_view_analytics ?? false),
+      control_checkin: enabled && (member?.can_control_checkin ?? false),
     },
   }
 }

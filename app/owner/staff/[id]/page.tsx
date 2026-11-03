@@ -23,11 +23,19 @@ export default async function StaffDetailPage({ params }: { params: Promise<{ id
 
   if (!member) notFound()
 
+  // Delete is only offered when it wouldn't erase history; otherwise the
+  // owner deactivates instead (see deleteStaff).
+  const [{ count: checkinsCount }, { count: notifCount }] = await Promise.all([
+    supabase.from('staff_checkins').select('*', { count: 'exact', head: true }).eq('staff_id', id).eq('org_id', access.orgId),
+    supabase.from('staff_notifications').select('*', { count: 'exact', head: true }).eq('staff_id', id).eq('org_id', access.orgId),
+  ])
+  const hasHistory = (checkinsCount ?? 0) > 0 || (notifCount ?? 0) > 0
+
   let username: string | null = null
   if (member.profile_id) {
     const { data: profile } = await supabase.from('profiles').select('username').eq('id', member.profile_id).single()
     username = profile?.username ?? null
   }
 
-  return <StaffDetailClient member={member} locations={locations ?? []} initialUsername={username} />
+  return <StaffDetailClient member={member} locations={locations ?? []} initialUsername={username} hasHistory={hasHistory} />
 }

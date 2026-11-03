@@ -10,9 +10,8 @@ export default async function OwnerTimesheetsPage() {
     supabase.from('locations').select('id, name, opens_at, closes_at').eq('org_id', access.orgId),
     supabase
       .from('staff_members')
-      .select('id, first_name, last_name, location_id')
+      .select('id, first_name, last_name, location_id, is_active')
       .eq('org_id', access.orgId)
-      .eq('is_active', true)
       .order('last_name'),
   ])
 

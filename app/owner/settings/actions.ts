@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { USERNAME_RE, verifyCurrentPassword, isUsernameTaken, deriveTaggedEmail, isDuplicateEmailError, isUsernameConflictError, DUPLICATE_EMAIL_ERROR } from '@/lib/account-settings'
 import { requireOwnerForAction } from '@/lib/permissions'
 import { isBreachedPassword, BREACHED_PASSWORD_ERROR } from '@/lib/password-check'
+import { DEFAULT_ORG_SETTINGS, type OrgDisplaySettings } from '@/lib/org-settings'
 
 export async function updateProfileInfo(input: {
   full_name: string
@@ -221,4 +222,20 @@ export async function deleteMyAccount(currentPassword: string): Promise<{ error?
   await service.from('organizations').delete().eq('id', profile.org_id)
 
   return {}
+}
+
+// Settings → Kiosk / Live Display toggles. Each flip saves on its own.
+export async function updateOrgSettings(patch: Partial<OrgDisplaySettings>): Promise<{ error?: string }> {
+  const access = await requireOwnerForAction()
+  if (!access.orgId) return { error: access.error }
+
+  // Only known keys with real booleans — this is callable from the browser.
+  const updates: Partial<OrgDisplaySettings> = {}
+  for (const key of Object.keys(DEFAULT_ORG_SETTINGS) as (keyof OrgDisplaySettings)[]) {
+    if (typeof patch[key] === 'boolean') updates[key] = patch[key]
+  }
+  if (!Object.keys(updates).length) return {}
+
+  const { error } = await createServiceClient().from('organizations').update(updates).eq('id', access.orgId)
+  return error ? { error: error.message } : {}
 }

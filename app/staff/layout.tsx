@@ -16,9 +16,27 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   const { data: member } = await supabase
     .from('staff_members')
-    .select('id, location_id, location_ids, can_manage_students, can_view_history, can_view_analytics, can_control_checkin')
+    .select('id, is_active, location_id, location_ids, can_manage_students, can_view_history, can_view_analytics, can_control_checkin')
     .eq('profile_id', user.id)
     .maybeSingle()
+
+  // Deactivation bans the login, but a session opened before that stays
+  // valid until its token expires — don't let it keep using the portal.
+  if (member && !member.is_active) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F7FF] p-6">
+        <div className="max-w-sm w-full bg-white rounded-xl border border-[#BECDE8] p-6 text-center space-y-4">
+          <h1 className="text-lg font-semibold text-[#0F2040]">Account deactivated</h1>
+          <p className="text-sm text-slate-600">
+            Your staff account has been deactivated. If you think this is a mistake, contact the owner.
+          </p>
+          <div className="flex justify-center">
+            <SignOutButton variant="header" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const locationIds = member
     ? [member.location_id, ...(member.location_ids ?? [])]

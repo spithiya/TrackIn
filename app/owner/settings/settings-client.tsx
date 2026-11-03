@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateProfileInfo, updateAccountSecurity, updateKioskPassword, updateKioskUsername, deleteMyAccount } from './actions'
+import { updateProfileInfo, updateAccountSecurity, updateKioskPassword, updateKioskUsername, deleteMyAccount, updateOrgSettings } from './actions'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
 import { RequiredNote } from '@/components/ui/required-note'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, User, ShieldCheck, Tablet, MonitorPlay, AlertTriangle } from 'lucide-react'
+import { SettingsLayout, SettingsSection, ToggleRow, useSettingsTab, type SettingsGroup } from '@/components/settings/settings-layout'
+import type { OrgDisplaySettings } from '@/lib/org-settings'
 
 type Profile = {
   full_name: string
@@ -29,9 +31,54 @@ type KioskAccount = {
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
-export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; kioskAccounts: KioskAccount[] }) {
+const GROUPS: SettingsGroup[] = [
+  {
+    label: 'Account',
+    tabs: [
+      { id: 'profile', label: 'Profile', icon: User },
+      { id: 'security', label: 'Account & Security', icon: ShieldCheck },
+    ],
+  },
+  {
+    label: 'Center',
+    tabs: [
+      { id: 'kiosk', label: 'Kiosk', icon: Tablet },
+      { id: 'live', label: 'Live Display', icon: MonitorPlay },
+    ],
+  },
+  { tabs: [{ id: 'danger', label: 'Danger Zone', icon: AlertTriangle, danger: true }] },
+]
+
+export function SettingsClient({
+  profile,
+  kioskAccounts,
+  orgSettings,
+}: {
+  profile: Profile
+  kioskAccounts: KioskAccount[]
+  orgSettings: OrgDisplaySettings
+}) {
   const router = useRouter()
   const [toast, setToast] = useState<ToastState>(null)
+  const [tab, setTab] = useSettingsTab(GROUPS)
+
+  // Center preferences — saved the moment a toggle flips
+  const [prefs, setPrefs] = useState(orgSettings)
+  const [savingPref, setSavingPref] = useState<keyof OrgDisplaySettings | null>(null)
+
+  async function savePref(key: keyof OrgDisplaySettings, value: boolean) {
+    const previous = prefs
+    setPrefs(p => ({ ...p, [key]: value }))
+    setSavingPref(key)
+    const result = await updateOrgSettings({ [key]: value })
+    setSavingPref(null)
+    if (result.error) {
+      setPrefs(previous)
+      setToast({ message: result.error, variant: 'red' })
+    } else {
+      setToast({ message: 'Setting saved.', variant: 'green' })
+    }
+  }
 
   const [revealedKioskId, setRevealedKioskId] = useState<string | null>(null)
 
@@ -171,145 +218,185 @@ export function SettingsClient({ profile, kioskAccounts }: { profile: Profile; k
         </div>
       )}
 
-      <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
+      <SettingsLayout groups={GROUPS} active={tab} onChange={setTab}>
+        {tab === 'profile' && (
+          <SettingsSection title="Profile" description="Your name and contact number.">
+            <form onSubmit={handleSaveProfile}>
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <RequiredNote />
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">Full Name *</label>
+                    <Input required value={fullName} onChange={e => setFullName(e.target.value)} onClear={() => setFullName('')} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">Phone</label>
+                    <Input type="tel" value={phone} onChange={e => setPhone(e.target.value)} onClear={() => setPhone('')} placeholder="(555) 000-0000" />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={savingProfile}>
+                      {savingProfile ? 'Saving…' : 'Save Profile'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </form>
+          </SettingsSection>
+        )}
 
-      {/* Two columns on wide screens (stacked on narrow ones): profile and
-          kiosk on the left, account & security on the right. */}
-      <div className="grid gap-5 lg:grid-cols-2 items-start">
-      <div className="space-y-5">
-      <form onSubmit={handleSaveProfile}>
-        <Card>
-          <CardHeader><CardTitle>Profile Info</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <RequiredNote />
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Full Name *</label>
-              <Input required value={fullName} onChange={e => setFullName(e.target.value)} onClear={() => setFullName('')} />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Phone</label>
-              <Input type="tel" value={phone} onChange={e => setPhone(e.target.value)} onClear={() => setPhone('')} placeholder="(555) 000-0000" />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingProfile}>
-                {savingProfile ? 'Saving…' : 'Save Profile'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </form>
-
-      <Card>
-        <CardHeader><CardTitle>Kiosk Login</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-slate-500">
-            Your kiosk uses its own login, separate from yours, so it can be left
-            signed in on a shared device without exposing your account. New kiosk
-            logins come with a randomly generated password, shown below until you
-            set your own with Change Password.
-          </p>
-          {!kioskAccounts.length ? (
-            <p className="text-sm text-slate-400">No kiosk account yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {kioskAccounts.map(account => (
-                <div key={account.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-800 font-mono">{account.username}</p>
-                    <p className="text-xs text-slate-400">
-                      {account.locationName ? account.locationName : 'Not linked to a location yet'}
-                    </p>
-                    {account.defaultPassword && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
-                        Password:
-                        <span className="font-mono text-slate-700">
-                          {revealedKioskId === account.id ? account.defaultPassword : '••••-••••-••••'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setRevealedKioskId(id => (id === account.id ? null : account.id))}
-                          aria-label={revealedKioskId === account.id ? 'Hide password' : 'Show password'}
-                          className="text-slate-400 hover:text-slate-600"
-                        >
-                          {revealedKioskId === account.id ? <EyeOff size={13} /> : <Eye size={13} />}
-                        </button>
-                      </p>
+        {tab === 'security' && (
+          <SettingsSection title="Account & Security" description="Your sign-in username, email, and password.">
+            <form onSubmit={handleSaveAccount}>
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <RequiredNote />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-slate-700">Username *</label>
+                      <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-slate-700">Email *</label>
+                      <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-slate-700">New Password</label>
+                      <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Leave blank to keep current" />
+                    </div>
+                    {newPassword && (
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-slate-700">Confirm New Password *</label>
+                        <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+                      </div>
                     )}
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Button type="button" variant="secondary" size="sm" onClick={() => openKioskUsername(account)}>
-                      Edit Username
-                    </Button>
-                    <Button type="button" variant="secondary" size="sm" onClick={() => openKioskPassword(account)}>
-                      Change Password
+                  <div className="pt-2 border-t border-slate-100 space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">Current Password *</label>
+                    <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={savingAccount}>
+                      {savingAccount ? 'Saving…' : 'Save Account Settings'}
                     </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      </div>
+                </CardContent>
+              </Card>
+            </form>
+          </SettingsSection>
+        )}
 
-      <form onSubmit={handleSaveAccount}>
-        <Card>
-          <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <RequiredNote />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-slate-700">Username *</label>
-                <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
-              </div>
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-slate-700">Email *</label>
-                <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-slate-700">New Password</label>
-                <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Leave blank to keep current" />
-              </div>
-              {newPassword && (
-                <div className="space-y-1">
-                  <label className="block text-sm font-medium text-slate-700">Confirm New Password *</label>
-                  <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
-                </div>
-              )}
-            </div>
-            <div className="pt-2 border-t border-slate-100 space-y-1">
-              <label className="block text-sm font-medium text-slate-700">Current Password *</label>
-              <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingAccount}>
-                {savingAccount ? 'Saving…' : 'Save Account Settings'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </form>
-      </div>
+        {tab === 'kiosk' && (
+          <SettingsSection title="Kiosk" description="The front-desk screen students use to check in and out.">
+            <Card>
+              <CardHeader><CardTitle>Student List</CardTitle></CardHeader>
+              <CardContent className="divide-y divide-slate-100">
+                <ToggleRow
+                  label="Hide checked-in students"
+                  description="Checked-in students still appear when they search their name."
+                  checked={prefs.kiosk_hide_checked_in}
+                  onChange={v => savePref('kiosk_hide_checked_in', v)}
+                  disabled={savingPref === 'kiosk_hide_checked_in'}
+                />
+                <ToggleRow
+                  label="Show student count"
+                  checked={prefs.kiosk_show_student_count}
+                  onChange={v => savePref('kiosk_show_student_count', v)}
+                  disabled={savingPref === 'kiosk_show_student_count'}
+                />
+              </CardContent>
+            </Card>
 
-      <Card className="border-red-200">
-        <CardHeader><CardTitle className="text-red-700">Danger Zone</CardTitle></CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-slate-500">
-            Permanently delete your account. This cannot be undone.
-          </p>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() => { setDeleteOpen(true); setDeletePassword(''); setDeleteConfirmText(''); setDeleteError(null) }}
-            >
-              Delete Account
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <Card>
+              <CardHeader><CardTitle>Kiosk Login</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-slate-500">
+                  Your kiosk uses its own login, separate from yours, so it can be left
+                  signed in on a shared device without exposing your account. New kiosk
+                  logins come with a randomly generated password, shown below until you
+                  set your own with Change Password.
+                </p>
+                {!kioskAccounts.length ? (
+                  <p className="text-sm text-slate-400">No kiosk account yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {kioskAccounts.map(account => (
+                      <div key={account.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800 font-mono">{account.username}</p>
+                          <p className="text-xs text-slate-400">
+                            {account.locationName ? account.locationName : 'Not linked to a location yet'}
+                          </p>
+                          {account.defaultPassword && (
+                            <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                              Password:
+                              <span className="font-mono text-slate-700">
+                                {revealedKioskId === account.id ? account.defaultPassword : '••••-••••-••••'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setRevealedKioskId(id => (id === account.id ? null : account.id))}
+                                aria-label={revealedKioskId === account.id ? 'Hide password' : 'Show password'}
+                                className="text-slate-400 hover:text-slate-600"
+                              >
+                                {revealedKioskId === account.id ? <EyeOff size={13} /> : <Eye size={13} />}
+                              </button>
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <Button type="button" variant="secondary" size="sm" onClick={() => openKioskUsername(account)}>
+                            Edit Username
+                          </Button>
+                          <Button type="button" variant="secondary" size="sm" onClick={() => openKioskPassword(account)}>
+                            Change Password
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </SettingsSection>
+        )}
+
+        {tab === 'live' && (
+          <SettingsSection title="Live Display" description="The real-time board of checked-in students, often shown on a wall screen.">
+            <Card>
+              <CardContent className="pt-6">
+                <ToggleRow
+                  label="Show parent phone numbers"
+                  checked={prefs.live_show_contact_phone}
+                  onChange={v => savePref('live_show_contact_phone', v)}
+                  disabled={savingPref === 'live_show_contact_phone'}
+                />
+              </CardContent>
+            </Card>
+          </SettingsSection>
+        )}
+
+        {tab === 'danger' && (
+          <SettingsSection title="Danger Zone" danger>
+            <Card className="border-red-200">
+              <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Delete account</p>
+                  <p className="text-sm text-slate-500">Permanently delete your account. This cannot be undone.</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() => { setDeleteOpen(true); setDeletePassword(''); setDeleteConfirmText(''); setDeleteError(null) }}
+                >
+                  Delete Account
+                </Button>
+              </CardContent>
+            </Card>
+          </SettingsSection>
+        )}
+      </SettingsLayout>
 
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete Account">
         <form onSubmit={handleDeleteAccount} className="space-y-4">

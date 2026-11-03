@@ -38,9 +38,10 @@ const GRID_MIN_WIDTH: Record<Density, string> = {
   dense: '155px',
 }
 
-function StudentTile({ s, density }: { s: Views<'active_students'>; density: Density }) {
+function StudentTile({ s, density, showPhone }: { s: Views<'active_students'>; density: Density; showPhone: boolean }) {
   const { status } = useTimerStatus(s.checked_in_at, s.subjects_snapshot)
-  const hasContact = s.primary_contact_name || s.primary_contact_phone
+  const phone = showPhone ? s.primary_contact_phone : null
+  const hasContact = s.primary_contact_name || phone
   const overdue = status === 'red'
   const flashDelay = useMemo(() => (overdue ? -(Date.now() % FLASH_PERIOD_MS) : 0), [overdue])
 
@@ -71,7 +72,7 @@ function StudentTile({ s, density }: { s: Views<'active_students'>; density: Den
           <Phone size={10} className="shrink-0" />
           <span className="truncate">
             {s.primary_contact_name || s.primary_contact_relationship || 'Contact'}
-            {s.primary_contact_phone && ` · ${s.primary_contact_phone}`}
+            {phone && ` · ${phone}`}
           </span>
         </p>
       )}
@@ -84,7 +85,10 @@ function StudentTile({ s, density }: { s: Views<'active_students'>; density: Den
 // left open overnight) so the board never silently goes stale.
 const REFRESH_INTERVAL_MS = 30_000
 
-export function LiveClient({ orgId }: { orgId: string }) {
+// showContactPhone is the owner's Settings → Live Display choice; some
+// places (e.g. under Canadian privacy law) can't show phone numbers on a
+// screen the public can see.
+export function LiveClient({ orgId, showContactPhone }: { orgId: string; showContactPhone: boolean }) {
   const { students, loading: loadingStudents, refetch } = useActiveStudents(orgId)
   const density = getDensity(students.length)
 
@@ -128,7 +132,7 @@ export function LiveClient({ orgId }: { orgId: string }) {
               style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${GRID_MIN_WIDTH[density]}, 1fr))` }}
             >
               {students.map(s => (
-                <StudentTile key={s.id} s={s} density={density} />
+                <StudentTile key={s.id} s={s} density={density} showPhone={showContactPhone} />
               ))}
             </div>
           )}

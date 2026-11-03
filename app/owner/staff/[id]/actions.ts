@@ -108,6 +108,58 @@ export async function updateStaffLogin(
   return {}
 }
 
+// ~100 years: Supabase Auth has no "forever" ban, and "none" lifts it.
+const DEACTIVATED_BAN = '876000h'
+
+// Deactivating keeps the staff member's record and all of their history
+// (timesheets, check-ins) but blocks their login and drops them from
+// everyday lists (check-in control, staff pickers). Reactivating undoes
+// both. The ban is what actually stops sign-in — including a session
+// already open on some device, once its access token expires.
+export async function setStaffActive(staffId: string, active: boolean): Promise<{ error?: string }> {
+  const orgId = await getAuthOrgId()
+  if (!orgId) return { error: 'Not authenticated.' }
+
+  const service = createServiceClient()
+
+  const { data: member } = await service
+    .from('staff_members')
+    .select('profile_id')
+    .eq('id', staffId)
+    .eq('org_id', orgId)
+    .maybeSingle()
+  if (!member) return { error: 'Staff member not found.' }
+
+  if (member.profile_id) {
+    const { error: banError } = await service.auth.admin.updateUserById(member.profile_id, {
+      ban_duration: active ? 'none' : DEACTIVATED_BAN,
+    })
+    if (banError) return { error: banError.message }
+  }
+
+  if (!active) {
+    // Don't leave a deactivated staff member "on the clock" indefinitely.
+    // The duration trigger (migration 005) fills in duration_minutes.
+    const { error: clockOutError } = await service
+      .from('staff_checkins')
+      .update({ checked_out_at: new Date().toISOString(), checked_out_by_owner: true })
+      .eq('staff_id', staffId)
+      .eq('org_id', orgId)
+      .is('checked_out_at', null)
+    if (clockOutError) return { error: clockOutError.message }
+  }
+
+  const { error } = await service
+    .from('staff_members')
+    .update({ is_active: active })
+    .eq('id', staffId)
+    .eq('org_id', orgId)
+  return error ? { error: error.message } : {}
+}
+
+// Only for staff with no history yet (e.g. registered by mistake). Anyone
+// with timesheet or notification records is deactivated instead, so their
+// work history stays intact and attributable.
 export async function deleteStaff(staffId: string): Promise<{ error?: string }> {
   const orgId = await getAuthOrgId()
   if (!orgId) return { error: 'Not authenticated.' }
@@ -127,24 +179,16 @@ export async function deleteStaff(staffId: string): Promise<{ error?: string }> 
     service.from('staff_notifications').select('*', { count: 'exact', head: true }).eq('staff_id', staffId),
   ])
 
-  // No historical records depend on this staff member — safe to fully
-  // remove the row and its login, freeing the email/username for reuse.
-  // Otherwise, keep the deactivate-only path so timesheet/check-in
-  // history stays intact and attributable.
-  if ((checkinsCount ?? 0) === 0 && (notifCount ?? 0) === 0) {
-    const { error } = await service.from('staff_members').delete().eq('id', staffId).eq('org_id', orgId)
-    if (error) return { error: error.message }
-    if (member.profile_id) {
-      const { error: authError } = await service.auth.admin.deleteUser(member.profile_id)
-      if (authError) return { error: authError.message }
-    }
-    return {}
+  if ((checkinsCount ?? 0) > 0 || (notifCount ?? 0) > 0) {
+    return { error: 'This staff member has timesheet history, so they can\'t be deleted without losing it. Deactivate them instead.' }
   }
 
-  const { error } = await service
-    .from('staff_members')
-    .update({ is_active: false })
-    .eq('id', staffId)
-    .eq('org_id', orgId)
-  return error ? { error: error.message } : {}
+  const { error } = await service.from('staff_members').delete().eq('id', staffId).eq('org_id', orgId)
+  if (error) return { error: error.message }
+  if (member.profile_id) {
+    const { error: authError } = await service.auth.admin.deleteUser(member.profile_id)
+    if (authError) return { error: authError.message }
+  }
+  return {}
 }
+

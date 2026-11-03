@@ -1,12 +1,13 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { SettingsClient } from './settings-client'
 import { requireOwner } from '@/lib/permissions'
+import { getOrgDisplaySettings } from '@/lib/org-settings'
 
 export default async function OwnerSettingsPage() {
   const access = await requireOwner()
   const supabase = await createClient()
 
-  const [{ data: profile, error }, { data: kioskProfiles }, { data: locations }] = await Promise.all([
+  const [{ data: profile, error }, { data: kioskProfiles }, { data: locations }, orgSettings] = await Promise.all([
     supabase
       .from('profiles')
       .select('full_name, email, username, phone')
@@ -19,6 +20,7 @@ export default async function OwnerSettingsPage() {
       .eq('role', 'kiosk')
       .order('created_at'),
     supabase.from('locations').select('id, name').eq('org_id', access.orgId),
+    getOrgDisplaySettings(access.orgId),
   ])
 
   // A failed query (e.g. a schema mismatch) is not the same as "not
@@ -50,5 +52,5 @@ export default async function OwnerSettingsPage() {
     defaultPassword: defaultPasswords.get(k.id) ?? null,
   }))
 
-  return <SettingsClient profile={profile} kioskAccounts={kioskAccounts} />
+  return <SettingsClient profile={profile} kioskAccounts={kioskAccounts} orgSettings={orgSettings} />
 }

@@ -7,19 +7,33 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Toast } from '@/components/ui/toast'
 import { RequiredNote } from '@/components/ui/required-note'
+import { User, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { SettingsLayout, SettingsSection, useSettingsTab, type SettingsGroup } from '@/components/settings/settings-layout'
 
 type Profile = { email: string; username: string | null }
 type Member = { first_name: string; last_name: string; phone: string | null }
 
 type ToastState = { message: string; variant: 'green' | 'amber' | 'red' } | null
 
+const GROUPS: SettingsGroup[] = [
+  {
+    label: 'Account',
+    tabs: [
+      { id: 'profile', label: 'Profile', icon: User },
+      { id: 'security', label: 'Account & Security', icon: ShieldCheck },
+    ],
+  },
+  { tabs: [{ id: 'danger', label: 'Danger Zone', icon: AlertTriangle, danger: true }] },
+]
+
 export function SettingsClient({ profile, member }: { profile: Profile; member: Member }) {
   const router = useRouter()
   const [toast, setToast] = useState<ToastState>(null)
+  const [tab, setTab] = useSettingsTab(GROUPS)
 
   // Profile info
   const [firstName, setFirstName] = useState(member.first_name)
@@ -96,100 +110,101 @@ export function SettingsClient({ profile, member }: { profile: Profile; member: 
         </div>
       )}
 
-      <h1 className="text-2xl font-semibold text-[#0F2040]">Settings</h1>
-
-      {/* Two columns on wide screens (stacked on narrow ones): profile and
-          kiosk on the left, account & security on the right. */}
-      <div className="grid gap-5 lg:grid-cols-2 items-start">
-      <div className="space-y-5">
-      <form onSubmit={handleSaveProfile}>
-        <Card>
-          <CardHeader><CardTitle>Profile Info</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <RequiredNote />
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">First Name *</label>
-                <Input required value={firstName} onChange={e => setFirstName(e.target.value)} onClear={() => setFirstName('')} />
-              </div>
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">Last Name *</label>
-                <Input required value={lastName} onChange={e => setLastName(e.target.value)} onClear={() => setLastName('')} />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
-              <Input type="tel" value={phone} onChange={e => setPhone(e.target.value)} onClear={() => setPhone('')} placeholder="(555) 000-0000" />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingProfile} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
-                {savingProfile ? 'Saving…' : 'Save Profile'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </form>
-
-      </div>
-
-      <form onSubmit={handleSaveAccount}>
-        <Card>
-          <CardHeader><CardTitle>Account & Security</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <RequiredNote />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">Username *</label>
-                <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
-              </div>
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">Email *</label>
-                <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">New Password</label>
-                <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Leave blank to keep current" />
-              </div>
-              {newPassword && (
-                <div className="space-y-1">
-                  <label className="block text-sm font-medium text-gray-700">Confirm New Password *</label>
-                  <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+      <SettingsLayout groups={GROUPS} active={tab} onChange={setTab} accent="staff">
+        {tab === 'profile' && (
+          <SettingsSection title="Profile" description="Your name and contact number.">
+          <form onSubmit={handleSaveProfile}>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <RequiredNote />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">First Name *</label>
+                    <Input required value={firstName} onChange={e => setFirstName(e.target.value)} onClear={() => setFirstName('')} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Last Name *</label>
+                    <Input required value={lastName} onChange={e => setLastName(e.target.value)} onClear={() => setLastName('')} />
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className="pt-2 border-t border-gray-100 space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Current Password *</label>
-              <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingAccount} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
-                {savingAccount ? 'Saving…' : 'Save Account Settings'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </form>
-      </div>
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">Phone</label>
+                  <Input type="tel" value={phone} onChange={e => setPhone(e.target.value)} onClear={() => setPhone('')} placeholder="(555) 000-0000" />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={savingProfile} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
+                    {savingProfile ? 'Saving…' : 'Save Profile'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+          </SettingsSection>
+        )}
 
-      <Card className="border-red-200">
-        <CardHeader><CardTitle className="text-red-700">Danger Zone</CardTitle></CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-gray-500">
-            Permanently delete your account. This cannot be undone.
-          </p>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() => { setDeleteOpen(true); setDeletePassword(''); setDeleteConfirmText(''); setDeleteError(null) }}
-            >
-              Delete Account
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        {tab === 'security' && (
+          <SettingsSection title="Account & Security" description="Your sign-in username, email, and password.">
+          <form onSubmit={handleSaveAccount}>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <RequiredNote />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Username *</label>
+                    <Input required value={username} onChange={e => setUsername(e.target.value)} onClear={() => setUsername('')} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Email *</label>
+                    <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} onClear={() => setEmail('')} />
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">New Password</label>
+                    <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Leave blank to keep current" />
+                  </div>
+                  {newPassword && (
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-gray-700">Confirm New Password *</label>
+                      <PasswordInput value={confirmNewPassword} onChange={setConfirmNewPassword} placeholder="Repeat new password" />
+                    </div>
+                  )}
+                </div>
+                <div className="pt-2 border-t border-gray-100 space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">Current Password *</label>
+                  <PasswordInput value={currentPassword} onChange={setCurrentPassword} autoComplete="current-password" placeholder="Required to save changes" />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={savingAccount} className="bg-[#1B3A6B] hover:bg-[#122F5E] focus-visible:ring-[#1B3A6B]">
+                    {savingAccount ? 'Saving…' : 'Save Account Settings'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+          </SettingsSection>
+        )}
+
+        {tab === 'danger' && (
+          <SettingsSection title="Danger Zone" danger>
+            <Card className="border-red-200">
+              <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Delete account</p>
+                  <p className="text-sm text-gray-500">Permanently delete your account. This cannot be undone.</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() => { setDeleteOpen(true); setDeletePassword(''); setDeleteConfirmText(''); setDeleteError(null) }}
+                >
+                  Delete Account
+                </Button>
+              </CardContent>
+            </Card>
+          </SettingsSection>
+        )}
+      </SettingsLayout>
 
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete Account">
         <form onSubmit={handleDeleteAccount} className="space-y-4">

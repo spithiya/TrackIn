@@ -25,15 +25,21 @@ export function KioskClient({
   locationId,
   locationName,
   initialStudents,
+  initialHideCheckedIn,
+  initialShowCount,
 }: {
   locationId: string
   locationName: string
   initialStudents: Student[]
+  initialHideCheckedIn: boolean
+  initialShowCount: boolean
 }) {
   const [state, setState] = useState<KioskState>({ step: 'idle' })
   const [query, setQuery] = useState('')
   const [allStudents] = useState<Student[]>(initialStudents)
   const [activeCheckins, setActiveCheckins] = useState<Map<string, ActiveCheckin>>(new Map())
+  const [hideCheckedIn, setHideCheckedIn] = useState(initialHideCheckedIn)
+  const [showCount, setShowCount] = useState(initialShowCount)
   const [showWelcome, setShowWelcome] = useState(true)
   const posthog = usePostHog()
   const listRef = useRef<HTMLDivElement>(null)
@@ -47,8 +53,10 @@ export function KioskClient({
   const refreshCheckedIn = useCallback(async () => {
     const res = await fetch(`/api/kiosk/${locationId}/active`)
     if (!res.ok) return
-    const { checkins } = await res.json() as { checkins: ActiveCheckin[] }
+    const { checkins, hideCheckedIn, showCount } = await res.json() as { checkins: ActiveCheckin[]; hideCheckedIn?: boolean; showCount?: boolean }
     setActiveCheckins(new Map(checkins.map(c => [c.student_id, c])))
+    if (typeof hideCheckedIn === 'boolean') setHideCheckedIn(hideCheckedIn)
+    if (typeof showCount === 'boolean') setShowCount(showCount)
   }, [locationId])
 
   useEffect(() => {
@@ -57,15 +65,24 @@ export function KioskClient({
     return () => clearInterval(interval)
   }, [refreshCheckedIn])
 
+  // With the owner's "hide checked-in students" setting on, the default
+  // list only shows students who still need to check in, so nobody taps
+  // a checked-in classmate and checks them out by mistake. Typing a name
+  // still finds everyone — that's how a checked-in student checks out.
+  const browseStudents = useMemo(
+    () => (hideCheckedIn ? allStudents.filter(s => !activeCheckins.has(s.id)) : allStudents),
+    [hideCheckedIn, allStudents, activeCheckins]
+  )
+
   const displayedStudents = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return allStudents
+    if (!q) return browseStudents
     return allStudents.filter(
       s =>
         s.first_name.toLowerCase().includes(q) ||
         s.last_name.toLowerCase().includes(q)
     )
-  }, [query, allStudents])
+  }, [query, allStudents, browseStudents])
 
   useEffect(() => {
     if (state.step !== 'success') return
@@ -284,11 +301,20 @@ export function KioskClient({
       )}
 
       <div className="w-full max-w-sm flex flex-col gap-4">
-        <p className="text-base font-semibold text-[#1a1209]">
-          {query.trim()
-            ? `${displayedStudents.length} result${displayedStudents.length !== 1 ? 's' : ''} for "${query.trim()}"`
-            : `All students · ${allStudents.length}`}
-        </p>
+        {/* The count can be turned off in the owner's settings; search
+            results still say how many matched. */}
+        {(query.trim() || showCount) && (
+          <p className="text-base font-semibold text-[#1a1209]">
+            {query.trim()
+              ? `${displayedStudents.length} result${displayedStudents.length !== 1 ? 's' : ''} for "${query.trim()}"`
+              : hideCheckedIn
+                ? `Not checked in · ${browseStudents.length}`
+                : `All students · ${allStudents.length}`}
+          </p>
+        )}
+        {hideCheckedIn && !query.trim() && (
+          <p className={`text-sm text-[#9A8F7E] ${showCount ? '-mt-3' : ''}`}>Checking out? Search your name.</p>
+        )}
 
         {/* Search bar */}
         <div className="relative">
@@ -322,6 +348,11 @@ export function KioskClient({
                 <>
                   <p>No students found for &ldquo;<span className="text-[#1a1209]">{query}</span>&rdquo;</p>
                   <p className="text-sm mt-1">Try a different spelling or ask a staff member.</p>
+                </>
+              ) : allStudents.length > 0 ? (
+                <>
+                  <p>Everyone is checked in.</p>
+                  <p className="text-sm mt-1">Checking out? Search your name above.</p>
                 </>
               ) : (
                 <p>No students registered at this location yet.</p>

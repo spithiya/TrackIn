@@ -40,16 +40,25 @@ export type Database = {
           id: string
           name: string
           created_at: string
+          kiosk_hide_checked_in: boolean
+          live_show_contact_phone: boolean
+          kiosk_show_student_count: boolean
         }
         Insert: {
           id?: string
           name: string
           created_at?: string
+          kiosk_hide_checked_in?: boolean
+          live_show_contact_phone?: boolean
+          kiosk_show_student_count?: boolean
         }
         Update: {
           id?: string
           name?: string
           created_at?: string
+          kiosk_hide_checked_in?: boolean
+          live_show_contact_phone?: boolean
+          kiosk_show_student_count?: boolean
         }
         Relationships: []
       }
