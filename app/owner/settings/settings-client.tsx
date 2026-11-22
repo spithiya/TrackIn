@@ -305,6 +305,13 @@ export function SettingsClient({
                   onChange={v => savePref('kiosk_show_student_count', v)}
                   disabled={savingPref === 'kiosk_show_student_count'}
                 />
+                <ToggleRow
+                  label="Allow live display on the kiosk"
+                  description="Adds a button to the kiosk's header that opens the live display in its own tab."
+                  checked={prefs.kiosk_live_display_enabled}
+                  onChange={v => savePref('kiosk_live_display_enabled', v)}
+                  disabled={savingPref === 'kiosk_live_display_enabled'}
+                />
               </CardContent>
             </Card>
 

@@ -43,6 +43,7 @@ export type Database = {
           kiosk_hide_checked_in: boolean
           live_show_contact_phone: boolean
           kiosk_show_student_count: boolean
+          kiosk_live_display_enabled: boolean
         }
         Insert: {
           id?: string
@@ -51,6 +52,7 @@ export type Database = {
           kiosk_hide_checked_in?: boolean
           live_show_contact_phone?: boolean
           kiosk_show_student_count?: boolean
+          kiosk_live_display_enabled?: boolean
         }
         Update: {
           id?: string
@@ -59,6 +61,7 @@ export type Database = {
           kiosk_hide_checked_in?: boolean
           live_show_contact_phone?: boolean
           kiosk_show_student_count?: boolean
+          kiosk_live_display_enabled?: boolean
         }
         Relationships: []
       }

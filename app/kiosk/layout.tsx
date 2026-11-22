@@ -1,9 +1,12 @@
 import { requireKioskSession } from '@/lib/kiosk'
 import { Clock } from './clock'
 import { KioskSignOutButton } from './sign-out-button'
+import { KioskViewSwitch } from './view-switch'
+import { getOrgDisplaySettings } from '@/lib/org-settings'
 
 export default async function KioskLayout({ children }: { children: React.ReactNode }) {
-  await requireKioskSession()
+  const ctx = await requireKioskSession()
+  const settings = await getOrgDisplaySettings(ctx.orgId)
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F8FA]">
@@ -12,7 +15,10 @@ export default async function KioskLayout({ children }: { children: React.ReactN
           <KioskSignOutButton />
           <span className="text-xl font-bold text-white">TrackIn</span>
         </div>
-        <Clock />
+        <div className="flex items-center gap-5">
+          {settings.kiosk_live_display_enabled && <KioskViewSwitch />}
+          <Clock />
+        </div>
       </header>
       <main className="flex-1 flex flex-col">{children}</main>
       <footer className="py-3 text-center text-xs text-[#2D2D3A]/40">
